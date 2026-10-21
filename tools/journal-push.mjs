@@ -21,11 +21,18 @@ function env() {
 const { DISCORD_WEBHOOK_URL: webhook, PRENOM: prenom = 'inconnu' } = env();
 if (!webhook) { console.error('DISCORD_WEBHOOK_URL manquant dans .env (voir .env.example).'); process.exit(1); }
 
-async function poster(texte) {
+const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
+async function poster(texte, essai = 0) {
   try {
     const r = await fetch(webhook, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ content: texte.slice(0, 1900), username: prenom }) });
+    if (r.status === 429 && essai < 3) { // Discord limite le débit : on attend ce qu'il demande, puis on réessaie.
+      const { retry_after = 1 } = await r.json().catch(() => ({}));
+      await dormir(retry_after * 1000 + 200);
+      return poster(texte, essai + 1);
+    }
     if (!r.ok) console.error('Discord a refusé :', r.status, await r.text());
   } catch (e) { console.error('Discord injoignable :', e.message); }
+  await dormir(500); // jamais plus de 2 messages par seconde
 }
 
 const fichiers = () => { const d = join(dir, 'journal'); if (!existsSync(d)) return []; return readdirSync(d).filter((f) => f.endsWith(`-${hostname()}.jsonl`)).map((f) => join(d, f)); };
@@ -40,6 +47,27 @@ const duree = (a, b) => { const m = Math.round((new Date(b) - new Date(a)) / 600
 const nomAgent = (id) => noms.get(id)?.nom || `sous-agent ${id}`;
 const modele = (id) => noms.get(id)?.modele ? ` (${noms.get(id).modele})` : '';
 
+// Traduit un appel d'outil en une phrase française.
+function phrase(outil, cible) {
+  const c = cible || '';
+  switch (outil) {
+    case 'Read': return `lit le fichier ${c}`;
+    case 'Edit': return `modifie le fichier ${c}`;
+    case 'Write': case 'NotebookEdit': return `écrit le fichier ${c}`;
+    case 'Bash': case 'PowerShell': return `lance une commande : ${c}`;
+    case 'Agent': return `lance un sous-agent « ${c} »`;
+    case 'Skill': return `applique le skill ${c}`;
+    case 'Grep': case 'Glob': return `cherche « ${c} » dans le code`;
+    case 'WebFetch': return `lit la page ${c}`;
+    case 'WebSearch': return `cherche sur le web « ${c} »`;
+    case 'SendMessage': return `envoie un ${c}`;
+    case 'ToolSearch': return `charge un outil`;
+    case 'AskUserQuestion': return `pose une question à l’humain`;
+    default: return outil ? `utilise l’outil ${c || outil}` : 'rien encore';
+  }
+}
+const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? 's' : ''}`;
+
 function traiter(l) {
   const s = sessions.get(l.session) || { nom: l.nomSession || l.session, lot: l.lot, t: l.t, actions: 0, derniere: '', agents: new Map() };
   s.nom = l.nomSession || s.nom; s.lot = l.lot; s.t = l.t;
@@ -49,15 +77,15 @@ function traiter(l) {
   if (l.evt === 'PostToolUse' && l.outil === 'Agent' && l.agentLance) noms.set(l.agentLance, { nom: l.nomAgent, modele: l.modele });
 
   if (l.agent === 'principal') {
-    if (l.evt === 'PostToolUse') { s.actions++; s.derniere = `${l.outil} ${l.cible || ''}`.trim(); }
-    if (l.evt === 'Stop' && l.point) immediats.push(`🗒️ ${tete}\n> ${l.point.slice(0, 300).replace(/\n/g, '\n> ')}`);
-    if (l.evt === 'VerifRouge') immediats.push(`🔴 ${tete} · vérification rouge\n\`\`\`\n${(l.cible || '').slice(0, 800)}\n\`\`\``);
+    if (l.evt === 'PostToolUse') { s.actions++; s.derniere = phrase(l.outil, l.cible); }
+    if (l.evt === 'Stop' && l.point) immediats.push(`🗒️ ${tete} fait le point :\n> ${l.point.slice(0, 300).replace(/\n/g, '\n> ')}`);
+    if (l.evt === 'VerifRouge') immediats.push(`🔴 ${tete} : la vérification est rouge, l’agent doit corriger avant de conclure.\n\`\`\`\n${(l.cible || '').slice(0, 800)}\n\`\`\``);
   } else {
     const a = s.agents.get(l.agent) || { debut: l.t, t: l.t, actions: 0, derniere: '', fini: false };
     a.t = l.t;
-    if (l.evt === 'SubagentStart') { a.debut = l.t; immediats.push(`▶️ ${tete} lance « ${nomAgent(l.agent)} »${modele(l.agent)}`); }
-    if (l.evt === 'PostToolUse') { a.actions++; a.derniere = `${l.outil} ${l.cible || ''}`.trim(); }
-    if (l.evt === 'SubagentStop') { a.fini = true; immediats.push(`✅ ${tete} · « ${nomAgent(l.agent)} » terminé en ${duree(a.debut, l.t)}, ${a.actions} actions\n> ${(l.cible || '').slice(0, 200)}`); }
+    if (l.evt === 'SubagentStart') { a.debut = l.t; immediats.push(`▶️ ${tete} lance un sous-agent${modele(l.agent)} : « ${nomAgent(l.agent)} ».`); }
+    if (l.evt === 'PostToolUse') { a.actions++; a.derniere = phrase(l.outil, l.cible); }
+    if (l.evt === 'SubagentStop') { a.fini = true; immediats.push(`✅ ${tete} : le sous-agent « ${nomAgent(l.agent)} » a terminé en ${duree(a.debut, l.t)} (${pluriel(a.actions, 'action')}). Il dit :\n> ${(l.cible || '').slice(0, 200)}`); }
     s.agents.set(l.agent, a);
   }
   sessions.set(l.session, s); bouge = true;
@@ -86,12 +114,12 @@ async function passage() {
     if (Date.now() - new Date(s.t) > OUBLI) continue;
     const vivants = [...s.agents.entries()].filter(([, a]) => !a.fini && Date.now() - new Date(a.t) < OUBLI);
     if (!vivants.length && s.actions === 0) continue;
-    const silence = (t) => (Date.now() - new Date(t) > SILENCE ? ' ⚠️ silencieux' : '');
-    const lignes = [`**${s.nom}** \`${s.lot}\` · ${s.actions} actions · ${s.derniere || '—'} (${depuis(s.t)})${vivants.length ? '' : silence(s.t)}`];
-    for (const [id, a] of vivants) lignes.push(`    ↳ ${nomAgent(id)}${modele(id)} · ${a.actions} actions · ${a.derniere || 'démarre'} (${depuis(a.t)})${silence(a.t)}`);
+    const silence = (t) => (Date.now() - new Date(t) > SILENCE ? ` ⚠️ plus rien depuis ${mins(t)} min` : '');
+    const lignes = [`**${s.nom}** (lot \`${s.lot}\`) ${s.derniere ? `${s.derniere} ${depuis(s.t)}` : 'n’a rien fait encore'}, ${pluriel(s.actions, 'action')} au total.${vivants.length ? '' : silence(s.t)}`];
+    for (const [id, a] of vivants) lignes.push(`    ↳ son sous-agent « ${nomAgent(id)} »${modele(id)} ${a.derniere ? `${a.derniere} ${depuis(a.t)}` : 'démarre'}, ${pluriel(a.actions, 'action')}.${silence(a.t)}`);
     blocs.push(lignes.join('\n'));
   }
-  if (blocs.length) await poster(`📡 **${prenom}** · ${new Date().toTimeString().slice(0, 5)}\n${blocs.join('\n')}`);
+  if (blocs.length) await poster(`📡 **${prenom}** · ${new Date().toTimeString().slice(0, 5)} · ce que font mes agents\n${blocs.join('\n')}`);
 }
 
 if (uneFois) { await passage(); console.log('Passage unique terminé.'); process.exit(0); }
