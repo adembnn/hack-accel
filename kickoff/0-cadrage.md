@@ -19,3 +19,8 @@
 6. Pas d'utilisateur nommable : on ne sait pas qui appeler demain soir pour lui montrer.
 7. Interdits d'office : chatbot, dashboard, « plateforme qui aide X », assistant généraliste, extension qui alerte, garde-fou d'agents IA.
 8. Interdits propres à ce hack : outil pour développeurs ou pour agents IA (le sujet le plus typique d'un hack d'agents) ; « chat avec tes données » ; RAG sur documents d'entreprise ; agent personnel (mémoire, santé, podcasts).
+
+## Filtres ajoutés par Adem (21 oct., soir, après la salve 2)
+9. **Réalisable demain sans rien installer** : la donnée existe déjà et s'obtient par API ou fichier à 9h. Pas de caméra à poser, pas de capteur, pas de tournage par l'équipe, pas de flotte jouée par nous.
+10. **Effet wow réel** : un moment de la démo que le jury raconte le soir même (échelle, vitesse, ou une pièce qu'un humain met des semaines à produire, faite devant lui).
+11. **Commercialisable à l'échelle d'un fonds** : Accel investit. Il faut un client qui paie déjà ce travail (un salaire, un prestataire, une ligne de budget), un prix, un nombre de clients en Europe, et une donnée qui s'accumule et rend la copie difficile.

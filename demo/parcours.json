@@ -1,0 +1,12 @@
+{
+  "_": "Parcours joué par tools/capture.mjs. Une étape = un numéro de demo/SCRIPT.md, un nom, des actions (goto, click, fill, attendre, pause, api). Le lot indique quel ticket la fait passer ; l'état du build s'en sert.",
+  "url": "http://localhost:3000",
+  "etapes": [
+    { "n": 1, "nom": "accueil", "lot": "", "actions": [ { "goto": "/" }, { "attendre": "main" } ] },
+    { "n": 2, "nom": "donnee-qui-arrive", "lot": "", "actions": [ { "goto": "/" }, { "attendre": "[data-etape='2']" } ] },
+    { "n": 3, "nom": "agent-agit", "lot": "", "actions": [ { "click": "[data-action='lancer']" }, { "attendre": "[data-etape='3']", "timeout": 60000 } ] },
+    { "n": 4, "nom": "le-jury-agit", "lot": "", "actions": [ { "fill": { "selector": "[data-entree='jury']", "texte": "exemple" } }, { "click": "[data-action='envoyer']" }, { "attendre": "[data-etape='4']", "timeout": 60000 } ] },
+    { "n": 5, "nom": "resultat-source", "lot": "", "actions": [ { "attendre": "[data-etape='5']" } ] },
+    { "n": 6, "nom": "route-utilisateurs", "lot": "", "actions": [ { "goto": "/suite" } ] }
+  ]
+}

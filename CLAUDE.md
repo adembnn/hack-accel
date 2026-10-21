@@ -45,3 +45,4 @@ GitHub Issues du dépôt, via `gh`. Voir `docs/agents/issue-tracker.md`.
 Contexte unique : `GLOSSARY.md` à la racine et `docs/adr/`. Voir `docs/agents/domain.md`.
 ### Standards de code
 `CODING_STANDARDS.md`, lu par la revue, pas par l'implémenteur.
+- Salve 2 jugée « pas trop mal » mais rejetée (Adem, 21 oct., soir) : pas réalisable sans installer du matériel, pas d'effet wow, pas assez commercialisable (« Accel c'est un fonds d'investissement »). Trois filtres ajoutés à la carte de rejet (points 9 à 11 de `kickoff/0-cadrage.md`). Salve 3 lancée avec ces filtres.
