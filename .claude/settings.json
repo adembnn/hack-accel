@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)", "Bash(npm install *)", "Bash(npm i *)", "Bash(npx *)", "Bash(node tools/*)", "Bash(node .claude/hooks/*)",
+      "Bash(git status *)", "Bash(git add *)", "Bash(git commit *)", "Bash(git pull *)", "Bash(git fetch *)", "Bash(git log *)", "Bash(git diff *)", "Bash(git branch *)", "Bash(git checkout *)", "Bash(git switch *)", "Bash(git merge *)",
+      "Bash(gh issue *)", "Bash(gh pr *)",
+      "PowerShell(npm run *)", "PowerShell(npm install *)", "PowerShell(npx *)", "PowerShell(node tools/*)", "PowerShell(git status *)", "PowerShell(git add *)", "PowerShell(git commit *)", "PowerShell(git log *)", "PowerShell(git diff *)", "PowerShell(gh issue *)", "PowerShell(gh pr *)"
+    ],
+    "ask": ["Bash(git push *)", "Bash(git reset *)", "Bash(rm -rf *)", "PowerShell(git push *)", "PowerShell(git reset *)", "PowerShell(Remove-Item -Recurse *)"],
+    "deny": ["Read(./.env)", "Read(./.env.*)", "Bash(git push --force *)", "PowerShell(git push --force *)"]
+  },
+  "hooks": {
+    "PostToolUse": [
+      { "matcher": "", "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/journal.mjs\"", "timeout": 10 } ] }
+    ],
+    "SubagentStart": [
+      { "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/journal.mjs\"", "timeout": 10 } ] }
+    ],
+    "SubagentStop": [
+      { "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/journal.mjs\"", "timeout": 10 } ] }
+    ],
+    "Stop": [
+      { "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/journal.mjs\"", "timeout": 10 } ] }
+    ]
+  }
+}
