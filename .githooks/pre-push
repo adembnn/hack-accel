@@ -1,0 +1,15 @@
+#!/bin/sh
+# Crochet git : avant de pousser, la vérification du projet doit être verte, et jamais de push forcé sur main.
+while read local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main)
+      if [ -n "$remote_sha" ] && [ "$remote_sha" != "0000000000000000000000000000000000000000" ] && ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
+        echo "pre-push : ce push réécrirait main (historique divergent). Interdit." >&2
+        exit 1
+      fi;;
+  esac
+done
+if [ -f tools/verif.mjs ]; then
+  node tools/verif.mjs || { echo "pre-push : vérification rouge, corrige avant de pousser." >&2; exit 1; }
+fi
+exit 0

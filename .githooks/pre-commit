@@ -1,0 +1,12 @@
+#!/bin/sh
+# Crochet git (pour tout le monde, avec ou sans Claude Code) : jamais de .env dans un commit, jamais de code hors d'une branche lot/.
+if git diff --cached --name-only | grep -E '(^|/)\.env($|\.)' | grep -v '\.example$' >/dev/null; then
+  echo "pre-commit : un fichier .env est dans le commit. Retire-le : git restore --staged .env" >&2
+  exit 1
+fi
+branche=$(git branch --show-current)
+if [ "$branche" = "main" ] && git diff --cached --name-only | grep -E '^(src|app|lib|packages|api|web|server|agents)/' >/dev/null; then
+  echo "pre-commit : du code sur main. Tout passe par un ticket et une branche lot/<nom> (git switch -c lot/<nom>)." >&2
+  exit 1
+fi
+exit 0
