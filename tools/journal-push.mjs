@@ -126,13 +126,14 @@ async function passage() {
 // Une seule machine le publie : celle dont le .env contient ETAT_BUILD=1.
 const PERIODE_ETAT = 10 * 60_000;
 const publieEtat = env().ETAT_BUILD === '1';
+// Le fil détaillé (chaque sous-agent, chaque point) est coupé par défaut : Adem ne veut que l'état du build (21 oct.). JOURNAL_DISCORD=1 dans .env pour le rallumer.
+const detail = env().JOURNAL_DISCORD === '1';
 async function etat() {
   try { const { etatBuild } = await import('./etat-build.mjs'); await poster(etatBuild()); }
   catch (e) { console.error('État du build impossible :', e.message); }
 }
 
-if (uneFois) { await passage(); if (publieEtat) await etat(); console.log('Passage unique terminé.'); process.exit(0); }
-console.log(`Journal → Discord toutes les ${PERIODE / 1000} s${publieEtat ? ', état du build toutes les 10 min' : ''} (machine ${hostname()}, ${prenom}). Ctrl+C pour arrêter.`);
-await passage();
-setInterval(passage, PERIODE);
+if (uneFois) { if (detail) await passage(); if (publieEtat) await etat(); console.log('Passage unique terminé.'); process.exit(0); }
+console.log(`${detail ? `Journal → Discord toutes les ${PERIODE / 1000} s` : 'Journal détaillé : fichiers seulement'}${publieEtat ? ', état du build toutes les 10 min' : ''} (machine ${hostname()}, ${prenom}). Ctrl+C pour arrêter.`);
+if (detail) { await passage(); setInterval(passage, PERIODE); }
 if (publieEtat) { await etat(); setInterval(etat, PERIODE_ETAT); }
