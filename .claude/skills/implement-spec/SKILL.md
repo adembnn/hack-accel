@@ -48,3 +48,4 @@ Communication to and from subagents should be sparse. Communicate primarily thro
 - **Coutures** : les interfaces entre modules sont écrites dans le ticket avant le lancement ; un implementer ne les renégocie pas seul.
 - **Notes d'exploration** : dans `docs/notes/` du dépôt (pas hors dépôt), pour que les quatre machines les lisent.
 - **Français** : rapports, commentaires de tickets et messages de commit en français clair ; le code et ses identifiants en anglais.
+- **tdd** : seulement aux coutures nommées dans le ticket (fonctions d’interface), pas sur tout le ticket : en 7 h on teste ce qui porte la démo. Un implementer qui ne trouve pas de couture nommée construit sans test et le dit.

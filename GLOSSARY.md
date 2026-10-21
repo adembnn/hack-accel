@@ -8,7 +8,7 @@ Le vocabulaire commun des quatre orchestrateurs et de leurs sous-agents. Un mot,
 - **Ticket** : l'issue GitHub d'un lot. Pas « issue », pas « carte ».
 - **Frontière** : les tickets prêts dont tous les bloquants sont fusionnés. C'est là qu'un orchestrateur se sert.
 - **Orchestrateur** : la session Claude Code d'un coéquipier (Opus), qui prend des tickets et lance des sous-agents. Pas « agent principal ».
-- **Implémenteur** : sous-agent (Sonnet) qui construit un ticket dans son worktree. **Fusionneur** : sous-agent qui fusionne un lot vert dans la branche d'intégration.
+- **Implémenteur** : sous-agent (Sonnet) qui construit un ticket dans son worktree. **Fusionneur** : `tools/fusionner.mjs` (un lot vert dans `main`) ou, pendant `implement-spec`, le sous-agent qui fusionne un ticket vert dans la branche d’intégration.
 - **Vérification** : `node tools/verif.mjs` (lint, types, tests, build). **Verte** = passe, **rouge** = échoue. « Fini » n'existe pas sans vérification verte collée.
 - **Preuve** : la sortie de commande collée qui justifie un « ça marche ».
 - **Couture** : l'interface entre deux lots (fonction, table, événement, route), écrite dans le ticket avant de coder.

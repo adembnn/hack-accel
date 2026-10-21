@@ -1,4 +1,4 @@
-# Script de démo (3 minutes, 8 équipes passent à 16h)
+# Script de démo (3 minutes, 8 équipes passent)
 
 Le critère unique : chaque ticket sert une étape numérotée ci-dessous. Une tâche qui n'en sert aucune est coupée.
 Pour un jury qui ne connaît rien au sujet. Un moment où le jury agit. Un moment où l'on voit la donnée bouger dans Aiven.
@@ -16,7 +16,7 @@ Pour un jury qui ne connaît rien au sujet. Un moment où le jury agit. Un momen
 ## Plan B
 - Réseau coupé : `?demo=1` (graine fixe, réponses IA en cache, données déjà chargées).
 - Aiven indisponible : base locale en conteneur, même schéma, et on le dit.
-- Vidéo de secours : `demo/secours.mp4`, enregistrée à 15h30 depuis les captures.
+- Vidéo de secours : `demo/secours.mp4`, enregistrée avant la répétition, depuis les captures.
 
 ## Répétition
 Chronométrée, deux fois, avec `node tools/capture.mjs --demo` qui doit être tout vert avant.

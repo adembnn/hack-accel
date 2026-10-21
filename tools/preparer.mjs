@@ -22,7 +22,8 @@ try { if (process.platform !== 'win32') run('chmod +x .githooks/pre-commit .gith
 if (!existsSync(join(dir, '.env')) && existsSync(join(dir, '.env.example'))) {
   copyFileSync(join(dir, '.env.example'), join(dir, '.env'));
   notes.push('.env créé depuis .env.example : remplis-le dans ton éditeur (il vient de s’ouvrir), jamais dans le chat');
-  try { execSync(process.platform === 'win32' ? 'start "" "' + join(dir, '.env') + '"' : process.platform === 'darwin' ? 'open -e .env' : 'xdg-open .env', { cwd: dir, stdio: 'ignore', shell: true }); } catch {}
+  const ouvrir = process.platform === 'win32' ? ['code .env', 'notepad .env'] : process.platform === 'darwin' ? ['code .env', 'open -e .env'] : ['code .env', 'xdg-open .env'];
+  for (const c of ouvrir) { try { execSync(c, { cwd: dir, stdio: 'ignore', shell: true, timeout: 5000 }); break; } catch {} }
 }
 
 // 3) dépendances

@@ -9,6 +9,7 @@ import { execFileSync, execSync } from 'node:child_process';
 import { readFileSync, appendFileSync, mkdirSync, existsSync, writeFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { hostname } from 'node:os';
+import { pathToFileURL } from 'node:url';
 
 const dir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 let input = {};
@@ -28,12 +29,14 @@ function journal(evt, cible) {
 }
 
 // Commentaire sur le ticket du lot, sans shell (corps multi-ligne sûr sur Windows et Unix).
-function commenterTicket(texte) {
+async function commenterTicket(texte) {
   try {
     if (!/^lot\//.test(branche)) return;
-    const liste = JSON.parse(execFileSync('gh', ['issue', 'list', '--state', 'open', '--limit', '100', '--json', 'number,body'], { cwd: dir, encoding: 'utf8', stdio: 'pipe' }));
-    const t = liste.find((x) => (x.body || '').includes(`lot/${lot}`));
-    if (t) execFileSync('gh', ['issue', 'comment', String(t.number), '--body-file', '-'], { cwd: dir, input: texte, stdio: 'pipe' });
+    let chemin = join(dir, 'tools', 'lot.mjs');
+    if (!existsSync(chemin)) { try { chemin = join(git(['rev-parse', '--path-format=absolute', '--git-common-dir']), '..', 'tools', 'lot.mjs'); } catch {} }
+    const { trouverTicket } = await import(pathToFileURL(chemin).href);
+    const t = trouverTicket(lot, dir);
+    if (t?.numero) execFileSync('gh', ['issue', 'comment', String(t.numero), '--body-file', '-'], { cwd: dir, input: texte, stdio: 'pipe', timeout: 15000 });
   } catch {}
 }
 
@@ -76,12 +79,12 @@ if (codeTouche && existsSync(join(dir, 'tools', 'verif.mjs'))) {
   const log = sortie.trim().split('\n').slice(-25).join('\n');
   if (rouge) {
     journal('VerifRouge', log);
-    if (!existsSync(marqueRouge)) { commenterTicket(`🔴 vérification rouge (hook de fin de réponse) :\n\`\`\`\n${log.slice(-600)}\n\`\`\``); try { writeFileSync(marqueRouge, new Date().toISOString()); } catch {} }
+    if (!existsSync(marqueRouge)) { await commenterTicket(`🔴 vérification rouge (hook de fin de réponse) :\n\`\`\`\n${log.slice(-600)}\n\`\`\``); try { writeFileSync(marqueRouge, new Date().toISOString()); } catch {} }
     if (!relance) refus(`La vérification est rouge : corrige avant de conclure, puis relance node tools/verif.mjs et colle sa sortie.\n${log}`);
     process.stderr.write(`Toujours rouge après relance : dis-le à l’humain. Le rouge est dans l’état du build.\n${log}\n`);
   } else {
     journal('VerifVerte', log.split('\n').slice(-3).join(' · '));
-    if (existsSync(marqueRouge)) { commenterTicket('🟢 vérification verte à nouveau (hook de fin de réponse).'); try { unlinkSync(marqueRouge); } catch {} }
+    if (existsSync(marqueRouge)) { await commenterTicket('🟢 vérification verte à nouveau (hook de fin de réponse).'); try { unlinkSync(marqueRouge); } catch {} }
   }
 }
 
@@ -90,7 +93,8 @@ if (!relance) {
   const msg = dernierMessage();
   const sansCitations = msg.replace(/«[^»]*»/g, '').replace(/^>.*$/gm, '').replace(/```[\s\S]*?```/g, '');
   const affirme = /(?<![\p{L}'’])(c['’]est|est|sont|tout est|c['’]est bon,? )\s*(fini|finie|finis|terminé|terminée|terminés|testé|testée|testés|vérifié|vérifiée|vérifiés|en place|réglé|corrigé|déployé|fusionné|bon)(?![\p{L}])|(?<![\p{L}])(ça|cela|tout)\s+(marche|fonctionne|passe)(?![\p{L}])|(?<![\p{L}])(tests?|build|vérification|lint|typecheck)\s+(est|sont)\s+(verte?|vert|OK|bon)(?![\p{L}])|(?<![\p{L}])(tests?|build|vérification)\s+(passent|passe)(?![\p{L}])/iu;
-  const nie = /(?<![\p{L}])(pas|non|jamais|ne|n['’])\s+[^.]{0,20}(fini|terminé|testé|vérifié|marche|fonctionne|passe)/iu;
+  // La négation doit porter sur la même proposition : pas de « : », « , », « . » ou « ; » entre elle et le mot.
+  const nie = /(?<![\p{L}])(pas|non|jamais|ne|n['’])\s+[^.:,;]{0,14}(fini|terminé|testé|vérifié|marche|fonctionne|passe)/iu;
   const aPreuve = /```[\s\S]{15,}```/.test(msg) || /non vérifié/i.test(msg);
   if (msg && affirme.test(sansCitations) && !nie.test(sansCitations) && !aPreuve) {
     refus('Tu affirmes un résultat (« c’est fini », « ça marche », « est testé »…) sans coller la sortie de la commande qui le prouve. Relance la commande de vérification et colle sa sortie dans un bloc ``` ; sinon écris « non vérifié ».');

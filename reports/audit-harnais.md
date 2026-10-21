@@ -73,3 +73,52 @@ Coût mesuré : journal.mjs 277 ms par appel d'outil (node vide 86) · garde-fou
 1. Garde-fou et fusion : liste blanche inversée (défaut 1), racine git du worktree (défaut 2), contrôle des Dossiers dans `fusionner.mjs` sur le diff, plus `execFileSync` pour `gh` (défaut 4).
 2. Chaîne ticket : corps modèle dans la surcouche `to-tickets`, cache négatif supprimé, frontière filtrée par « Bloqué par » en un seul appel `gh` (défauts 3, 11, 12) ; sinon le premier ticket créé par un coéquipier bloque tout le code.
 3. Fin de réponse : `stop_hook_active` limité à la règle « preuve », regex Unicode réécrite, `verif.mjs` rouge sans script (défauts 5, 6, 7), puis le hook qui impose `model: sonnet` sur `Agent` (défaut 8).
+
+---
+
+# Deuxième passe (commit ecae81f, 21 oct. 2026)
+
+**Nouvelle note : 7/10** (avant : 5). Les trois verrous tiennent sur les cas réels testés. Il reste des contournements par Bash, une règle « preuve » trop indulgente avec « pas de souci », et la chaîne ticket n'a pas été exécutée de bout en bout (création de ticket et fusion interdites pendant l'audit).
+Méthode : `git clone` du commit dans `audit/repo2`, sans remote, faux `gh.exe` (tickets fictifs, journal d'appels, rien envoyé à GitHub), vrai `git worktree`. `fusionner.mjs` relu, pas lancé.
+GitHub mesuré ce soir (3 passes) : `gh issue list` 2,4 s / 1,1 s / 1,6 s, `git fetch` 3,3 s, `gh auth status` 0,8 s. Pas de 14 à 18 s au moment de ma mesure ; j'ai simulé 15 s par appel avec le faux gh.
+
+## Verdict, défaut par défaut
+1. Bash et liste blanche : **PARTIEL**. Sur main, `backend/`, `scripts/`, `index.ts`, `package.json` : [2] ; `cat > src/a.ts`, `echo >> backend/server.ts`, `tee`, `mkdir && echo > src/x/index.ts` : [2]. Passent encore [0] : `sed -i s/a/b/ src/a.ts` (le script s'intercale, `garde-fou.mjs:58`), `node -e writeFileSync`, `python -c open(..,'w')`, `git apply`, `npm install zod`, `> scripts/seed.sh` (extension absente de la liste).
+2. Worktrees : **CORRIGÉ**. Vrai worktree, principal sur main : `lot/ingestion src/ingest/a.ts` [0], `src/ecran/a.ts` [2] (n'autorise que `src/ingest/`), branche `feat/hors-lot` [2], dossier inexistant `newdir/deep/a.ts` [2].
+3. Corps de ticket : **CORRIGÉ** par lecture (`CORPS-TICKET.md`, `--label ready-for-agent --body-file -`). Non exécuté.
+4. `gh` sans shell : **CORRIGÉ**. Le faux gh a reçu le commentaire multi-ligne par `--body-file -`, blocs ``` intacts, rien exécuté. `fusionner.mjs` en `execFileSync` : lu, non lancé.
+5. Relance et commits : **PARTIEL**. `.env` indexé : [2] puis [2] à la 2e fin de réponse. Rouge : [2] puis [0] avec « Toujours rouge après relance » (voulu). Rouge commité à l'instant : [2] et commentaire posté. Rouge commité il y a plusieurs heures, arbre propre : [0] (fenêtre de 10 min, `fin-de-tour.mjs:67`).
+6. Regex « preuve » : **PARTIEL**. 20 phrases : 0 faux positif (avant 9), 1 faux négatif (« J'ai testé le parcours et il fonctionne »). Mais `nie` (`:93`) est trop large : « Pas de souci : c'est fini. » [0], « Il n'y a pas de bug, le lot est terminé. » [0], « Non, je ne triche pas : tout est testé. » [0].
+7. `verif.mjs` : **CORRIGÉ**. `package.json` sans script : exit 1 « une vérification vide n'est pas verte » ; test vert : exit 0 ; commande du ticket verte : `✅ lot ingestion` ; rouge : exit 1. Voir N4 et N6.
+8. Modèles : **PARTIEL**. Agent sans model [2], opus [2], fable [2], sonnet [0], haiku [0] ; surcouches `code-review` et `research` en place. Mais `model: "inherit"` [0] (N5), et `subagent_type: coupeur` sans `model` [2] alors que le fichier de l'agent déclare Sonnet.
+9. Crochets : **CORRIGÉ**. `git ls-files -s .githooks` : 100755 x2. Non testé sur macOS.
+10. Skills invocables : **CORRIGÉ**. `grep disable-model-invocation` : seuls `handoff` et `retro` le gardent.
+11. `debut-session` : **CORRIGÉ**. 1 appel gh (avant 5). #12 « attend #11 », frontière = #13 seul. Avec gh à 15 s : première ligne après 302 ms, fin après 15,5 s. Non vérifié : si le hook est tué, Claude Code garde-t-il ce qui est déjà sorti ?
+12. Cache négatif et préfixe : **PARTIEL**. Ticket absent : [2] et aucun fichier cache. `lot/api` ne retrouve plus `lot/api-gateway` dans `garde-fou.mjs:97`. Mais `verif.mjs:26`, `fusionner.mjs:23` et `fin-de-tour.mjs:35` font `includes("lot/<nom>")` : sur la branche `lot/ingest`, `verif.mjs` a lancé la commande du ticket `lot/ingestion` (« ❌ lot ingest a échoué »).
+13. Motifs : **PARTIEL**. Les 5 faux positifs sont partis (`gh pr create -f`, `--force-with-lease`, `git add src/config.env`, message de commit, `echo` qui cite une règle : tous [0]) ; `grep`, `sed`, `node -e`, `Select-String`, `cat < .env` : [2]. Restent [0] : `push --delete origin main` (`:42` exige `main` collé à `--delete`), `cp .env`, `python -c open('.env')`, `source .env`, `ReadAllText`, `sh -c '…--force…'`, `git -C . push --force`, et `git push origin main` direct (`git push *` est passé en `allow`, `settings.json:5`).
+14. Verrous : **PARTIEL**. Avec `user.name=Titouan` : Write sur `tools/verif.mjs`, `.claude/hooks/garde-fou.mjs`, `.githooks/pre-push` [2], `echo x > tools/verif.mjs` [2]. Mais `sed -i … tools/verif.mjs` [0] et `git config user.name Adem` [0] : l'identité est un réglage git modifiable (`garde-fou.mjs:79,111`).
+15. `fusionner.mjs` : **CORRIGÉ** par lecture : bloquants, Dossiers sur `origin/main...HEAD`, 3 essais de push avec retour sur le lot, `execFileSync`. Critères non cochés : simple avertissement ; GitHub injoignable : fusion sans contrôle de ticket (`:24`). Non exécuté.
+16. Capture : **PARTIEL**. `domcontentloaded` et filtre favicon/tiers en place. `preparer.mjs` n'installe toujours pas Playwright (aucune occurrence) ; `capture.mjs:19` sort toujours en 0 sans lui.
+17. Skills d'Adem : **PARTIEL**. `creatif-anti-slop` copié ; `kickoff-projet` (`CLAUDE.md:17`) reste dans ton `~/.claude`.
+18. `journal-push` : **CORRIGÉ** dans `LISEZMOI.md:32` (une machine, `ETAT_BUILD=1`). Reste à lancer à la main.
+19. Références fantômes : **PARTIEL**. `/setup-matt-pocock-skills` retiré de 3 endroits ; restent `/to-spec` (`implement-spec/SKILL.md:3`), `/setup-matt-pocock-skills` (`to-tickets/SKILL.md:59`), `/triage` et `/wayfinder` (`issue-tracker.md:19,39,54`).
+20. Contradictions : **NON**. `CLAUDE.md:36` contre `implement-spec/SKILL.md:28` (tdd) et `GLOSSARY.md:11` (fusionneur) inchangés ; 3 puces de décision orphelines (`CLAUDE.md:48-50`) sous « Standards de code ».
+21. Horaires : **NON**. `jury-simule.md:8` (« 16h30 »), `SCRIPT.md:1` et `:19`.
+22. Rapports et scripts : **NON**. `red-team-agents.md:11` écrit toujours dans `docs/notes/` ; `captures/*.mjs` toujours gitignorés.
+23. Étiquettes : **PARTIEL**. La frontière exclut les tickets `in-progress`. Inchangés : `bloque` sans retrait de `in-progress` (`CLAUDE.md:39`), `to-tickets:116` sans `bloque`.
+24. Coût : **PARTIEL**. `journal.mjs` 277 → 163 ms par appel, branche lue dans `.git/HEAD` (lot « ingest » correct), `.env` plus lu (`PRENOM=Zorglub` dans `.env`, `qui` reste `adembnn`). Inchangés : `parcours.json:2` (champ `lot` jamais lu), relance complète de `verif` à chaque fin de réponse sale.
+25. Tickets de test : **CORRIGÉ**. `gh issue list --state all` : #1 et #2 CLOSED.
+
+## Nouveaux défauts
+- N1 `garde-fou.mjs:104` et `fusionner.mjs:33-34` : un ticket avec Dossiers refuse `package.json`, `tsconfig.json`, `compose.yaml`, `tests/` (tous [2] sur `lot/ingestion`) : un lot ne peut ni ajouter une dépendance ni fusionner. Les mettre en liste libre, ou les déclarer dans les Dossiers.
+- N2 `garde-fou.mjs:58,71` : les chemins relatifs de Bash sont résolus depuis `CLAUDE_PROJECT_DIR`, pas depuis `input.cwd`, et le texte d'un heredoc ou d'un `echo` est lu comme une commande. Trois de mes commandes ont été refusées à tort « code sur main » (deux lancées depuis le scratchpad, une dont le texte citait `sed -i … src/a.ts`).
+- N3 `garde-fou.mjs:21` : `gh` sans `timeout`. Avec 15 s par appel : 15,4 s pour la première édition d'un lot (0,3 s ensuite, cache), sous la limite de 20 s ; à 21 s le hook est tué. Ajouter `timeout: 8000` et laisser passer en prévenant.
+- N4 `verif.mjs:22` lit `verification` dans `journal/lot-<nom>.json`, mais `garde-fou.mjs:101` n'y écrit jamais ce champ : un appel gh à chaque `verif` sur une branche lot, donc à chaque fin de réponse sale (plus un second pour le commentaire de ticket au premier rouge).
+- N5 `garde-fou.mjs:28-30` : `model: "inherit"` passe. Préférer une liste blanche `sonnet|haiku` à la liste noire `opus|fable`, et laisser passer un `subagent_type` dont le fichier déclare son modèle.
+- N6 `verif.mjs:27-28` : le modèle de ticket non rempli (`<commande propre au lot, optionnelle>`) est exécuté tel quel : rouge « La syntaxe de la commande n'est pas correcte ». Une seule commande de lot est lue : une 3e commande sur la ligne est ignorée, en vert.
+- N7 `preparer.mjs` : `start "" .env` ouvre l'application associée à `.env` ; sur Windows sans association, c'est la boîte « Ouvrir avec » (non observé directement ; la commande a bien été lancée sur ma copie). Remplacer par `code .env`, seulement si `code` existe.
+
+## Les 3 corrections à faire ensuite
+1. Un seul module `lot.mjs` (trouver le ticket par regex `lot/<nom>(?![\w-])`, Dossiers, Vérification, cache avec `timeout`) utilisé par garde-fou, verif, fusionner et fin-de-tour : règle N3, N4, N6 et le défaut 12.
+2. Fichiers partagés de lot (N1), `input.cwd` et heredocs (N2), puis `sed -i` avec script, `--delete origin main`, et `git push origin main` hors fusionneur.
+3. Règle « preuve » : `nie` limité à la même proposition (pas de franchissement de `:` ni `,`) ; puis les défauts 20, 21 et 22, de la prose qui coûte dix minutes.
