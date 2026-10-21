@@ -122,7 +122,17 @@ async function passage() {
   if (blocs.length) await poster(`📡 **${prenom}** · ${new Date().toTimeString().slice(0, 5)} · ce que font mes agents\n${blocs.join('\n')}`);
 }
 
-if (uneFois) { await passage(); console.log('Passage unique terminé.'); process.exit(0); }
-console.log(`Journal → Discord toutes les ${PERIODE / 1000} s (machine ${hostname()}, ${prenom}). Ctrl+C pour arrêter.`);
+// « État du build » toutes les 10 min, même si rien n'a bougé (c'est le but : voir si ça stagne).
+// Une seule machine le publie : celle dont le .env contient ETAT_BUILD=1.
+const PERIODE_ETAT = 10 * 60_000;
+const publieEtat = env().ETAT_BUILD === '1';
+async function etat() {
+  try { const { etatBuild } = await import('./etat-build.mjs'); await poster(etatBuild()); }
+  catch (e) { console.error('État du build impossible :', e.message); }
+}
+
+if (uneFois) { await passage(); if (publieEtat) await etat(); console.log('Passage unique terminé.'); process.exit(0); }
+console.log(`Journal → Discord toutes les ${PERIODE / 1000} s${publieEtat ? ', état du build toutes les 10 min' : ''} (machine ${hostname()}, ${prenom}). Ctrl+C pour arrêter.`);
 await passage();
 setInterval(passage, PERIODE);
+if (publieEtat) { await etat(); setInterval(etat, PERIODE_ETAT); }
