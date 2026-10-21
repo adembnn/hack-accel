@@ -1,104 +1,81 @@
-# 2. Idées (21 oct. 2026, soir)
+# 2. Idées, salve 2 (21 oct. 2026, soir)
 
-45 idées, six agents Sonnet en contexte neuf, un par angle, chacun n'ayant lu que `0-cadrage.md` et `1-terrain.md`. Sorties brutes et complètes dans `2-idees-brut/` (un fichier par angle). Ici : regroupement par famille, sans jugement. % = probabilité estimée qu'un autre LLM propose la même idée (estimation de l'agent, pas une mesure). Angles : A1 adopter-adapter-scaler, A2 inversion, A3 geste des communautés, A4 système ambitieux, A5 avantage injuste, A6 transfert.
+**Pourquoi une salve 2.** Adem a rejeté la salve 1 (45 idées sur données publiques de l'État) : trop administrative, trop petite, l'agent y faisait trop peu. Relance complète avec ses contraintes : flux mondial en direct, monde physique, donnée créée par l'usage ; un agent qui tient un vrai poste ; référence SiteSync (1er à Stockholm). Brief commun : `2-idees-brut/salve-2/0-brief-relance.md`. Podiums précédents : `terrain/5-gagnants-accel.md`. Salve 1 archivée dans `2-idees-brut/salve-1/`.
 
-**Lecture honnête de la liste.** Les 45 idées tiennent sur 8 sources ouvertes, toutes citées dans la fiche terrain. Les six agents ont convergé sur 8 familles sur 10 (survols, gels, rappels pro, Bluesky, BODACC × marchés, eau, DPE) : c'est l'effet de la fiche partagée, pas un signal de qualité. La variété est dans les mécaniques, pas dans les terrains. Si la liste paraît trop sage, on relance l'étape 2 entière avec une contrainte nouvelle (exemple : une donnée hors fiche, ou un utilisateur qui paie de sa poche), pas une retouche.
+**Méthode.** Six agents Sonnet, contexte neuf, un angle chacun, au plus 4 recherches web pour vérifier l'accès aux données. 45 idées. % = chance qu'un autre LLM propose l'idée (estimation de l'agent, pas une mesure). Sorties complètes dans `2-idees-brut/salve-2/`. `[?]` = accès aux données non vérifié.
 
-## Top 10 (sélection de la session, pas un classement d'agents)
+**Convergences (pas un signal de qualité).** Trois sujets sont sortis chez deux agents : clips de stream Twitch (25-30 %), radioamateur, routage de voilier. Ce sont les plus « attendus » de la liste.
 
-| # | Idée | % LLM | Cas qui la fonde | Famille |
+## Top 10 (sélection de la session)
+
+| # | Idée en une phrase | Le poste remplacé | Ce qu'on voit en démo | % |
 |---|---|---|---|---|
-| 1 | **Pharmacies appelées en parallèle** : l'agent téléphone à 8 officines voisines pour une boîte en tension, avec les équivalents tirés de la base publique des médicaments, et tient la carte des stocks réels par téléphone | 12 % | 12 h par semaine et par pharmacie (PGEU 2025, source primaire) ; stocks grossistes fermés | I |
-| 2 | **Rappels clos par téléphone** : à chaque rappel RappelConso, l'agent appelle les structures qui ont reçu le lot (banque alimentaire, épicerie solidaire) et tient le registre de clôture | 6 % | Œufs rappelés distribués par les Restos du cœur (Le Monde 2024) ; 304 rappels en 30 j | C |
-| 3 | **L'appel d'offres qui manque** : la base apprend le rythme de chaque acheteur public ; quand la fenêtre passe sans avis, l'agent cherche pourquoi dans les avenants et prolongations | 8 % | Veille BOAMP « chronophage » et saturée côté alertes ; DECP avec périodes manquantes | F |
-| 4 | **Chiffrage d'appel d'offres rétro-noté** : l'agent propose un prix d'offre à partir de marchés comparables, enregistre la prédiction, et se corrige seul quand l'attribution paraît | 15 % | Brief : « improving over time from past runs » ; aucun projet trouvé avec une vraie boucle d'amélioration | F |
-| 5 | **Sociétés phénix** : relier une société nouvelle ou attributaire d'un marché à une société liquidée (même adresse, dirigeant, activité) et trancher reprise légale ou recréation silencieuse | 9-12 % | 68 414 défaillances en 2025 ; 7,5 % des procédures sans SIREN, SIREN en deux écritures | E |
-| 6 | **Analyses d'eau jamais faites** : pour une commune, ce qui aurait dû être mesuré (20 PFAS depuis janvier 2026) et ne l'a pas été, avec le courrier à l'ARS | 10-12 % | 637 000 consommateurs en eau non conforme (IGF mai 2026) ; Hub'Eau ouvert | G |
-| 7 | **Pronostic daté de restriction d'eau** : l'agent publie avant l'arrêté préfectoral un pronostic horodaté (zone, niveau, fenêtre) et se note sur les arrêtés réels | 10 % | 10 arrêtés sécheresse en 3 mois en Loire-Atlantique ; Hub'Eau 5 min, VigiEau quotidien | G |
-| 8 | **Rappel suivi jusqu'à l'assiette** : pour une cuisine centrale, du rappel au lot, à la recette, aux écoles servies, avec le courrier aux parents ; variante « frères non rappelés » du même site de production | 15-22 % | Trou confirmé « rappels côté pro » ; RappelConso V2 avec code-barres, fiche du jour | C |
-| 9 | **Suppression puis repost corrigé** : Bluesky n'a pas de bouton modifier ; l'agent a gardé le post, repère la republication et dit ce qui a changé (chiffre, promesse) | 15 % | Suppressions observables sur Jetstream (2,2/s), sans texte ; AFP sans CrowdTangle depuis 2024 | D |
-| 10 | **Constat d'huissier pour le ciel** : chaque vol de couvre-feu à Orly devient un constat daté, pièces numérotées et chaînées par empreinte, exceptions écartées avec motif | 18 % | VITRAIL décalé de 30 min, 60 j d'historique ; relevé à la main par une association | A |
+| 1 | **Réalisateur de plateau** : des téléphones posés dans une salle, l'agent choisit quelle image passe à l'écran et souffle des consignes aux cadreurs | Réalisateur et mélangeur d'images d'une régie de captation | La salle du pitch filmée sous 4 angles, le jury voit l'agent choisir le plan pendant qu'un juré parle | 6 % |
+| 2 | **Repéreur de lieux de tournage** : l'agent regarde des milliers de webcams du monde et trouve le lieu qui a l'ambiance demandée, maintenant ou dans 48 h | Repéreur d'extérieurs qui voyage des jours | « Port, brume, lever du jour, personne » : un mur de 24 webcams se remplit et se trie | 7 % |
+| 3 | **Le quai qui chronomètre les camions** : la caméra du quai note l'heure réelle de chaque camion et l'agent conteste les heures d'attente facturées à tort | Chef de quai et contrôleur des factures de transport | Une facture « 3 h 10 d'attente » barrée par la vidéo : « attente réelle 24 min », lettre de contestation prête | 10 % |
+| 4 | **Le court de padel vide** : la caméra voit qu'un terrain réservé est vide, l'agent le revend à la liste d'attente, encaisse, et apprend qui ne vient jamais | L'accueil du club et le gestionnaire des prix | Terrain vide à 18 h 10, SMS envoyés, un juré paie le créneau en test, le terrain passe à « revendu » | 8 % |
+| 5 | **Vérificateur de records de jeux vidéo** : l'agent regarde la vidéo d'un record soumis, contrôle le chrono et les règles, et rend le verdict avec la minute suspecte | Modérateur bénévole des classements (files de plusieurs semaines) | Une vraie soumission du jour visionnée en accéléré, coupure entourée à 14:32, verdict rédigé | 7 % |
+| 6 | **Quelle route saler cette nuit** : l'agent lit les caméras de route et les capteurs de chaussée, choisit les tournées des camions de sel, puis vérifie sur la photo suivante | Chef d'astreinte hivernale réveillé à 3 h | Carte de Finlande couverte de photos de route annotées, six tournées tracées, verdict 10 min plus tard | 6 % |
+| 7 | **Médiateur baleines et cargos** : l'agent écoute des micros sous-marins, repère un chant, voit les cargos qui vont passer et demande à chacun de ralentir | Coordinateur de programme de ralentissement des navires | Un chant détecté, deux cargos s'allument, messages envoyés, leur vitesse baisse à l'écran | 4 % |
+| 8 | **Stratège de course de karting** : pendant une course d'endurance, l'agent dit quand rentrer au stand, quel pilote mettre et quel kart prendre | Stratège au muret des stands | Classement en direct, fin de course simulée 200 fois, une voix : « rentre dans 2 tours, prends le 9 » | 6 % |
+| 9 | **Régulateur de coursiers à la voix** : l'agent dirige des coursiers dans la rue par oreillette et réattribue les courses quand l'un est coincé | Régulateur d'une société de coursiers | Deux membres de l'équipe dehors en direct sur la carte, un juré passe commande, l'agent guide le coursier | 12 % |
+| 10 | **Gouvernante de locations courtes** : après le ménage, la personne filme l'appartement et l'agent dit ce qui cloche par rapport à la référence | Gouvernante ou contrôleur qualité d'une conciergerie | Un juré déplace trois objets dans la salle, on filme 20 s, l'agent entoure les trois écarts | 17 % |
 
-Candidats proches du top, sous 20 % : DPE refaits sans travaux (12 %, H), retraits sourcés sur Wikipédia (10 %, J), chronique datée d'un marché (10 %, F), partie double marchés × défaillances (17 %, E), fichier clients passé aux gels avec mesure de faux positifs (18 %, B).
+## Les 45 idées, par famille
 
-## Familles
+### A. Caméras qui pilotent un lieu (la famille SiteSync)
+- Réalisateur de plateau à quatre caméras (A5, 6 %).
+- Le quai qui chronomètre les camions (A2, 10 %).
+- Le court de padel vide (A2, 8 %).
+- Gouvernante de locations courtes, vidéo avant/après (A5, 17 %).
+- Gouvernante d'hôtel par photos (A6, 12 %).
+- Chef de passe sans mains, caméra sur le passe d'une cuisine (A6, 14 %).
+- Contrôleur de chargement de camion, caisses comptées sur la rampe (A6, 9 %).
+- Le sous-traitant qui n'est pas venu, caméra de chantier + appel vocal (A2, 30 %).
+- Directeur de course adjoint, ravitaillements d'un semi-marathon (A6, 11 %).
 
-### A. Survols nocturnes d'Orly et CDG (ADS-B) : 6 idées, 6 angles sur 6
-Donnée : adsb.lol / OpenSky, temps réel, sans clé. Briques : Kafka (positions), ClickHouse (trajectoires au-delà des 60 j officiels), Postgres (dossiers), Valkey (état courant par avion). Utilisateur : bénévole relevés d'une association de riverains (Portes de l'Essonne Environnement, AVEVY). Menace commune : point 3 (le couvre-feu est la nuit, il faut enregistrer une nuit avant la démo ; liste des dérogations non vérifiée `[?]`), point 2 (VITRAIL, Entract, Survol).
-- **A1, 15 %. Dossier de manquement** : trajectoires reconstruites, commune et altitude, exemptions écartées, page par manquement, dossier mensuel.
-- **A2, 25 %. Défense anticipée de la compagnie** : l'agent écarte d'avance ce que la compagnie plaidera (7700, vol d'État, déroutement) et garde la récidive par exploitant.
-- **A3, 40 %. Feuille partagée, une ligne par survol** : le bénévole coche confirmé/faux, ce qui règle la qualification.
-- **A4, 35 %. Dossier de saisine hebdomadaire** : lettre à l'autorité avec annexe par vol ; démo = nuit rejouée en accéléré.
-- **A5, 22 %. Procès-verbaux du matin** : Modal retraite l'historique la nuit pour arriver à 9h avec des semaines de traces ; comparaison aux 60 nuits précédentes.
-- **A6, 18 %. Constat d'huissier** : pièces P1 à Pn, empreinte SHA-256 chaînée, position et portée du récepteur indiquées.
+### B. Caméras de la rue et du monde, filmées ou publiques
+- Repéreur de lieux de tournage par webcams (A6, 7 %).
+- Quelle route saler cette nuit, caméras de route finlandaises vérifiées (A1, 6 %).
+- Prospecteur de chantiers pour loueurs de matériel, vidéos de rue (A5, 22 %).
+- Chasseur de locaux commerciaux, façades et passants (A5, 14 %).
+- Acheteur du marché pour chefs, prix lus sur les étals (A5, 9 %).
+- Le rayon qui cache ma marque, vidéos de rayons de supérettes (A2, 15 %).
+- Cartographe qui marche et filme, mise à jour d'OpenStreetMap (A3, 17 %).
 
-### B. Gel des avoirs pour assujettis hors banques : 5 idées, 5 angles
-Donnée : registre DG Trésor (JSON 14 Mo, publication du 20/10). Briques : OpenSearch (flou, translittération, alias), Postgres (journal en ajout seul), Kafka (diff entre publications). Utilisateur : responsable conformité d'une agence immobilière, d'un cabinet comptable, clerc de notaire, galeriste. Menace commune : point 6 (aucun témoignage d'assujetti trouvé `[?]`), point 4 (démo peu spectaculaire).
-- **A1, 30 %. Décision motivée par homonyme** : fiche de vérification horodatée, conservée même sans résultat.
-- **A2, 30 %. Preuve face au contrôleur** : « qu'avez-vous fait le 3 mars ? » ; journal chaîné.
-- **A4, 35 %. Diff en événements** : une nouvelle ligne au registre balaie 2 000 dossiers, un seul s'allume avec le raisonnement.
-- **A5, 18 %. Mesure de faux positifs** : Modal fabrique un million de noms synthétiques pour mesurer le taux de faux positifs avant le jury.
-- **A6, 22 %. Acte et mention en marge** : l'acte de contrôle n'est jamais réécrit, chaque publication ajoute une mention, comme l'état civil.
+### C. Le ciel, la mer, la météo (flux mondiaux en direct)
+- Médiateur baleines et cargos, micros sous-marins + positions de navires (A6, 4 %).
+- Où emmener le car ce soir, sorties aurores boréales (A1, 12 %).
+- Accueillir les jets d'affaires au Bourget (A1, 9 %).
+- Chef-pilote d'aéroclub, planning des vols selon la météo vérifiée (A4, 8 %).
+- Débrief de vol de parapente, boîte noire comparée aux autres pilotes (A6, 3 %).
+- Capitaine de port sans capitainerie, places de ponton attribuées (A6, 7 %).
+- État des lieux d'un bateau loué, caution décidée sur la trace (A2, 10 %).
+- Routeur de voilier de course (A1, 8 % ; A4, 12 %).
+- Directeur d'école de surf (A4, 12 %).
+- Copilote de chasse aux orages (A3, 10 %).
+- Enquêteur de boules de feu, trajectoire triangulée depuis des vidéos (A3, 3 %).
+- Écoute de la migration nocturne des oiseaux (A3, 7 %).
+- Radioamateur : opérateur de concours (A4, 2 %) et chasse aux pays (A3, 6 %).
+- Contrôleur aérien pour simulateurs de vol, à la voix (A3, 12 %).
 
-### C. Rappels de produits côté professionnel : 6 idées, 6 angles
-Donnée : RappelConso V2 (code-barres, fiche du jour), Open Food Facts, Alim'confiance. Briques : Kafka (rappels du jour), OpenSearch (libellés fournisseur en texte libre), Postgres (lots, sorties, registre). Utilisateur : responsable qualité d'une cuisine centrale, coordinateur d'épicerie solidaire (Andès), antenne de banque alimentaire. Menace commune : point 3 (stocks et bons de livraison privés, simulés en démo), point 7 si la démo s'arrête à l'alerte.
-- **A1, 20 %. Registre des retraits** : concerné / non concerné / à vérifier par site, table des correspondances validées que personne n'accumule.
-- **A2, 15 %. Les frères non rappelés** : le producteur déclare un périmètre étroit ; l'agent retrouve les produits du même site de production sous d'autres marques et croise l'historique d'inspection.
-- **A3, 15 %. Rappel arrivé après la distribution** : mémoire des sorties par foyer, liste des foyers à prévenir, colonne ajoutée dans la feuille d'inventaire.
-- **A4, 22 %. Jusqu'à l'assiette** : lot, recette, service, écoles ; démo = un bon de livraison vieux de neuf jours s'allume, 14 écoles se déplient.
-- **A5, 6 %. Rappels clos par téléphone** : l'agent appelle les structures (ElevenLabs), comprend « on en a distribué la moitié », relance, registre de clôture avec extrait d'enregistrement.
-- **A6, 12 %. Rappel rétroactif** : contrôle de tout ce qui est déjà parti, lecture des plages de lots et DLC en texte libre.
+### D. Jeux, sport, compétition en ligne
+- Vérificateur de records de speedrun, API vérifiée sans clé, raisons de rejet comme étiquettes (A2, 7 %).
+- Stratège de course de karting (A4, 6 %).
+- Arbitre de triche aux échecs en ligne (A2, 22 %).
+- Préparer l'adversaire aux échecs, fiche + clone (A1, 15 %).
+- Monteur ou clippeur de stream Twitch (A4, 25 % ; A3, 30 %).
+- Analyste vidéo de club de foot de district (A3, 35 %).
+- Ouvreur de salle d'escalade (A5, 3 %).
 
-### D. Posts supprimés sur Bluesky : 5 idées, 5 angles
-Donnée : Jetstream (temps réel, sans compte ; l'événement de suppression ne contient que des identifiants, il faut avoir stocké la création). Briques : Kafka (flux), Valkey (jointure création → suppression, dédoublonnage), ClickHouse (posts et réactions), OpenSearch (repost proche), Postgres (fiches). Utilisateur : journaliste de cellule de vérification (CheckNews, AFP Factuel). Menace commune : point 4 (peu d'élus français sur Bluesky, démo dépendante d'un rejeu), point 7 (dashboard + alerte), design responsable (comptes publics, rétention).
-- **A1, 25 %. Correction ou retrait** : distingue repost quasi identique et retrait après montée des réponses.
-- **A2, 15 %. Repost corrigé** : fiche avant/après, matérialité (chiffre, engagement, accusation) contre banalité.
-- **A3, 25 %. Fiche de suppression en feuille** : texte disparu, durée de vie, contexte, le journaliste marque « à creuser ».
-- **A4, 18 %. Reniement cité** : retrouve dans l'historique du compte les propos antérieurs que le post effacé contredisait.
-- **A6, 24 %. Revue au ralenti** : cascade minute par minute, rapprochée de l'événement GDELT de la même quinzaine de minutes.
+### E. Ville et opérations en direct
+- Régulateur de coursiers à la voix (A5, 12 %).
+- Régler les bus en direct à Oslo (A1, 14 %).
+- Régisseur général de festival à la voix (A4, 30 %).
+- Replanifier le tournage du jour (A1, 5 %).
+- Vérifier les vidéos d'un séisme, géolocalisation (A1, 25 %).
 
-### E. BODACC croisé avec les marchés publics : 6 idées, 6 angles
-Donnée : BODACC (51 M d'annonces, 4 890 le 21/10), DECP (Parquet 237 Mo), recherche-entreprises. Briques : Kafka (annonces du jour), ClickHouse (jointure sur 51 M), OpenSearch (flou sans SIREN), Postgres (portefeuille, échéances), Valkey (cache Sirene à 30 req/min). Menace commune : point 2 (Pappers, AlertBodacc, Altares, Provigis), point 1 (jointure par SIREN = SQL, l'agent ne se justifie que sur les cas sales et la rédaction).
-- **A1, 22 %. Créance à déclarer, délai calculé** : credit manager de PME, courrier au mandataire prérempli, date limite calculée depuis la publication.
-- **A2, 12 %. Sociétés phénix** : liquidation puis recréation à la même adresse ; tranche cession judiciaire / homonyme / recréation silencieuse ; marchés déjà gagnés par la nouvelle.
-- **A3, 9 %. Phénix dans les marchés** : même mécanique, dossier de rapprochement avec niveau de confiance, précédents accumulés.
-- **A4, 25 %. Titulaire qui coule, marché continue** : la commande publique d'une intercommunalité reçoit la note sur ses marchés en cours avec l'entreprise jugée, remplaçants possibles.
-- **A5, 15 %. Même idée côté acheteur public** : Modal rejoue de nuit 51 M d'annonces contre les DECP avec un modèle ouvert pour les 7,5 % sans SIREN.
-- **A6, 17 %. Partie double** : chaque marché (DECP) a sa contrepartie (situation du titulaire, BODACC) ; case rouge « contrepartie introuvable » avec les pièces.
-
-### F. Marchés publics seuls (BOAMP, TED, DECP) : 4 idées, 4 angles
-Briques : ClickHouse (DECP Parquet natif, calendrier par acheteur et CPV), OpenSearch (objets en texte libre, multilingue TED), Postgres (prédictions, chroniques), Kafka (avis d'attribution). Menace commune : point 2 (Klekoon, Marchey, WeWinBid côté veille ; Opentender côté indicateurs `[?]`), point 3 (DECP sans clé de jointure fiable, montants parfois des plafonds d'accord-cadre).
-- **A1, 10 %. Chronique datée d'un marché** : avis, rectificatifs, sans suite, attribution, avenants, sort du titulaire ; question écrite pour un élu d'opposition.
-- **A2, 22 %. Fractionnement** : marchés découpés pour passer sous un seuil ou signés sans avis ; note de signalement citant la ligne DECP et l'article de seuil.
-- **A4, 15 %. Chiffrage rétro-noté** : fourchette de prix par comparables, prédiction enregistrée, clôturée seule par l'avis d'attribution, biais corrigé par segment ; démo = rétro-test sur 30 marchés, le rideau se lève sur le prix réel.
-- **A6, 8 %. L'appel d'offres qui manque** : la vigie de phare, le feu éteint est l'information ; note de situation de l'acheteur (attendu, observé, explication par les avenants, prochaine fenêtre).
-
-### G. Eau potable et sécheresse (Hub'Eau, VigiEau) : 5 idées, 4 angles
-Briques : ClickHouse (séries par unité de distribution, historique aux mêmes dates), Kafka (mesures 5 min, résultats au fil de l'eau), Postgres (règles, courriers, pronostics), Valkey (état par zone). Utilisateur : secrétaire de mairie d'une commune de moins de 3 500 habitants, syndicat des eaux, syndicat d'irrigants, chambre d'agriculture. Menace commune : point 1 (attendu contre réalisé = SQL une fois les règles codées ; un seuil se passe de LLM), point 3 (population par unité et limite de quantification peut-être absentes de Hub'Eau `[?]`, arrêtés-cadres en PDF).
-- **A2, 10 %. Analyses qui n'ont pas eu lieu** : calendrier réglementaire contre publié, résultats « non quantifié » incapables de rien voir, courrier à l'ARS.
-- **A3, 12 %. Analyses jamais faites** : même mécanique, plus la date d'apparition de chaque résultat, donc le retard de publication devient une donnée.
-- **A4, 10 %. Arrêté sécheresse anticipé** : seuils extraits de l'arrêté-cadre, date de franchissement estimée, calendrier d'irrigation par scénario ; démo = rejeu de l'été 2026.
-- **A5, 15 %. Trente communes, trente notes** : Modal calcule la nuit toutes les unités sur 10 ans ; note de deux pages pour le conseil municipal ; mesure « sur 30 communes réelles » via les communes d'origine des camarades.
-- **A6, 10 %. Pronostic daté** : pré-enregistrement d'essai clinique et cote de bookmaker ; bulletin signé avant l'événement, relevé de comptes qui s'allonge.
-
-### H. Diagnostics de performance énergétique (DPE ADEME) : 5 idées, 5 angles
-Donnée : 15,8 M de lignes, sans clé. Briques : ClickHouse (jointure de la table sur elle-même par logement), OpenSearch (adresses mal saisies), Postgres (dossiers). Menace commune : point 1 (la détection est du SQL), point 3 (le DPE ouvert n'identifie peut-être pas le logement à la porte près `[?]`), aucune douleur chiffrée dans la fiche pour ce public.
-- **A1, 12 %. Contre-expertise par comparables** : gestionnaire locatif, champs qui divergent des voisins de même typologie, demande de nouveau diagnostic.
-- **A2, 12 %. Refaits jusqu'à la bonne lettre** : juriste d'ADIL, chronologie du logement, champs saisis qui ont bougé sans travaux.
-- **A3, 14 %. Permanence de locataires** : même mécanique, courrier de conciliation ou mise en demeure.
-- **A4, 12 %. Réseau d'agences** : contrôle avant publication d'annonce ; démo = scan visible des 15,8 M, 40 logements isolés.
-- **A5, 10 %. Le locataire tape son adresse** : les quatre sont locataires parisiens, 24 logements réels passés ce soir, un juré tape son adresse en direct.
-
-### I. Pharmacie et ruptures de médicaments : 2 idées, 2 angles
-Donnée : BDPM (base publique des médicaments, fichiers, `[?]` non testée), listes ANSM annuelles. Menace commune : point 1 (les substituts du même groupe générique = jointure SQL ; stocks fermés).
-- **A3, 35 %. Fiche de repli par rupture** : journal daté des changements de statut par diff quotidien, conduite à tenir ANSM, ce que le pharmacien peut faire seul contre ce qui exige un médecin.
-- **A5, 12 %. Pharmacies appelées en parallèle** : 8 appels simultanés (ElevenLabs), arrêt à la première confirmation, fiche de dépannage, carte des stocks réels par téléphone qui s'enrichit ; le téléphone remplace la donnée fermée.
-
-### J. Wikipédia : 1 idée, 1 angle
-- **A3, 10 %. Retraits sourcés** : patrouilleur de Wikipédia en français ; l'agent lit la différence entre versions, identifie la référence retirée, depuis combien de versions l'affirmation tenait, classe nettoyage / blanchiment probable / litige ; note pour la page de discussion. Menace : point 4 et route commerciale faible.
-
-## Questions posées par les agents (à trancher avec Adem avant l'étape 3)
-- Téléphonie sortante (familles C et I) : ElevenLabs exige un numéro (Twilio ou SIP `[?]`). Sinon appels dans le navigateur avec un membre qui joue le correspondant.
-- Appels à des tiers : seulement des volontaires prévenus.
-- Modèle pour l'extraction en masse (familles E et G) : modèle ouvert sur Modal (pas de facture) ou Haiku par l'API (payant, accord d'Adem requis).
-- Réseau de l'équipe : qui a un proche pharmacien, bénévole alimentaire, élu ou secrétaire de mairie, agent immobilier ou notaire, PME qui répond aux marchés ?
+## Accès aux données vérifiés par les agents (21 oct.)
+- **Vérifié** : caméras et capteurs de route Digitraffic (Finlande), METAR/TAF aviationweather.gov, API speedrun.com sans clé, API Lichess sans clé et archive de septembre (29 Go), chat Twitch en lecture anonyme, Global Meteor Network (CC BY 4.0), Orcasound (audio public, licence non commerciale).
+- **Clé gratuite** : Windy Webcams (50 par page, petites images), aisstream.io (navires, une connexion par clé), Mapillary (photos de rue).
+- **Non vérifié** `[?]` : adsb.lol, Open-Meteo, Entur sans clé, Jetstream, PSKReporter, Open Glider Network, live timing de karting.
