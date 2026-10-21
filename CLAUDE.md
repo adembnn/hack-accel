@@ -15,4 +15,5 @@ Faits et décisions propres à ce dépôt. À mettre à jour dans la minute qui 
 - Terrain : neuf. Ne pas repartir des terrains passés d'Adem (pêche, jeux Voodoo, conseil, Avalanche, ESSEC) (Adem, 21 oct. : « on veut du nouveau »).
 - Carte de rejet : voir `kickoff/0-cadrage.md`. Deux interdits propres à ce hack : « outil pour développeurs ou pour agents IA » et « chat avec tes données ».
 - Méthode : skill `kickoff-projet` (cadrage → terrain → divergence → creuser → crash-test jury → emballer). Pas de nom, pas de pitch, pas de code avant le choix du concept par Adem.
-- Défauts techniques retenus faute d'objection (à confirmer avant la première ligne de code) : TypeScript, Claude en API avec cache de réponses pour la démo, lots = branche + dossier + vérification bloquante, hook Stop qui bloque si le build casse et commit.
+- Défauts techniques retenus faute d'objection (à confirmer avant la première ligne de code) : TypeScript, Claude en API avec cache de réponses pour la démo, lots = branche + dossier + vérification bloquante, hook Stop qui bloque si le build casse. Pas de compte à rebours ni de rappel d'horaire dans le harnais (Adem, 21 oct.).
+- Harnais : construit avec Adem, pièce par pièce, pas délégué à un agent (Adem, 21 oct. : « on fait le harnais ensemble »).
