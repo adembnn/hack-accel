@@ -27,6 +27,16 @@ function journal(evt, cible) {
   } catch {}
 }
 
+// Poste un commentaire sur le ticket du lot courant (branche lot/<nom>), pour que l'état du build le voie depuis une autre machine.
+function commenterTicket(texte) {
+  try {
+    const branche = run('git branch --show-current').trim();
+    if (!/^lot\//.test(branche)) return;
+    const n = run(`gh issue list --state open --search "${branche} in:body" --json number -q ".[0].number"`).trim();
+    if (n) run(`gh issue comment ${n} --body "${texte.replace(/"/g, "'")}"`);
+  } catch {}
+}
+
 function dernierMessage() {
   try {
     const lignes = readFileSync(input.transcript_path, 'utf8').trim().split('\n');
@@ -56,9 +66,11 @@ if (codeTouche && existsSync(join(dir, 'tools', 'verif.mjs'))) {
     const sortie = run('node tools/verif.mjs');
     if (/❌/.test(sortie)) throw Object.assign(new Error('rouge'), { stdout: sortie });
     journal('VerifVerte', sortie.trim().split('\n').slice(-3).join(' · '));
+    if (existsSync(join(dir, 'journal', '.rouge'))) { commenterTicket('🟢 vérification verte à nouveau (hook de fin de réponse).'); try { run(process.platform === 'win32' ? 'del journal\\.rouge' : 'rm journal/.rouge'); } catch {} }
   } catch (e) {
     const log = `${e.stdout || ''}\n${e.stderr || ''}`.trim().split('\n').slice(-25).join('\n');
     journal('VerifRouge', log);
+    if (!existsSync(join(dir, 'journal', '.rouge'))) { commenterTicket(`🔴 vérification rouge (hook de fin de réponse) :\n\`\`\`\n${log.slice(-600)}\n\`\`\``); try { appendFileSync(join(dir, 'journal', '.rouge'), new Date().toISOString()); } catch {} }
     refus(`La vérification est rouge : corrige avant de conclure, puis relance node tools/verif.mjs et colle sa sortie.\n${log}`);
   }
 }
