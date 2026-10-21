@@ -20,7 +20,10 @@
       { "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/journal.mjs\"", "timeout": 10 } ] }
     ],
     "Stop": [
-      { "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/journal.mjs\"", "timeout": 10 } ] }
+      { "hooks": [
+        { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/journal.mjs\"", "timeout": 10 },
+        { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/fin-de-tour.mjs\"", "timeout": 300 }
+      ] }
     ]
   }
 }
