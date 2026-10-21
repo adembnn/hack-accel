@@ -1,39 +1,39 @@
 // Hook « Stop » : à chaque fin de réponse de Claude, avant qu'il puisse conclure.
-// 1) Si du code a changé et n'est pas vérifié : lance node tools/verif.mjs. Rouge → code 2 (Claude doit corriger),
-//    ligne « VerifRouge » dans le journal (l'état du build l'affiche). Vert → ligne « VerifVerte ».
-// 2) Preuve : une réponse qui annonce « fini », « ça marche », « testé »… sans bloc de sortie de commande est renvoyée (code 2).
-//    Finir la phrase par « ? » ne contourne pas la règle (faille de l'ancien preuve.py).
-// 3) Un .env indexé pour commit → code 2.
-// Une seule relance : si stop_hook_active est vrai, on laisse passer (pas de boucle infinie).
-import { execSync } from 'node:child_process';
-import { readFileSync, appendFileSync, mkdirSync, existsSync } from 'node:fs';
+// 1) .env indexé pour commit → code 2 (toujours, même en relance).
+// 2) Si du code a changé (arbre sale, ou commits depuis origin/main dans les 10 dernières minutes) : node tools/verif.mjs.
+//    Rouge → code 2 à la première relance ; à la seconde (stop_hook_active) on laisse passer mais le rouge est dans le journal
+//    et commenté sur le ticket, donc visible dans l'état du build. Vert → ligne « VerifVerte ».
+// 3) Preuve : une réponse qui affirme un résultat (« c'est fini », « ça marche », « est testé »…) sans bloc ``` est renvoyée,
+//    sauf si elle contient « non vérifié ». Pas de relance infinie : ignorée quand stop_hook_active.
+import { execFileSync, execSync } from 'node:child_process';
+import { readFileSync, appendFileSync, mkdirSync, existsSync, writeFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { hostname } from 'node:os';
 
 const dir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 let input = {};
 try { input = JSON.parse(readFileSync(0, 'utf8') || '{}'); } catch {}
-if (input.stop_hook_active) process.exit(0);
+const relance = Boolean(input.stop_hook_active);
 
-const run = (cmd) => execSync(cmd, { cwd: dir, stdio: 'pipe', encoding: 'utf8', shell: true });
+const git = (args) => execFileSync('git', args, { cwd: dir, encoding: 'utf8', stdio: 'pipe' }).trim();
 const refus = (msg) => { process.stderr.write(msg + '\n'); process.exit(2); };
+const branche = (() => { try { return git(['branch', '--show-current']); } catch { return ''; } })();
+const lot = branche.replace(/^lot\//, '') || 'main';
 
 function journal(evt, cible) {
   try {
     const d = join(dir, 'journal'); mkdirSync(d, { recursive: true });
-    let lot = 'main';
-    try { lot = run('git branch --show-current').trim().replace(/^lot\//, '') || 'main'; } catch {}
     appendFileSync(join(d, `${new Date().toLocaleDateString('sv-SE')}-${hostname()}.jsonl`), JSON.stringify({ t: new Date().toISOString(), machine: hostname(), session: String(input.session_id || '').slice(0, 8), agent: 'principal', lot, evt, cible }) + '\n');
   } catch {}
 }
 
-// Poste un commentaire sur le ticket du lot courant (branche lot/<nom>), pour que l'état du build le voie depuis une autre machine.
+// Commentaire sur le ticket du lot, sans shell (corps multi-ligne sûr sur Windows et Unix).
 function commenterTicket(texte) {
   try {
-    const branche = run('git branch --show-current').trim();
     if (!/^lot\//.test(branche)) return;
-    const n = run(`gh issue list --state open --search "${branche} in:body" --json number -q ".[0].number"`).trim();
-    if (n) run(`gh issue comment ${n} --body "${texte.replace(/"/g, "'")}"`);
+    const liste = JSON.parse(execFileSync('gh', ['issue', 'list', '--state', 'open', '--limit', '100', '--json', 'number,body'], { cwd: dir, encoding: 'utf8', stdio: 'pipe' }));
+    const t = liste.find((x) => (x.body || '').includes(`lot/${lot}`));
+    if (t) execFileSync('gh', ['issue', 'comment', String(t.number), '--body-file', '-'], { cwd: dir, input: texte, stdio: 'pipe' });
   } catch {}
 }
 
@@ -51,35 +51,49 @@ function dernierMessage() {
   return '';
 }
 
-// 3) .env indexé
+// 1) .env indexé
 try {
-  const indexes = run('git diff --cached --name-only').trim().split('\n').filter(Boolean);
+  const indexes = git(['diff', '--cached', '--name-only']).split('\n').filter(Boolean);
   if (indexes.some((f) => /(^|\/)\.env($|\.)/.test(f) && !f.endsWith('.example'))) refus('Un fichier .env est indexé pour commit : retire-le (git restore --staged .env). Il contient des clés.');
 } catch {}
 
-// 1) vérification si du code a changé
-let changements = [];
-try { changements = run('git status --porcelain').trim().split('\n').filter(Boolean); } catch {}
-const codeTouche = changements.some((l) => /\s(src\/|app\/|lib\/|tools\/|package\.json|tsconfig|vite\.config|next\.config|Containerfile|Dockerfile|compose)/.test(l));
-if (codeTouche && existsSync(join(dir, 'tools', 'verif.mjs'))) {
+// 2) vérification
+const CODE = /^(?!(\.claude|tools|docs|kickoff|reports|demo|journal|captures|\.github|\.githooks)\/)(?![^/]+\.md$)/;
+let touches = [];
+try { touches = git(['status', '--porcelain']).split('\n').filter(Boolean).map((l) => l.slice(3).trim()); } catch {}
+if (!touches.length) {
   try {
-    const sortie = run('node tools/verif.mjs');
-    if (/❌/.test(sortie)) throw Object.assign(new Error('rouge'), { stdout: sortie });
-    journal('VerifVerte', sortie.trim().split('\n').slice(-3).join(' · '));
-    if (existsSync(join(dir, 'journal', '.rouge'))) { commenterTicket('🟢 vérification verte à nouveau (hook de fin de réponse).'); try { run(process.platform === 'win32' ? 'del journal\\.rouge' : 'rm journal/.rouge'); } catch {} }
-  } catch (e) {
-    const log = `${e.stdout || ''}\n${e.stderr || ''}`.trim().split('\n').slice(-25).join('\n');
+    const dernier = Number(git(['log', '-1', '--format=%ct'])) * 1000;
+    if (Date.now() - dernier < 10 * 60_000) touches = git(['diff', '--name-only', 'origin/main...HEAD']).split('\n').filter(Boolean);
+  } catch {}
+}
+const codeTouche = touches.some((f) => CODE.test(f));
+const marqueRouge = join(dir, 'journal', '.rouge');
+if (codeTouche && existsSync(join(dir, 'tools', 'verif.mjs'))) {
+  let sortie = '', rouge = false;
+  try { sortie = execSync('node tools/verif.mjs', { cwd: dir, encoding: 'utf8', stdio: 'pipe', shell: true }); rouge = /❌/.test(sortie); }
+  catch (e) { sortie = `${e.stdout || ''}\n${e.stderr || ''}`; rouge = true; }
+  const log = sortie.trim().split('\n').slice(-25).join('\n');
+  if (rouge) {
     journal('VerifRouge', log);
-    if (!existsSync(join(dir, 'journal', '.rouge'))) { commenterTicket(`🔴 vérification rouge (hook de fin de réponse) :\n\`\`\`\n${log.slice(-600)}\n\`\`\``); try { appendFileSync(join(dir, 'journal', '.rouge'), new Date().toISOString()); } catch {} }
-    refus(`La vérification est rouge : corrige avant de conclure, puis relance node tools/verif.mjs et colle sa sortie.\n${log}`);
+    if (!existsSync(marqueRouge)) { commenterTicket(`🔴 vérification rouge (hook de fin de réponse) :\n\`\`\`\n${log.slice(-600)}\n\`\`\``); try { writeFileSync(marqueRouge, new Date().toISOString()); } catch {} }
+    if (!relance) refus(`La vérification est rouge : corrige avant de conclure, puis relance node tools/verif.mjs et colle sa sortie.\n${log}`);
+    process.stderr.write(`Toujours rouge après relance : dis-le à l’humain. Le rouge est dans l’état du build.\n${log}\n`);
+  } else {
+    journal('VerifVerte', log.split('\n').slice(-3).join(' · '));
+    if (existsSync(marqueRouge)) { commenterTicket('🟢 vérification verte à nouveau (hook de fin de réponse).'); try { unlinkSync(marqueRouge); } catch {} }
   }
 }
 
-// 2) preuve
-const msg = dernierMessage();
-const pretend = /(?<!pas |non |n'est pas |jamais )\b(c'est fini|fini[es]?\b|termin[ée]s?\b|ça marche|ça fonctionne|test[ée]s?\b|vérifi[ée]s?\b|tout passe|est en place)/i;
-const aPreuve = /```[\s\S]{20,}```/.test(msg) || /\b(sortie|output)\s*:/i.test(msg) && /\n\s{2,}\S/.test(msg);
-if (msg && pretend.test(msg) && !aPreuve) {
-  refus('Tu annonces un résultat (« fini », « ça marche », « testé »…) sans coller la sortie de la commande qui le prouve. Relance la commande de vérification et colle sa sortie dans un bloc ``` ; sinon écris « non vérifié ».');
+// 3) preuve
+if (!relance) {
+  const msg = dernierMessage();
+  const sansCitations = msg.replace(/«[^»]*»/g, '').replace(/^>.*$/gm, '').replace(/```[\s\S]*?```/g, '');
+  const affirme = /(?<![\p{L}'’])(c['’]est|est|sont|tout est|c['’]est bon,? )\s*(fini|finie|finis|terminé|terminée|terminés|testé|testée|testés|vérifié|vérifiée|vérifiés|en place|réglé|corrigé|déployé|fusionné|bon)(?![\p{L}])|(?<![\p{L}])(ça|cela|tout)\s+(marche|fonctionne|passe)(?![\p{L}])|(?<![\p{L}])(tests?|build|vérification|lint|typecheck)\s+(est|sont)\s+(verte?|vert|OK|bon)(?![\p{L}])|(?<![\p{L}])(tests?|build|vérification)\s+(passent|passe)(?![\p{L}])/iu;
+  const nie = /(?<![\p{L}])(pas|non|jamais|ne|n['’])\s+[^.]{0,20}(fini|terminé|testé|vérifié|marche|fonctionne|passe)/iu;
+  const aPreuve = /```[\s\S]{15,}```/.test(msg) || /non vérifié/i.test(msg);
+  if (msg && affirme.test(sansCitations) && !nie.test(sansCitations) && !aPreuve) {
+    refus('Tu affirmes un résultat (« c’est fini », « ça marche », « est testé »…) sans coller la sortie de la commande qui le prouve. Relance la commande de vérification et colle sa sortie dans un bloc ``` ; sinon écris « non vérifié ».');
+  }
 }
 process.exit(0);

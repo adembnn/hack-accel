@@ -1,14 +1,13 @@
 ---
 name: to-tickets
 description: Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker (edges as text in one file per ticket locally, or native blocking links on a real tracker).
-disable-model-invocation: true
 ---
 
 # To Tickets
 
 Break a plan, spec, or conversation into a set of **tickets**: tracer-bullet vertical slices, each declaring the tickets that **block** it.
 
-The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
+The issue tracker and triage label vocabulary should have been provided to you. It is GitHub Issues, conventions in `docs/agents/issue-tracker.md` (already configured).
 
 ## Process
 
@@ -115,3 +114,5 @@ Chaque ticket porte en plus, obligatoirement :
 - **Lot 0 d'abord** : le premier ticket est toujours le parcours réel de bout en bout (squelette déployé sur Aiven Runtime, base branchée, un vrai cas qui traverse tout). Tout le reste est bloqué par lui.
 - Le tracker est GitHub Issues du dépôt ; étiquettes `ready-for-agent`, `in-progress`, `done`. Un ticket est fermé par la fusion de sa branche dans `main`.
 - En français, titres compris.
+
+Le corps exact du ticket est dans `CORPS-TICKET.md` (même dossier) : utilise-le tel quel.

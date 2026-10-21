@@ -26,7 +26,8 @@ const rapport = { base, debut: new Date().toISOString(), etapes: [], erreurs: []
 
 const navigateur = await chromium.launch();
 const page = await navigateur.newPage({ viewport: { width: 1280, height: 800 } });
-page.on('console', (m) => { if (m.type() === 'error') rapport.erreurs.push({ etape: rapport.etapes.length, texte: m.text().slice(0, 300) }); });
+// Erreurs console retenues : celles du produit lui-même (pas favicon, pas les domaines tiers).
+page.on('console', (m) => { if (m.type() === 'error' && !/favicon|ERR_BLOCKED_BY_CLIENT|googletagmanager|analytics/i.test(m.text())) rapport.erreurs.push({ etape: rapport.etapes.length, texte: m.text().slice(0, 300) }); });
 page.on('pageerror', (e) => rapport.erreurs.push({ etape: rapport.etapes.length, texte: String(e.message).slice(0, 300) }));
 
 for (const [k, e] of parcours.etapes.entries()) {
@@ -35,7 +36,7 @@ for (const [k, e] of parcours.etapes.entries()) {
   const r = { n, nom: e.nom, ok: true };
   try {
     for (const a of e.actions || []) {
-      if (a.goto) await page.goto(base + a.goto + demo, { waitUntil: 'networkidle', timeout: a.timeout || 20000 });
+      if (a.goto) await page.goto(base + a.goto + demo, { waitUntil: 'domcontentloaded', timeout: a.timeout || 20000 }); // pas networkidle : un flux SSE/WebSocket ne se tait jamais
       if (a.click) await page.click(a.click, { timeout: a.timeout || 10000 });
       if (a.fill) await page.fill(a.fill.selector, a.fill.texte, { timeout: a.timeout || 10000 });
       if (a.attendre) await page.waitForSelector(a.attendre, { timeout: a.timeout || 30000 });

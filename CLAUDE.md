@@ -46,3 +46,6 @@ Contexte unique : `GLOSSARY.md` à la racine et `docs/adr/`. Voir `docs/agents/d
 ### Standards de code
 `CODING_STANDARDS.md`, lu par la revue, pas par l'implémenteur.
 - Salve 2 jugée « pas trop mal » mais rejetée (Adem, 21 oct., soir) : pas réalisable sans installer du matériel, pas d'effet wow, pas assez commercialisable (« Accel c'est un fonds d'investissement »). Trois filtres ajoutés à la carte de rejet (points 9 à 11 de `kickoff/0-cadrage.md`). Salve 3 lancée avec ces filtres.
+- Salve 3 rejetée (Adem, 21 oct., soir) : « de la paperasse ». Il veut « du réel ou des agents ». Trois salves sans choix : on revient au cadrage avec Adem avant toute nouvelle salve (règle du skill kickoff-projet).
+- Direction retenue (Adem, 21 oct., soir) : D, « l'agent négociateur » : un agent qui écrit ou téléphone à de vrais fournisseurs ou transporteurs, négocie un prix et se souvient de chaque échange. Adem : « ça je peux avoir la vision ». Ce n'est pas encore le concept : une salve resserrée dans cette direction, plus un état de l'art.
+- Direction retenue aussi (Adem, 21 oct., soir) : F, « le jumeau qui teste » : l'agent reconstitue un lieu réel (port, aéroport) à partir de ses flux en direct et essaie ses décisions avant de les prendre. Adem : « j'ai carrément la vision aussi ». Salve 4 resserrée sur D, F et leur fusion, plus un état de l'art par direction.

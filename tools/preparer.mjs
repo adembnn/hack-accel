@@ -15,10 +15,14 @@ try {
   if (run('git config core.hooksPath') !== '.githooks') { run('git config core.hooksPath .githooks'); notes.push('crochets git branchés (.githooks)'); }
 } catch { try { run('git config core.hooksPath .githooks'); notes.push('crochets git branchés (.githooks)'); } catch {} }
 
-// 2) .env
+// 1 bis) crochets exécutables (git ignore un crochet sans le bit x sur macOS et Linux)
+try { if (process.platform !== 'win32') run('chmod +x .githooks/pre-commit .githooks/pre-push'); } catch {}
+
+// 2) .env : créé depuis le modèle, puis ouvert dans l'éditeur pour que l'humain le remplisse (jamais dans le chat)
 if (!existsSync(join(dir, '.env')) && existsSync(join(dir, '.env.example'))) {
   copyFileSync(join(dir, '.env.example'), join(dir, '.env'));
-  notes.push('.env créé depuis .env.example : à remplir dans ton éditeur (jamais dans le chat)');
+  notes.push('.env créé depuis .env.example : remplis-le dans ton éditeur (il vient de s’ouvrir), jamais dans le chat');
+  try { execSync(process.platform === 'win32' ? 'start "" "' + join(dir, '.env') + '"' : process.platform === 'darwin' ? 'open -e .env' : 'xdg-open .env', { cwd: dir, stdio: 'ignore', shell: true }); } catch {}
 }
 
 // 3) dépendances

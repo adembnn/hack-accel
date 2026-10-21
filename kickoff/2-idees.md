@@ -1,81 +1,79 @@
-# 2. Idées, salve 2 (21 oct. 2026, soir)
+# 2. Idées, salve 3 (21 oct. 2026, soir)
 
-**Pourquoi une salve 2.** Adem a rejeté la salve 1 (45 idées sur données publiques de l'État) : trop administrative, trop petite, l'agent y faisait trop peu. Relance complète avec ses contraintes : flux mondial en direct, monde physique, donnée créée par l'usage ; un agent qui tient un vrai poste ; référence SiteSync (1er à Stockholm). Brief commun : `2-idees-brut/salve-2/0-brief-relance.md`. Podiums précédents : `terrain/5-gagnants-accel.md`. Salve 1 archivée dans `2-idees-brut/salve-1/`.
+**Pourquoi une salve 3.** La salve 2 (caméras et flux) était « pas trop mal » mais il fallait installer du matériel, il n'y avait pas d'effet wow, et les marchés étaient trop petits pour un fonds. Quatre filtres ajoutés au cadrage (`0-cadrage.md`, points 9 à 11) : rien à installer, un vrai moment wow, un marché qu'Accel financerait, un agent qui fait le travail d'un professionnel payé. Brief commun : `2-idees-brut/salve-3/0-brief-salve-3.md`. Salves 1 et 2 archivées dans `2-idees-brut/`.
 
-**Méthode.** Six agents Sonnet, contexte neuf, un angle chacun, au plus 4 recherches web pour vérifier l'accès aux données. 45 idées. % = chance qu'un autre LLM propose l'idée (estimation de l'agent, pas une mesure). Sorties complètes dans `2-idees-brut/salve-2/`. `[?]` = accès aux données non vérifié.
+**Méthode.** Six agents Sonnet, contexte neuf, 5 recherches web chacun au plus. 41 idées. % = chance qu'un autre LLM propose l'idée (estimation, pas une mesure). Prix et tailles de marché : estimations des agents, presque toutes `[?]`. Sorties complètes avec sources : `2-idees-brut/salve-3/`.
 
-**Convergences (pas un signal de qualité).** Trois sujets sont sortis chez deux agents : clips de stream Twitch (25-30 %), radioamateur, routage de voilier. Ce sont les plus « attendus » de la liste.
+**Convergence (pas un signal de qualité).** Trois agents sur six ont sorti le dossier d'évaluation clinique des dispositifs médicaux. C'est donc l'idée la plus « attendue » de la salve, même si chaque agent l'estime sous 20 %.
 
-## Top 10 (sélection de la session)
+## Top 10 (sélection de la session, contre les quatre filtres)
 
-| # | Idée en une phrase | Le poste remplacé | Ce qu'on voit en démo | % |
-|---|---|---|---|---|
-| 1 | **Réalisateur de plateau** : des téléphones posés dans une salle, l'agent choisit quelle image passe à l'écran et souffle des consignes aux cadreurs | Réalisateur et mélangeur d'images d'une régie de captation | La salle du pitch filmée sous 4 angles, le jury voit l'agent choisir le plan pendant qu'un juré parle | 6 % |
-| 2 | **Repéreur de lieux de tournage** : l'agent regarde des milliers de webcams du monde et trouve le lieu qui a l'ambiance demandée, maintenant ou dans 48 h | Repéreur d'extérieurs qui voyage des jours | « Port, brume, lever du jour, personne » : un mur de 24 webcams se remplit et se trie | 7 % |
-| 3 | **Le quai qui chronomètre les camions** : la caméra du quai note l'heure réelle de chaque camion et l'agent conteste les heures d'attente facturées à tort | Chef de quai et contrôleur des factures de transport | Une facture « 3 h 10 d'attente » barrée par la vidéo : « attente réelle 24 min », lettre de contestation prête | 10 % |
-| 4 | **Le court de padel vide** : la caméra voit qu'un terrain réservé est vide, l'agent le revend à la liste d'attente, encaisse, et apprend qui ne vient jamais | L'accueil du club et le gestionnaire des prix | Terrain vide à 18 h 10, SMS envoyés, un juré paie le créneau en test, le terrain passe à « revendu » | 8 % |
-| 5 | **Vérificateur de records de jeux vidéo** : l'agent regarde la vidéo d'un record soumis, contrôle le chrono et les règles, et rend le verdict avec la minute suspecte | Modérateur bénévole des classements (files de plusieurs semaines) | Une vraie soumission du jour visionnée en accéléré, coupure entourée à 14:32, verdict rédigé | 7 % |
-| 6 | **Quelle route saler cette nuit** : l'agent lit les caméras de route et les capteurs de chaussée, choisit les tournées des camions de sel, puis vérifie sur la photo suivante | Chef d'astreinte hivernale réveillé à 3 h | Carte de Finlande couverte de photos de route annotées, six tournées tracées, verdict 10 min plus tard | 6 % |
-| 7 | **Médiateur baleines et cargos** : l'agent écoute des micros sous-marins, repère un chant, voit les cargos qui vont passer et demande à chacun de ralentir | Coordinateur de programme de ralentissement des navires | Un chant détecté, deux cargos s'allument, messages envoyés, leur vitesse baisse à l'écran | 4 % |
-| 8 | **Stratège de course de karting** : pendant une course d'endurance, l'agent dit quand rentrer au stand, quel pilote mettre et quel kart prendre | Stratège au muret des stands | Classement en direct, fin de course simulée 200 fois, une voix : « rentre dans 2 tours, prends le 9 » | 6 % |
-| 9 | **Régulateur de coursiers à la voix** : l'agent dirige des coursiers dans la rue par oreillette et réattribue les courses quand l'un est coincé | Régulateur d'une société de coursiers | Deux membres de l'équipe dehors en direct sur la carte, un juré passe commande, l'agent guide le coursier | 12 % |
-| 10 | **Gouvernante de locations courtes** : après le ménage, la personne filme l'appartement et l'agent dit ce qui cloche par rapport à la référence | Gouvernante ou contrôleur qualité d'une conciergerie | Un juré déplace trois objets dans la salle, on filme 20 s, l'agent entoure les trois écarts | 17 % |
+| # | L'idée, simplement | Ce qu'il remplace et ce que ça coûte | Le moment wow | Donnée à 9h | % |
+|---|---|---|---|---|---|
+| 1 | **Dossier de crédit d'impôt recherche** : l'agent lit l'historique du code d'une startup et écrit le dossier fiscal qui récupère jusqu'à 30 % de ses dépenses de R&D | Cabinets de conseil payés 10 à 20 % du crédit `[?]` ; le crédit coûte ~7 Md€/an à l'État `[?]` | On colle l'adresse d'un dépôt public, la frise des approches abandonnées apparaît, le dossier de 40 pages et le montant sortent | Dépôts GitHub publics, HAL, arXiv, Crossref, guide officiel `[?]` | 6 % |
+| 2 | **Le vrai bénéfice avant un rachat** : l'agent lit toute la comptabilité d'une PME et rend le bénéfice retraité qu'un fonds paie à un cabinet | Due diligence financière à 40-150 k€ et 3 à 6 semaines `[?]` | « Un million d'écritures, onze minutes, 180 000 € de charges de 2023 passées en 2024 », chaque ajustement ouvre ses écritures | Fichier comptable standard français (FEC) ; échantillon public non vérifié `[?]` | 15 % |
+| 3 | **Les limites du prêt recalculées** : l'agent lit un contrat de crédit de 200 pages et vérifie chaque trimestre que l'emprunteur respecte ses limites, selon la définition propre à ce contrat | Analyste de suivi de dette privée, 70-100 k€ `[?]` | « Il a trouvé le dépassement, parce que ce contrat interdit l'exclusion que tout le monde fait », la phrase du contrat surlignée | Contrats et comptes de sociétés cotées sur EDGAR, sans compte `[?]` | 12 % |
+| 4 | **Le dossier clinique d'un dispositif médical** : l'agent écrit le rapport de 60 à 80 pages qu'exige l'Europe pour chaque appareil médical, chaque phrase reliée à l'étude source | Consultant réglementaire, 15 à 60 k€ par rapport, 2 à 3 mois `[?]` | Le jury choisit un appareil, 400 articles lus, 31 retenus, rapport sorti en 3 min, on clique une phrase et l'étude s'ouvre surlignée | PubMed, Europe PMC, incidents FDA (MAUDE), fiches 510(k) `[?]` | 8-18 % |
+| 5 | **La perte d'un séisme en six minutes** : quand une catastrophe frappe, l'agent croise l'événement avec les biens assurés d'un réassureur, lit ses contrats et donne la perte nette | Analyste en modélisation de catastrophes ; les éditeurs de modèles répondent en 1 à 3 jours `[?]` | « Séisme à 14 h 03, perte du portefeuille à 14 h 09 », 40 000 sites qui s'allument, la clause qui plafonne la perte | Flux public des séismes USGS ; portefeuille synthétique à annoncer `[?]` | 7 % |
+| 6 | **Sinistres agricoles triés par satellite** : après un orage, l'agent compare avant et après sur chaque parcelle déclarée et rédige l'expertise | Visite d'expert à 150-400 €, semaines d'attente au pic `[?]` | « 9 800 déclarations, une paire d'images pour chacune, 140 montrent des cultures intactes » | Sentinel-2 et Sentinel-1, registre parcellaire ; déclarations à générer `[?]` | 15 % |
+| 7 | **Le critère d'essai réécrit en douce** : avant d'investir dans une biotech, l'agent relit toutes les versions du dossier officiel d'un essai et dit si la réussite a été définie après coup | Analyste biotech de fonds, due diligence à 20-60 k€ `[?]` | Le communiqué « succès » à gauche, la ligne du registre modifiée trois semaines avant les résultats à droite | API ClinicalTrials.gov sans clé (vérifiée), historique des versions `[?]` | 7 % |
+| 8 | **Le recrutement d'essai qui se corrige** : l'agent prédit combien de patients chaque hôpital recrutera, se compare aux essais réels et écrit lui-même ses leçons | Étude de faisabilité à 20-80 k€, 3 à 6 semaines `[?]` | La courbe d'erreur qui descend d'essai en essai : 40 % d'erreur au départ, 12 % au 61e, avec les leçons en clair | ClinicalTrials.gov, plus de 500 000 essais `[?]` | 14 % |
+| 9 | **La pub payée sur des sites que personne ne lit** : l'agent visite chaque site où passent les pubs d'une marque et dit lesquels sont faits pour capter de la pub | Audit média indépendant, 30-150 k€ `[?]` | Un fichier de 38 000 lignes glissé, une capture et un verdict par site, le total d'euros perdus qui monte | OpenSincera, gratuit avec clé (vérifié) ; relevé de placements à fabriquer | 12 % |
+| 10 | **Où forer, d'après 60 000 vieux rapports** : l'agent relit 50 ans de rapports de forage scannés et dit à une société minière où creuser | Étude documentaire d'un géologue, 3 à 6 mois `[?]` | Le jury choisit un métal et une zone, 40 000 anciens forages réapparaissent sur la carte pendant que l'agent lit un tableau de 1987 | WAMEX (Australie-Occidentale), 105 000 rapports gratuits (vérifié) | 4 % |
 
-## Les 45 idées, par famille
+## Les 41 idées, par famille
 
-### A. Caméras qui pilotent un lieu (la famille SiteSync)
-- Réalisateur de plateau à quatre caméras (A5, 6 %).
-- Le quai qui chronomètre les camions (A2, 10 %).
-- Le court de padel vide (A2, 8 %).
-- Gouvernante de locations courtes, vidéo avant/après (A5, 17 %).
-- Gouvernante d'hôtel par photos (A6, 12 %).
-- Chef de passe sans mains, caméra sur le passe d'une cuisine (A6, 14 %).
-- Contrôleur de chargement de camion, caisses comptées sur la rampe (A6, 9 %).
-- Le sous-traitant qui n'est pas venu, caméra de chantier + appel vocal (A2, 30 %).
-- Directeur de course adjoint, ravitaillements d'un semi-marathon (A6, 11 %).
+### A. Finance et investissement (fonds, banques, assureurs)
+- Les limites du prêt recalculées (A3, 12 %).
+- Le vrai bénéfice avant un rachat, depuis le FEC (A1, 15 %).
+- Couvrir les petites sociétés cotées sans analyste, note de 45 pages depuis les comptes officiels (A1, 22 %).
+- Contrôle de crédit documentaire à l'export (A3, 8 %) : aucun échantillon réel de documents, filtre 1 raté.
+- La perte d'un séisme en six minutes (A6, 7 %).
+- Audit cyber extérieur avant un rachat (A4, 24 %).
+- Pub payée sur des sites zombies (A2, 12 %).
+- Cartels : les réclamations oubliées, pour financeurs de contentieux (A6, 8 %).
+- Audit des preuves d'un biotech, images réutilisées dans les articles (A6, 6 %).
+- Le critère d'essai réécrit en douce (A2, 7 %).
 
-### B. Caméras de la rue et du monde, filmées ou publiques
-- Repéreur de lieux de tournage par webcams (A6, 7 %).
-- Quelle route saler cette nuit, caméras de route finlandaises vérifiées (A1, 6 %).
-- Prospecteur de chantiers pour loueurs de matériel, vidéos de rue (A5, 22 %).
-- Chasseur de locaux commerciaux, façades et passants (A5, 14 %).
-- Acheteur du marché pour chefs, prix lus sur les étals (A5, 9 %).
-- Le rayon qui cache ma marque, vidéos de rayons de supérettes (A2, 15 %).
-- Cartographe qui marche et filme, mise à jour d'OpenStreetMap (A3, 17 %).
+### B. Santé et sciences de la vie
+- Dossier clinique d'un dispositif médical (A1 12 %, A3 12 %, A4 8 %, A5 18 %) : convergence.
+- Recrutement d'essai qui se corrige (A4, 14 %).
+- Dossier d'accès au marché d'un médicament (A5, 8 %) : savoir de domaine trop lourd.
+- Codage des sorties d'hôpital en Allemagne (A1, 9 %) : 60 lettres synthétiques seulement.
 
-### C. Le ciel, la mer, la météo (flux mondiaux en direct)
-- Médiateur baleines et cargos, micros sous-marins + positions de navires (A6, 4 %).
-- Où emmener le car ce soir, sorties aurores boréales (A1, 12 %).
-- Accueillir les jets d'affaires au Bourget (A1, 9 %).
-- Chef-pilote d'aéroclub, planning des vols selon la météo vérifiée (A4, 8 %).
-- Débrief de vol de parapente, boîte noire comparée aux autres pilotes (A6, 3 %).
-- Capitaine de port sans capitainerie, places de ponton attribuées (A6, 7 %).
-- État des lieux d'un bateau loué, caution décidée sur la trace (A2, 10 %).
-- Routeur de voilier de course (A1, 8 % ; A4, 12 %).
-- Directeur d'école de surf (A4, 12 %).
-- Copilote de chasse aux orages (A3, 10 %).
-- Enquêteur de boules de feu, trajectoire triangulée depuis des vidéos (A3, 3 %).
-- Écoute de la migration nocturne des oiseaux (A3, 7 %).
-- Radioamateur : opérateur de concours (A4, 2 %) et chasse aux pays (A3, 6 %).
-- Contrôleur aérien pour simulateurs de vol, à la voix (A3, 12 %).
+### C. Assurance et sinistres
+- Sinistres de grêle et d'inondation triés par satellite (A2, 15 %).
+- Chiffrer un préjudice corporel avec la jurisprudence (A3, 15 %) : marché France seule sous 100 M€.
 
-### D. Jeux, sport, compétition en ligne
-- Vérificateur de records de speedrun, API vérifiée sans clé, raisons de rejet comme étiquettes (A2, 7 %).
-- Stratège de course de karting (A4, 6 %).
-- Arbitre de triche aux échecs en ligne (A2, 22 %).
-- Préparer l'adversaire aux échecs, fiche + clone (A1, 15 %).
-- Monteur ou clippeur de stream Twitch (A4, 25 % ; A3, 30 %).
-- Analyste vidéo de club de foot de district (A3, 35 %).
-- Ouvreur de salle d'escalade (A5, 3 %).
+### D. Industrie, énergie, matières premières
+- Où forer, d'après 60 000 rapports (A4, 4 %).
+- Certificat d'acier impossible, faux certificats de matière (A2, 5 %) : échantillons non trouvés.
+- Terrains branchés au réseau électrique pour centres de données (A6, 14 %) et pré-étude de raccordement (A3, 28 %).
+- Chiffrage d'un bâtiment sur plans (A4, 16 %).
+- Plans de travaux en masse pour copropriétés (A6, 12 %).
 
-### E. Ville et opérations en direct
-- Régulateur de coursiers à la voix (A5, 12 %).
-- Régler les bus en direct à Oslo (A1, 14 %).
-- Régisseur général de festival à la voix (A4, 30 %).
-- Replanifier le tournage du jour (A1, 5 %).
-- Vérifier les vidéos d'un séisme, géolocalisation (A1, 25 %).
+### E. Conformité européenne (obligations nouvelles)
+- Facture carbone de l'acier importé, CBAM (A5, 45 %).
+- Dossier déforestation par fournisseur, EUDR (A5 55 %, A2 25 %).
+- Emballages conformes au nouveau règlement, PPWR (A5, 12 %).
+- Allégations vertes devenues illégales (A5, 30 %).
+- Contre-audit des rapports de durabilité, CSRD (A5, 35 %).
+- Fiches de sécurité chimiques reclassées, CLP (A5, 7 %).
+- Contrôler les étiquettes alimentaires par pays (A1, 8 %).
 
-## Accès aux données vérifiés par les agents (21 oct.)
-- **Vérifié** : caméras et capteurs de route Digitraffic (Finlande), METAR/TAF aviationweather.gov, API speedrun.com sans clé, API Lichess sans clé et archive de septembre (29 Go), chat Twitch en lecture anonyme, Global Meteor Network (CC BY 4.0), Orcasound (audio public, licence non commerciale).
-- **Clé gratuite** : Windy Webcams (50 par page, petites images), aisstream.io (navires, une connexion par clé), Mapillary (photos de rue).
-- **Non vérifié** `[?]` : adsb.lol, Open-Meteo, Entur sans clé, Jetstream, PSKReporter, Open Glider Network, live timing de karting.
+### F. Commerce international et douane
+- Un desk pour les douanes, catalogue réévalué à chaque décret (A6, 15 %).
+- Classer les marchandises en douane (A3, 30 %) : éditeurs déjà en place.
+- Origine du produit maquillée, contournement antidumping (A2, 8 %).
+
+### G. Juridique, fiscal, affaires publiques
+- Dossier de crédit d'impôt recherche (A1, 6 %).
+- Mémoire d'influence réglementaire, arguments qui ont fait bouger une règle (A4, 9 %) : données américaines.
+- Enquête interne sur 500 000 e-mails (A4, 28 %) : terrain occupé (Relativity, Everlaw).
+- Faux sites à l'effigie d'une marque (A2, 25 %) : concurrents solides.
+- Chaîne de propriété d'un tableau, provenance d'œuvres d'art (A6, 5 %) : marché sous 100 M€.
+
+## Ce qui reste fragile, à dire honnêtement
+- **Les prix et les tailles de marché** sont des estimations des agents, pas des chiffres sourcés.
+- **Les accès vérifiés aujourd'hui** sont ClinicalTrials.gov, OpenSincera, WAMEX, filings.xbrl.org, l'API de l'Art Institute of Chicago et Regulations.gov. Le reste est à tester par `curl` à 9h.
+- **Aucun membre de l'équipe n'est expert** des métiers du top 10. Les gagnants comparables en avaient un.

@@ -2,22 +2,22 @@
   "permissions": {
     "allow": [
       "Bash(npm run *)", "Bash(npm install *)", "Bash(npm i *)", "Bash(npx *)", "Bash(node tools/*)", "Bash(node .claude/hooks/*)",
-      "Bash(git status *)", "Bash(git add *)", "Bash(git commit *)", "Bash(git pull *)", "Bash(git fetch *)", "Bash(git log *)", "Bash(git diff *)", "Bash(git branch *)", "Bash(git checkout *)", "Bash(git switch *)", "Bash(git merge *)",
+      "Bash(git status *)", "Bash(git add *)", "Bash(git commit *)", "Bash(git pull *)", "Bash(git fetch *)", "Bash(git log *)", "Bash(git diff *)", "Bash(git branch *)", "Bash(git checkout *)", "Bash(git switch *)", "Bash(git merge *)", "Bash(git push *)", "Bash(git worktree *)",
       "Bash(gh issue *)", "Bash(gh pr *)",
       "PowerShell(npm run *)", "PowerShell(npm install *)", "PowerShell(npx *)", "PowerShell(node tools/*)", "PowerShell(git status *)", "PowerShell(git add *)", "PowerShell(git commit *)", "PowerShell(git log *)", "PowerShell(git diff *)", "PowerShell(gh issue *)", "PowerShell(gh pr *)"
     ],
-    "ask": ["Bash(git push *)", "Bash(git reset *)", "Bash(rm -rf *)", "PowerShell(git push *)", "PowerShell(git reset *)", "PowerShell(Remove-Item -Recurse *)"],
+    "ask": ["Bash(git reset *)", "Bash(rm -rf *)", "PowerShell(git reset *)", "PowerShell(Remove-Item -Recurse *)"],
     "deny": ["Read(./.env)", "Read(./.env.*)", "Bash(git push --force *)", "PowerShell(git push --force *)"]
   },
   "hooks": {
     "SessionStart": [
       { "hooks": [
         { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/tools/preparer.mjs\"", "timeout": 120 },
-        { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/debut-session.mjs\"", "timeout": 30 }
+        { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/debut-session.mjs\"", "timeout": 60 }
       ] }
     ],
     "PreToolUse": [
-      { "matcher": "Bash|PowerShell|Edit|Write|MultiEdit|NotebookEdit", "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/garde-fou.mjs\"", "timeout": 20 } ] }
+      { "matcher": "Bash|PowerShell|Edit|Write|MultiEdit|NotebookEdit|Agent", "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/garde-fou.mjs\"", "timeout": 20 } ] }
     ],
     "PostToolUse": [
       { "matcher": "", "hooks": [ { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/journal.mjs\"", "timeout": 10 } ] }

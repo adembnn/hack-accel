@@ -10,7 +10,7 @@ Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
 
 Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
-The issue tracker should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
+The issue tracker should have been provided to you. It is GitHub Issues, conventions in `docs/agents/issue-tracker.md` (already configured).
 
 ## Process
 
@@ -87,3 +87,5 @@ A change can pass one axis and fail the other:
 - Code that does exactly what the issue asked but breaks the project's conventions → **Spec pass, Standards fail.**
 
 Reporting them separately stops one axis from masking the other.
+
+Lis aussi `SURCOUCHE.md` dans ce dossier : ses règles priment.

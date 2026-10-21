@@ -29,7 +29,7 @@ Le détail : `CLAUDE.md` (règles et boucle de travail), `GLOSSARY.md` (les mots
 5. **Fusionner** : `node tools/fusionner.mjs` (vert obligatoire ; ferme le ticket).
 
 ## Suivre l'équipe
-- Discord `#agents` : « État du build » toutes les 10 min (qui est sur quoi, critères cochés, vérification rouge, lots sans signe de vie, étapes de démo couvertes).
+- Discord `#agents` : « État du build » toutes les 10 min (qui est sur quoi, critères cochés, vérification rouge, lots sans signe de vie, étapes de démo couvertes). Il est publié par la machine d'Adem (`node tools/journal-push.mjs` dans un terminal, avec `ETAT_BUILD=1` dans son `.env`) ; une seule machine le fait. `node tools/etat-build.mjs` l'affiche à la main sur n'importe quelle machine.
 - Discord `#tickets` : chaque ticket, commentaire, branche poussée, fusion (GitHub en direct).
 - Besoin de quelqu'un ? Commente son ticket, son Claude le voit à sa prochaine session.
 

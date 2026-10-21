@@ -17,16 +17,23 @@ try { mkdirSync(jdir, { recursive: true }); } catch {}
 
 const court = (s, n = 90) => String(s || '').replace(/\s+/g, ' ').trim().slice(0, n);
 
+// Prénom : git user.name, mis en cache dans journal/prenom.txt (on ne lit jamais .env ici).
 function prenom() {
-  try { const m = readFileSync(join(dir, '.env'), 'utf8').match(/^PRENOM=(.+)$/m); if (m) return m[1].trim(); } catch {}
-  try { return execSync('git config user.name', { cwd: dir, encoding: 'utf8', stdio: 'pipe' }).trim(); } catch {}
+  const f = join(jdir, 'prenom.txt');
+  try { const p = readFileSync(f, 'utf8').trim(); if (p) return p; } catch {}
+  try { const p = execSync('git config user.name', { cwd: dir, encoding: 'utf8', stdio: 'pipe' }).trim(); if (p) { try { writeFileSync(f, p); } catch {} return p; } } catch {}
   return 'inconnu';
 }
 
-// Lot = fichier .lot à la racine, sinon la branche git (lot/<nom> → <nom>).
+// Lot = branche git lue directement dans .git/HEAD (pas de processus git : ce hook tourne à chaque outil).
 function lot() {
-  try { if (existsSync(join(dir, '.lot'))) return readFileSync(join(dir, '.lot'), 'utf8').trim(); } catch {}
-  try { return execSync('git branch --show-current', { cwd: dir, encoding: 'utf8', stdio: 'pipe' }).trim().replace(/^lot\//, '') || 'main'; } catch { return '?'; }
+  try {
+    let g = join(dir, '.git');
+    try { const s = readFileSync(g, 'utf8'); const m = s.match(/^gitdir:\s*(.+)$/m); if (m) g = m[1].trim(); } catch {} // worktree : .git est un fichier
+    const head = readFileSync(join(g, 'HEAD'), 'utf8').trim();
+    const b = (head.match(/^ref: refs\/heads\/(.+)$/) || [])[1] || 'détaché';
+    return b.replace(/^lot\//, '');
+  } catch { return '?'; }
 }
 
 // Nom lisible de la session = ses 60 premiers caractères de premier message, mis en cache dans journal/sessions.json.
