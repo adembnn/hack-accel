@@ -1,0 +1,15 @@
+jeu,graines,plan,choisi,non_sortis_22h,non_sortis_23h,zone_danger,ecrasement,t90,t99,continuite,note_totale,avertissement
+entrainement,1-20,AVANT_defaut,non,0.00,0.00,17717.50,0.00,314.95,362.15,1699.30,86.81,modèle simplifié, non certifié
+entrainement,1-20,APRES_decideurs,non,0.00,0.00,13374.00,0.00,501.15,549.60,1662.60,88.85,modèle simplifié, non certifié
+entrainement,1-20,C1_ferme_ferronnerie_seule,non,0.00,0.00,9198.50,0.00,353.55,389.80,2080.50,92.34,modèle simplifié, non certifié
+entrainement,1-20,C2_repartition_par_debit,non,0.00,0.00,8706.00,0.00,350.40,377.40,2129.75,92.75,modèle simplifié, non certifié
+entrainement,1-20,C3_repartition_metro_ferme_400,non,0.00,0.00,8700.00,0.00,350.40,377.40,2130.00,92.75,modèle simplifié, non certifié
+entrainement,1-20,C4_sans_hall_vigilance,non,0.00,0.00,8634.00,0.00,353.25,378.85,2136.60,92.80,modèle simplifié, non certifié
+entrainement,1-20,C5_repartition_guidage_secours,oui,0.00,0.00,8295.50,0.00,345.70,387.10,2170.45,93.09,modèle simplifié, non certifié
+entrainement,1-20,C6_repartition_2_vagues_20s,non,0.00,0.00,8677.00,0.00,357.15,386.40,2132.30,92.77,modèle simplifié, non certifié
+entrainement,1-20,C7_repartition_3_vagues_60s,non,0.00,0.00,9268.00,0.00,368.20,428.40,2073.20,92.28,modèle simplifié, non certifié
+entrainement,1-20,C8_clarte_maximale,non,0.00,0.00,8684.50,0.00,350.00,376.30,2131.55,92.76,modèle simplifié, non certifié
+entrainement,1-20,C9_guidage_leger_hall,non,0.00,0.00,9200.50,0.00,347.10,385.55,2079.95,92.33,modèle simplifié, non certifié
+test,101-120,AVANT_defaut,non,0.00,0.00,17808.50,0.00,315.70,364.55,1690.95,86.73,modèle simplifié, non certifié
+test,101-120,APRES_decideurs,non,0.00,0.00,13412.50,0.00,501.80,546.10,1658.75,88.82,modèle simplifié, non certifié
+test,101-120,C5_repartition_guidage_secours,oui,0.00,0.00,8309.00,0.00,345.80,388.30,2169.10,93.08,modèle simplifié, non certifié
