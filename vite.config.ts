@@ -7,5 +7,6 @@ export default defineConfig({
   build: { outDir: '../../dist', emptyOutDir: true },
   server: { port: 5173 },
   // dir : les tests des lots (src/sim/...) sont cherchés dans tout src/, pas seulement sous la racine src/app.
-  test: { include: ['**/*.test.ts'], dir: fileURLToPath(new URL('./src', import.meta.url)) },
+  // Les tests de src/sim/behavior et src/sim/metrics (lot #9) tournent avec node --test (npm run test:behavior) : vitest les ignore.
+  test: { include: ['**/*.test.ts'], exclude: ['**/node_modules/**', 'sim/behavior/**', 'sim/metrics/**'], dir: fileURLToPath(new URL('./src', import.meta.url)) },
 });
