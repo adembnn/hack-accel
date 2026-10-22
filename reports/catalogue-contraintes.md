@@ -35,6 +35,9 @@ Préfecture 8 (pose les bornes) · RATP 8 (exécute, peut proposer) · sécurit�
 2. Fermer ou confiner sans incendie : aucun texte public ne dit qui l'emporte entre préfecture et directeur.
 3. L'UGC se vide d'un coup quand le centre étale, avec une information en retard. Le 21 oct., le tribunal administratif a ordonné de publier les arrêtés de couvre-feu au moins 12h avant leur entrée en vigueur.
 
-## 4. Points non vérifiés à ne pas présenter comme des faits
+## 4. Fait nouveau sur le 19 octobre (archive ratpstatus, ODbL)
+Les photos de ratpstatus.fr (une toutes les 2 min) montrent les messages « Mesures de sécurité demandées par la Préfecture de Police – Station fermée » pour Les Halles, Châtelet et République **le soir du 19 oct., avec un début affiché vers 20h07** (photo de 21h) ; le 20 oct., dès 22h, ligne 11 coupée et RER B et D sans arrêt à Châtelet. La presse parlait d'une fermeture à 22h : les stations du Forum étaient donc fermées dès ~20h, ce qui rejoint le souvenir d'Adem (bouches fermées pendant l'évacuation). Réserve : les fenêtres de début et fin sont parfois d'une minute ; les durées exactes demandent le CSV d'incidents (76 Mo, téléchargement à autoriser).
+
+## 5. Points non vérifiés à ne pas présenter comme des faits
 - « L'UGC a été prévenu par la Ville et non par la préfecture » : aucune source confirmée ; modélisé comme un retard d'information réglable.
 - Aucune fréquence chiffrée par perturbation n'est publiée ; la Green Guide, le Purple Guide et RAMP n'ont été lus que par extraits.
