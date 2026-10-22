@@ -1,0 +1,416 @@
+<!doctype html>
+<!--
+  A · Synoptique — régie de sécurité foule, Forum des Halles
+  Police : IBM Plex Sans Condensed (Google Fonts), chiffres tabulaires.
+  Accents : rouge #FF4D4F (danger) + ambre #F5B83D (attention). Vert/bleu seulement pour le code couleur de la chronologie.
+  UNE audace : l'écran est gris nuit tant que rien ne cloche. La seule couleur franche est le problème,
+  et la phrase du directeur est posée en sous-titre géant sur la maquette 3D, sous la zone qu'elle désigne
+  (pastille 1 sur la carte = carte 1 à gauche).
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Régie · A Synoptique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0D12; --panel:#10141B; --panel2:#151A23; --line:#222A36; --line2:#2E3846;
+  --text:#E8ECF2; --dim:#8D98A9; --faint:#5A6575;
+  --red:#FF4D4F; --amber:#F5B83D; --green:#3FD08A; --blue:#5AA9FF; --grey:#5A6575;
+  --font:'IBM Plex Sans Condensed','Arial Narrow',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+body{overflow:auto}
+::selection{background:#F5B83D;color:#0A0D12}
+*{scrollbar-width:thin;scrollbar-color:#2E3846 transparent}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+.stage{width:100vw;height:100vh;min-width:1280px;min-height:820px;display:grid;
+  grid-template-rows:46px minmax(0,1fr) 132px;grid-template-columns:372px 1fr 312px;
+  grid-template-areas:"top top top" "left map right" "time time time"}
+@media (max-width:1450px){.stage{grid-template-columns:336px 1fr 280px}}
+
+/* barre haute */
+.top{grid-area:top;display:flex;align-items:center;gap:20px;padding:0 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+.site{font-weight:600;font-size:16px;white-space:nowrap}
+.site small{font-weight:400;color:var(--dim);font-size:13px;margin-left:8px}
+.wrong{flex:1;min-width:0;display:flex;align-items:center;gap:10px;color:var(--red);font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrong i{flex:none;width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 0 4px rgba(255,77,79,.18)}
+.wrong span{overflow:hidden;text-overflow:ellipsis}
+.clock{display:flex;align-items:baseline;gap:12px;white-space:nowrap}
+.clock b{font-size:20px;font-weight:600}
+.clock em{font-style:normal;color:var(--dim);font-size:14px}
+.tag-dir{font-size:11px;color:var(--faint);border:1px solid var(--line2);padding:2px 7px;border-radius:3px;white-space:nowrap}
+
+/* colonne gauche */
+.left{grid-area:left;min-height:0;background:var(--panel);border-right:1px solid var(--line);padding:12px 14px 8px;overflow:auto;display:flex;flex-direction:column;gap:12px}
+h2{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:8px}
+h2 .n{font-size:12px;font-weight:600;color:#06140D;background:var(--green);border-radius:9px;padding:0 7px;line-height:17px}
+h2 .sub{margin-left:auto;font-weight:400;color:var(--dim);font-size:12px}
+
+.dec{border:1px solid var(--line2);border-radius:6px;background:var(--panel2)}
+.dec.open{border-color:#2c6b52;padding:12px 12px 12px}
+.dec .head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);margin-bottom:8px}
+.badge{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--green);color:#06140D;font-weight:700;font-size:12px;flex:none}
+.badge.q{background:transparent;border:1px solid var(--faint);color:var(--dim)}
+.k{font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--green)}
+.dec h3{font-size:17px;line-height:1.2;font-weight:600;margin-bottom:4px}
+.dec p{font-size:15px;line-height:1.3;color:#C9D1DC}
+.dec p b{color:var(--text);font-weight:600}
+.eff{display:flex;gap:18px;margin:10px 0 12px;padding:8px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.eff div{font-size:12px;color:var(--dim)}
+.eff strong{display:block;font-size:20px;font-weight:600;color:var(--text);line-height:1.1}
+.eff strong s{color:var(--faint);text-decoration:none;font-weight:400}
+.btns{display:flex;gap:8px}
+.btn{height:36px;padding:0 14px;border-radius:5px;font-weight:600;font-size:15px;display:inline-flex;align-items:center;gap:8px;transition:background .15s,border-color .15s}
+.btn kbd{font:inherit;font-size:11px;font-weight:500;opacity:.7;border:1px solid currentColor;border-radius:3px;padding:0 4px}
+.btn.ok{background:var(--green);color:#06140D;flex:1;justify-content:center}
+.btn.ok:hover{background:#5BE0A2}
+.btn.no{border:1px solid var(--line2);color:var(--text)}
+.btn.no:hover{border-color:var(--red);color:var(--red)}
+.line{display:flex;align-items:center;gap:10px;padding:9px 10px;margin-top:6px;border:1px solid var(--line);border-radius:6px;font-size:14px;color:#C9D1DC;transition:background .15s}
+.line:hover{background:var(--panel2);border-color:var(--line2)}
+.line>span:not(.badge){flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.line svg{flex:none;color:var(--faint)}
+
+/* plans */
+.plan{display:grid;grid-template-columns:20px 1fr auto;gap:2px 10px;align-items:center;padding:5px 0;border-top:1px solid var(--line);font-size:14px}
+.plan:first-of-type{border-top:0}
+.plan .r{font-weight:600;color:var(--dim)}
+.plan.best .r{color:var(--green)}
+.plan .nm{color:#C9D1DC;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plan.best .nm{color:var(--text);font-weight:600}
+.plan .v{font-weight:600}
+.plan .bar{grid-column:2 / 4;height:5px;background:#1B222D;border-radius:3px;overflow:hidden}
+.plan .bar i{display:block;height:100%;background:var(--faint);border-radius:3px}
+.plan.best .bar i{background:var(--green)}
+.plan.cur .bar i{background:var(--amber)}
+.plan.cur .v{color:var(--amber)}
+.plan .ord{grid-column:2 / 4;font-size:13px;line-height:1.35;color:var(--dim);padding:2px 0 3px}
+.plan .ord b{color:#C9D1DC;font-weight:500}
+.note{font-size:12px;color:var(--faint);margin-top:6px}
+.done li{list-style:none;display:flex;gap:10px;font-size:13px;color:var(--dim);padding:3px 0}
+.done time{color:var(--faint);flex:none;width:46px}
+.done .ck{flex:none;color:var(--green)}
+
+/* carte */
+.map{grid-area:map;position:relative;background:radial-gradient(120% 90% at 50% 40%,#10161F 0%,#0A0D12 70%);overflow:hidden}
+.map>svg.scene{position:absolute;left:0;right:0;top:0;bottom:104px;width:100%;height:calc(100% - 104px)}
+.rail{position:absolute;left:12px;top:12px;display:flex;flex-direction:column;gap:6px}
+.rail button{width:36px;height:36px;border:1px solid var(--line2);border-radius:6px;background:rgba(16,20,27,.9);display:grid;place-items:center;color:var(--dim);position:relative;transition:color .15s,border-color .15s}
+.rail button:hover{color:var(--text);border-color:var(--faint)}
+.rail button span{position:absolute;left:44px;white-space:nowrap;background:var(--panel2);border:1px solid var(--line2);padding:3px 8px;border-radius:4px;font-size:12px;color:var(--text);opacity:0;pointer-events:none;transition:opacity .15s}
+.rail button:hover span,.rail button:focus-visible span{opacity:1}
+.levels{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:4px;width:92px}
+.levels div{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim);padding:5px 8px;border:1px solid var(--line);border-radius:5px;background:rgba(16,20,27,.9)}
+.levels i{width:8px;height:8px;border-radius:50%;background:var(--line2);margin-left:auto}
+.levels .r i{background:var(--red)} .levels .a i{background:var(--amber)}
+.levels .r{color:var(--text);border-color:#5b2a2c}
+.levels .a{color:var(--text);border-color:#5b4a22}
+.spoken{position:absolute;left:0;right:0;bottom:0;padding:54px 28px 18px 60px;background:linear-gradient(to top,rgba(10,13,18,.96) 35%,rgba(10,13,18,0));pointer-events:none}
+.spoken .who{display:flex;align-items:center;gap:10px;color:var(--dim);font-size:13px;margin-bottom:4px}
+.spoken q{display:block;quotes:"« " " »";font-size:clamp(24px,2.5vw,38px);line-height:1.12;font-weight:500;letter-spacing:-.01em;max-width:1000px}
+.spoken q mark{background:none;color:var(--red)}
+.spoken q em{font-style:normal;color:var(--green)}
+
+/* colonne droite */
+.right{grid-area:right;min-height:0;background:var(--panel);border-left:1px solid var(--line);padding:6px 16px 10px;overflow:auto;display:flex;flex-direction:column}
+.kpi{padding:9px 0 8px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.kpi label{font-size:13px;color:var(--dim);line-height:1.15;max-width:120px}
+.kpi b{font-size:50px;line-height:1;font-weight:500;letter-spacing:-.02em}
+.kpi b small{font-size:15px;font-weight:400;color:var(--dim);letter-spacing:0;margin-left:4px}
+.kpi.r b{color:var(--red)} .kpi.a b{color:var(--amber)}
+.disp{margin-top:14px}
+.ex{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.ex i{flex:none;width:9px;height:9px;border-radius:50%}
+.ex.r i{background:var(--red)} .ex.a i{background:var(--amber)}
+.ex span{flex:1;min-width:0}
+.ex small{display:block;color:var(--dim);font-size:12px}
+.ex b{font-size:20px;font-weight:600}
+.ex.r b{color:var(--red)} .ex.a b{color:var(--amber)}
+.quiet{display:flex;justify-content:space-between;font-size:13px;color:var(--dim);padding:8px 0;border-bottom:1px solid var(--line)}
+.quiet:last-child{border:0}
+
+/* chronologie */
+.time{grid-area:time;border-top:1px solid var(--line);background:var(--panel);padding:10px 16px 10px;display:grid;grid-template-columns:96px 1fr;gap:0 14px}
+.time h2{margin:0;align-self:start;font-size:14px}
+.tl{position:relative;display:flex;flex-direction:column;gap:8px;min-width:0}
+.ruler{position:relative;height:30px}
+.ruler .axis{position:absolute;left:0;right:0;top:15px;height:2px;background:#222A36}
+.ruler .past{position:absolute;left:0;top:15px;height:2px;width:87.7%;background:#3A4558}
+.tick{position:absolute;top:21px;font-size:11px;color:var(--faint);transform:translateX(-50%)}
+.tick::before{content:"";position:absolute;left:50%;top:-8px;width:1px;height:5px;background:var(--line2)}
+.pip{position:absolute;top:9px;width:10px;height:14px;transform:translateX(-50%);border-radius:2px;background:var(--grey)}
+.pip.red{background:var(--red)} .pip.amber{background:var(--amber)} .pip.green{background:var(--green)} .pip.blue{background:var(--blue)}
+.now{position:absolute;left:87.7%;top:0;bottom:-70px;width:0;border-left:1px dashed var(--faint);z-index:2;pointer-events:none}
+.now span{position:absolute;top:0;left:6px;font-size:11px;font-weight:600;color:var(--text);background:var(--panel);padding:0 3px;white-space:nowrap}
+.evs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.ev{font-size:13.5px;line-height:1.28;color:#C9D1DC;min-width:0;padding-top:2px}
+.ev time{display:block;font-size:12px;color:var(--dim);margin-bottom:1px}
+.ev strong{font-size:11px;font-weight:700;letter-spacing:.05em;margin-right:6px}
+.ev.red strong{color:var(--red)} .ev.amber strong{color:var(--amber)} .ev.green strong{color:var(--green)} .ev.blue strong{color:var(--blue)}
+.ev.last{color:var(--text)}
+@media (max-width:1450px){.ev{font-size:12.5px}.kpi b{font-size:44px}}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <header class="top">
+    <div class="site">Forum des Halles<small>Paris 1er · soirée</small></div>
+    <div class="wrong"><i></i><span>Porte du Louvre saturée · colis suspect niveau −1 · cortège à 400 m · métro fermé par la police</span></div>
+    <div class="clock"><b>21:47:12</b><em>T+01:19</em></div>
+    <div class="tag-dir">A · Synoptique</div>
+  </header>
+
+  <!-- À DÉCIDER + PLANS -->
+  <aside class="left" aria-label="Décisions">
+    <section>
+      <h2>À décider <span class="n">3</span><span class="sub">le plus urgent d'abord</span></h2>
+
+      <article class="dec open">
+        <div class="head"><span class="badge">1</span><span class="k">PROPOSITION</span><span>il y a 2 min</span></div>
+        <h3>Porte du Louvre en tension : 139 en file</h3>
+        <p>Soulager par <b>Issue ouest niveau −2</b> (+68 m de détour).</p>
+        <div class="eff">
+          <div>File estimée dans 4 min<strong>139 <s>→</s> 61</strong></div>
+          <div>Détour<strong>+68 m</strong></div>
+        </div>
+        <div class="btns">
+          <button class="btn ok">Valider <kbd>Entrée</kbd></button>
+          <button class="btn no">Refuser <kbd>Échap</kbd></button>
+        </div>
+      </article>
+
+      <button class="line" style="width:100%;text-align:left"><span class="badge q">2</span><span>Annonce et guide-files vers Porte du Jour (à 175 m)</span>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4.5l3 3 3-3"/></svg></button>
+      <button class="line" style="width:100%;text-align:left"><span class="badge q">3</span><span>Demander à la RATP une bouche filtrée</span>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4.5l3 3 3-3"/></svg></button>
+    </section>
+
+    <section>
+      <h2>Plans du directeur <span class="sub">classés sur le pire cas</span></h2>
+      <div class="plan best">
+        <span class="r">1</span><span class="nm">Plan B · recommandé</span><span class="v">534</span>
+        <div class="bar"><i style="width:35.6%"></i></div>
+        <div class="ord">Messages vers <b>Porte du Louvre</b> et <b>Issue côté piscine 1</b> · escalators en sens sortie · demander à la RATP une bouche filtrée</div>
+      </div>
+      <div class="plan">
+        <span class="r">2</span><span class="nm">Plan A · fermer Rambuteau, tout vers Pont-Neuf</span><span class="v">702</span>
+        <div class="bar"><i style="width:46.8%"></i></div>
+      </div>
+      <div class="plan">
+        <span class="r">3</span><span class="nm">Plan C · maintien et renfort aux portes</span><span class="v">951</span>
+        <div class="bar"><i style="width:63.4%"></i></div>
+      </div>
+      <div class="plan cur">
+        <span class="r">–</span><span class="nm">Consigne actuelle</span><span class="v">1 387</span>
+        <div class="bar"><i style="width:92.5%"></i></div>
+      </div>
+      <p class="note">Sortis côté perturbations, pire des 8 perturbations testées. Moins = mieux.</p>
+    </section>
+
+    <section>
+      <h2>Décidé <span class="n" style="background:var(--line2);color:var(--text)">3</span><span class="sub">voir tout</span></h2>
+      <ul class="done"><li><svg class="ck" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7.5l3 3 5-6"/></svg><time>T+00:52</time>Escalators niveau −1 en sens sortie</li></ul>
+    </section>
+  </aside>
+
+  <!-- CARTE 3D -->
+  <main class="map" aria-label="Maquette 3D">
+    <svg class="scene" id="scene" viewBox="150 30 740 640" preserveAspectRatio="xMidYMid meet"></svg>
+
+    <nav class="rail" aria-label="Outils">
+      <button aria-label="Calques"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M10 3l7 3.5-7 3.5-7-3.5z"/><path d="M3 10l7 3.5 7-3.5"/><path d="M3 13.5L10 17l7-3.5"/></svg><span>Calques</span></button>
+      <button aria-label="Caméras"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="2.5" y="6" width="10" height="8" rx="1.5"/><path d="M12.5 9l5-2.5v7L12.5 11"/></svg><span>Mur de caméras</span></button>
+      <button aria-label="Simuler"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M7 4.5l8 5.5-8 5.5z"/></svg><span>Simuler un scénario</span></button>
+      <button aria-label="Réglages"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 6h9M15 6h2M3 14h2M8 14h9"/><circle cx="13.5" cy="6" r="1.6"/><circle cx="6.5" cy="14" r="1.6"/></svg><span>Réglages</span></button>
+    </nav>
+
+    <div class="levels" aria-label="Niveaux">
+      <div>Rue<i></i></div><div>−1<i></i></div><div class="r">−2<i></i></div><div class="a">−3<i></i></div>
+    </div>
+
+    <div class="spoken">
+      <div class="who"><svg width="26" height="14" viewBox="0 0 26 14" fill="var(--dim)"><rect x="0" y="5" width="2.4" height="4" rx="1"/><rect x="4.4" y="2" width="2.4" height="10" rx="1"/><rect x="8.8" y="4" width="2.4" height="6" rx="1"/><rect x="13.2" y="0" width="2.4" height="14" rx="1"/><rect x="17.6" y="3" width="2.4" height="8" rx="1"/><rect x="22" y="5" width="2.4" height="4" rx="1"/></svg>Directeur, il y a 8 s</div>
+      <q><mark>Porte du Louvre est saturée.</mark> Ouvrons l'<em>Issue ouest du niveau −2</em> et guidons la file.</q>
+    </div>
+  </main>
+
+  <!-- CHIFFRES CLÉS + DISPOSITIF -->
+  <aside class="right" aria-label="Chiffres clés">
+    <div class="kpi"><label>Personnes dedans</label><b>3 482</b></div>
+    <div class="kpi r"><label>Densité maximale</label><b>5,3<small>p/m²</small></b></div>
+    <div class="kpi a"><label>Sorties en tension</label><b>2<small>sur 11</small></b></div>
+    <div class="kpi"><label>Vidage estimé</label><b>14<small>min</small></b></div>
+
+    <section class="disp">
+      <h2>Dispositif</h2>
+      <div class="ex r"><i></i><span>Porte du Louvre<small>niveau −2 · en file</small></span><b>139</b></div>
+      <div class="ex a"><i></i><span>Porte du Pont-Neuf<small>ascenseur niveau −3</small></span><b>10</b></div>
+      <div class="quiet"><span>9 sorties fluides</span><span>0 en file</span></div>
+      <div class="quiet"><span>Agents en poste</span><span>46 + 6 en renfort</span></div>
+    </section>
+  </aside>
+
+  <!-- CHRONOLOGIE -->
+  <footer class="time">
+    <h2>Chronologie</h2>
+    <div class="tl">
+      <div class="ruler" id="ruler">
+        <div class="axis"></div><div class="past"></div>
+        <div class="now"><span>MAINTENANT</span></div>
+      </div>
+      <div class="evs">
+        <div class="ev blue"><time>T+01:02</time><strong>INFO</strong>Police : stations Les Halles et Châtelet fermées</div>
+        <div class="ev red"><time>T+01:12</time><strong>DANGER</strong>Porte du Louvre en tension : 139 en file</div>
+        <div class="ev green"><time>T+01:17</time><strong>PROPOSITION</strong>Annonce et guide-files vers Porte du Jour (à 175 m)</div>
+        <div class="ev amber last"><time>T+01:19</time><strong>ATTENTION</strong>File devant l'ascenseur Porte du Pont-Neuf, niveau −3 : 10 pers.</div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+/* Génération de la maquette (statique, aucune donnée externe). */
+(function(){
+  var C=.866,S=.5,K=1.15,U=400,V=210,OX=405,OY=290,T=8;
+  var Z={rue:174,n1:116,n2:58,n3:0};
+  var out=[];
+  function P(u,v,z){return [OX+(u-v)*C*K, OY+(u+v)*S*K - z];}
+  function pts(a){return a.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1)}).join(' ');}
+  function poly(a,attr){out.push('<polygon points="'+pts(a)+'" '+attr+'/>');}
+  function rect(u0,v0,u1,v1,z,attr){poly([P(u0,v0,z),P(u1,v0,z),P(u1,v1,z),P(u0,v1,z)],attr);}
+  function box(u0,v0,u1,v1,h,z,top,left,right){
+    poly([P(u0,v1,z),P(u1,v1,z),P(u1,v1,z+h),P(u0,v1,z+h)],'fill="'+left+'" stroke="#3A4558" stroke-width="1" stroke-linejoin="round"');
+    poly([P(u1,v0,z),P(u1,v1,z),P(u1,v1,z+h),P(u1,v0,z+h)],'fill="'+right+'" stroke="#3A4558" stroke-width="1" stroke-linejoin="round"');
+    poly([P(u0,v0,z+h),P(u1,v0,z+h),P(u1,v1,z+h),P(u0,v1,z+h)],'fill="'+top+'" stroke="#4A566B" stroke-width="1" stroke-linejoin="round"');
+  }
+  var seed=7;function rnd(){seed=(seed*16807)%2147483647;return seed/2147483647;}
+  function slab(z,fill,stroke){
+    poly([P(0,V,z),P(U,V,z),P(U,V,z-T),P(0,V,z-T)],'fill="#141A24" stroke="'+stroke+'" stroke-width="1"');
+    poly([P(U,0,z),P(U,V,z),P(U,V,z-T),P(U,0,z-T)],'fill="#0F141C" stroke="'+stroke+'" stroke-width="1"');
+    rect(0,0,U,V,z,'fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.2" stroke-linejoin="round"');
+  }
+  var halls=[[130,65,270,145],[0,95,130,115],[270,95,400,115],[180,0,200,65],[180,145,200,210]];
+  function level(z,fill,shopsA){
+    slab(z,fill,'#4A566B');
+    // boutiques
+    var sh=[[8,8,120,85],[210,8,392,85],[8,125,120,202],[210,125,392,202],[130,8,172,57],[130,153,172,202]];
+    sh.forEach(function(r,i){ if(shopsA&&(i+shopsA)%4==0) return; rect(r[0],r[1],r[2],r[3],z,'fill="rgba(140,160,190,.10)" stroke="#2E3846" stroke-width="1"');});
+    halls.forEach(function(h){rect(h[0],h[1],h[2],h[3],z,'fill="rgba(200,215,235,.10)" stroke="#5A6A82" stroke-width="1"');});
+  }
+  function dots(z,n,cl,col,op){
+    for(var i=0;i<n;i++){
+      var h=cl||halls[Math.floor(rnd()*halls.length)];
+      var u=h[0]+4+rnd()*(h[2]-h[0]-8), v=h[1]+3+rnd()*(h[3]-h[1]-6), p=P(u,v,z);
+      out.push('<circle cx="'+p[0].toFixed(1)+'" cy="'+(p[1]-1).toFixed(1)+'" r="1.7" fill="'+(col||'#AEB9CA')+'" opacity="'+(op||.75)+'"/>');
+    }
+  }
+  function heat(z,cu,cv,ru,rv,col,id){
+    var p=P(cu,cv,z);
+    out.push('<g transform="translate('+p[0].toFixed(1)+','+p[1].toFixed(1)+') matrix('+(C*K)+' '+(S*K)+' '+(-C*K)+' '+(S*K)+' 0 0)"><ellipse rx="'+ru+'" ry="'+rv+'" fill="url(#'+id+')"/></g>');
+  }
+  function label(p,text,col,anchor,dx,dy,bg){
+    var w=text.length*6.1+14, x=p[0]+dx, y=p[1]+dy;
+    var rx=anchor=='end'?x-w:x;
+    out.push('<g><rect x="'+rx.toFixed(1)+'" y="'+(y-12).toFixed(1)+'" width="'+w.toFixed(1)+'" height="20" rx="4" fill="'+(bg||'#0A0D12')+'" stroke="'+col+'" stroke-width="1"/><text x="'+(rx+7).toFixed(1)+'" y="'+(y+2.5).toFixed(1)+'" fill="#E8ECF2" font-size="12.5" font-weight="600">'+text+'</text></g>');
+  }
+  function pin(z,u,v,col,opts){
+    opts=opts||{};var p=P(u,v,z);
+    out.push('<ellipse cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" rx="'+(opts.ring?9:5)+'" ry="'+(opts.ring?4.5:2.5)+'" fill="none" stroke="'+col+'" stroke-width="'+(opts.ring?1.6:1)+'" '+(opts.dash?'stroke-dasharray="3 2"':'')+' opacity=".9"/>');
+    out.push('<line x1="'+p[0].toFixed(1)+'" y1="'+p[1].toFixed(1)+'" x2="'+p[0].toFixed(1)+'" y2="'+(p[1]-15).toFixed(1)+'" stroke="'+col+'" stroke-width="1.5"/>');
+    out.push('<circle cx="'+p[0].toFixed(1)+'" cy="'+(p[1]-19).toFixed(1)+'" r="'+(opts.big?7:5)+'" fill="'+(opts.hollow?'#0A0D12':col)+'" stroke="'+col+'" stroke-width="1.6"/>');
+    if(opts.num) out.push('<text x="'+p[0].toFixed(1)+'" y="'+(p[1]-15).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#06140D">'+opts.num+'</text>');
+    return [p[0],p[1]-19];
+  }
+
+  out.push('<defs>'
+    +'<radialGradient id="hr"><stop offset="0" stop-color="#FF4D4F" stop-opacity=".78"/><stop offset=".55" stop-color="#FF4D4F" stop-opacity=".30"/><stop offset="1" stop-color="#FF4D4F" stop-opacity="0"/></radialGradient>'
+    +'<radialGradient id="ha"><stop offset="0" stop-color="#F5B83D" stop-opacity=".7"/><stop offset=".6" stop-color="#F5B83D" stop-opacity=".25"/><stop offset="1" stop-color="#F5B83D" stop-opacity="0"/></radialGradient>'
+    +'</defs>');
+  out.push('<g font-family="IBM Plex Sans Condensed, Arial Narrow, sans-serif">');
+
+  // lignes verticales aux angles (maquette éclatée)
+  [[0,0],[U,0],[0,V],[U,V]].forEach(function(c){
+    var a=P(c[0],c[1],Z.rue-T), b=P(c[0],c[1],Z.n3-T);
+    out.push('<line x1="'+a[0].toFixed(1)+'" y1="'+a[1].toFixed(1)+'" x2="'+b[0].toFixed(1)+'" y2="'+b[1].toFixed(1)+'" stroke="#2E3846" stroke-width="1" stroke-dasharray="2 4"/>');
+  });
+
+  // niveau -3
+  level(Z.n3,'rgba(22,30,42,.86)',1);
+  dots(Z.n3,26);
+  heat(Z.n3,190,38,34,26,'a','ha');
+  dots(Z.n3,10,[176,6,204,58],'#F5B83D',.95);
+
+  // niveau -2
+  level(Z.n2,'rgba(22,30,42,.62)',2);
+  dots(Z.n2,46);
+  heat(Z.n2,338,105,62,30,'r','hr');
+  dots(Z.n2,46,[290,93,398,117],'#FF6B6D',.95);
+  dots(Z.n2,8,[275,66,330,144],'#FF6B6D',.9);
+
+  // itinéraire proposé -2 : Louvre -> Issue ouest
+  var rt=[P(385,105,Z.n2),P(210,105,Z.n2),P(14,105,Z.n2)];
+  out.push('<polyline points="'+pts(rt)+'" fill="none" stroke="#3FD08A" stroke-width="3" stroke-dasharray="7 5" stroke-linecap="round" opacity=".95"/>');
+  var mid=P(215,105,Z.n2);
+  out.push('<polygon points="'+(mid[0]-8)+','+(mid[1]-5)+' '+(mid[0]+2)+','+(mid[1]+0)+' '+(mid[0]-8)+','+(mid[1]+5)+'" fill="#3FD08A" transform="rotate(-30 '+mid[0]+' '+mid[1]+') translate(-16 4)"/>');
+
+  // niveau -1
+  level(Z.n1,'rgba(22,30,42,.5)',3);
+  dots(Z.n1,58);
+
+  // rue
+  slab(Z.rue,'rgba(120,140,170,.07)','#3A4558');
+  // bâtiments en fond (ordre de peinture)
+  var bld=[[-34,0,70,0,52],[70,0,160,0,78],[160,0,260,0,44],[260,0,330,0,66],[330,0,400,0,56]];
+  box(-34,0,0,70,70,Z.rue,'#2A3342','#1E2530','#171C25');
+  box(-34,70,0,140,48,Z.rue,'#2A3342','#1E2530','#171C25');
+  box(-34,140,0,210,62,Z.rue,'#2A3342','#1E2530','#171C25');
+  bld.forEach(function(b){box(b[0],-34,b[2],0,b[4],Z.rue,'#2A3342','#1E2530','#171C25');});
+  // jardin + canopée
+  rect(110,58,290,152,Z.rue,'fill="rgba(80,100,120,.18)" stroke="#4A566B" stroke-width="1" stroke-dasharray="3 3"');
+  box(150,80,250,130,8,Z.rue,'#26303D','#1B222D','#151A23');
+  [[125,70],[135,140],[275,72],[272,142],[200,66],[200,146]].forEach(function(t){var p=P(t[0],t[1],Z.rue);out.push('<circle cx="'+p[0].toFixed(1)+'" cy="'+(p[1]-5).toFixed(1)+'" r="5" fill="#222B38" stroke="#3A4558"/>');});
+
+  // pins : sorties grises
+  [[Z.rue,60,205],[Z.rue,335,205],[Z.rue,395,60],[Z.n1,200,205],[Z.n1,5,60],[Z.n2,190,206],[Z.n3,100,205]].forEach(function(e){pin(e[0],e[1],e[2],'#8D98A9',{hollow:true});});
+  // Porte du Jour (proposition 2)
+  var pj=pin(Z.n1,395,105,'#3FD08A',{ring:true,dash:true,hollow:true,num:''});
+  label(pj,'2 · Porte du Jour','#3FD08A','start',12,-4);
+  // Pont-Neuf ascenseur -3
+  var pp=pin(Z.n3,190,10,'#F5B83D',{ring:true,big:true});
+  label(pp,'Asc. Pont-Neuf · 10','#F5B83D','start',12,-4);
+  // Issue ouest -2
+  var io=pin(Z.n2,10,105,'#3FD08A',{ring:true,big:true,num:'1'});
+  label(io,'Issue ouest −2','#3FD08A','end',-12,-4);
+  // Porte du Louvre
+  var pl=pin(Z.n2,385,105,'#FF4D4F',{ring:true,big:true});
+  out.push('<circle cx="'+pl[0].toFixed(1)+'" cy="'+(pl[1]+19).toFixed(1)+'" r="14" fill="none" stroke="#FF4D4F" stroke-width="1.5" opacity=".6"><animate attributeName="r" values="8;30" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values=".7;0" dur="2s" repeatCount="indefinite"/></circle>');
+  label(pl,'Porte du Louvre · 139','#FF4D4F','start',12,-4,'#2A1214');
+  var mp=P(150,105,Z.n2);
+  label([mp[0],mp[1]],'+68 m','#3FD08A','start',-14,18);
+
+  // étiquettes de niveau (bord gauche)
+  [['Rue',Z.rue],['−1',Z.n1],['−2',Z.n2],['−3',Z.n3]].forEach(function(l){
+    var p=P(0,V,l[1]);
+    out.push('<text x="'+(p[0]-14).toFixed(1)+'" y="'+(p[1]+4).toFixed(1)+'" text-anchor="end" font-size="12" fill="#8D98A9" font-weight="600">'+(l[0]=='Rue'?'RUE':'NIVEAU '+l[0])+'</text>');
+  });
+  out.push('</g>');
+  document.getElementById('scene').innerHTML=out.join('');
+
+  // règle de la chronologie
+  var r=document.getElementById('ruler'),h='';
+  for(var m=0;m<=90;m+=10){h+='<div class="tick" style="left:'+(m/90*100)+'%">'+(m==0?'T+00:00':'T+0'+Math.floor(m/60)+':'+('0'+m%60).slice(-2))+'</div>';}
+  var ev=[[6,'grey'],[14,'grey'],[21,'grey'],[29,'grey'],[38,'grey'],[41,'grey'],[52,'grey'],[62,'blue'],[72,'red'],[77,'green'],[79,'amber']];
+  ev.forEach(function(e){h+='<div class="pip '+e[1]+'" style="left:'+(e[0]/90*100)+'%"></div>';});
+  r.insertAdjacentHTML('beforeend',h);
+})();
+</script>
+</body>
+</html>
