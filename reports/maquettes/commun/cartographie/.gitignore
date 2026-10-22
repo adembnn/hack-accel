@@ -1,0 +1,5 @@
+# fichiers generes (ODbL IDFM / OSM), non commites
+*.json
+*.geojson
+data/
+!.gitignore
