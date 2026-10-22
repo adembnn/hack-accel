@@ -6,7 +6,9 @@
 //   POST /api/tableau                 écrit sur le tableau commun  GET /api/tableau?apres=<id>&run=<uuid>
 //   GET  /api/tableau/flux            SSE : chaque nouvelle ligne du tableau commun arrive en direct
 import http from 'node:http';
-import { pathToFileURL } from 'node:url';
+import { readFile } from 'node:fs/promises';
+import { extname, join, normalize, resolve, sep } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as db from './db.mjs';
 import { creerFlux } from './sse.mjs';
 import { validerRex, masquer, LIMITES } from './valider.mjs';
@@ -42,6 +44,25 @@ function exiger(corps, ...champs) {
 function runValide(valeur) {
   if (valeur && !UUID.test(valeur)) throw Object.assign(new Error('identifiant de run invalide'), { code: 400 });
   return valeur || null;
+}
+
+const DIST = resolve(fileURLToPath(new URL('../../dist', import.meta.url)));
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon',
+  '.glb': 'model/gltf-binary', '.map': 'application/json' };
+
+/** Sert un fichier de dist/ (refus de sortir du dossier). Renvoie false si absent. */
+async function servirStatique(res, chemin) {
+  let rel;
+  try { rel = decodeURIComponent(chemin); } catch { return false; }
+  const fichier = join(DIST, normalize(rel === '/' ? '/index.html' : rel));
+  if (fichier !== DIST && !fichier.startsWith(DIST + sep)) return false;
+  try {
+    const corps = await readFile(fichier);
+    res.writeHead(200, { 'content-type': TYPES[extname(fichier)] ?? 'application/octet-stream' });
+    res.end(corps);
+    return true;
+  } catch { return false; }
 }
 
 /** Crée le serveur (sans l'écouter) : utile aux tests. */
@@ -172,6 +193,9 @@ export async function creerServeur(pool) {
         req.on('close', () => { clearInterval(battement); desabonner(); });
         return;
       }
+
+      // Hors API : l'interface Vite construite (dist/), pour qu'un seul processus serve tout sur le port Runtime.
+      if (req.method === 'GET' && !chemin.startsWith('/api/') && await servirStatique(res, chemin)) return;
 
       json(res, 404, { erreur: 'route inconnue' });
     } catch (e) {

@@ -205,3 +205,11 @@ test('corpus de REX publics : chargement idempotent, source et confiance gardée
   assert.equal(await n(`SELECT count(*) n FROM lecons_sources s JOIN lecons l ON l.id=s.lecon_id WHERE l.auteur='corpus-public'`) >= nbLecons, true);
   console.log(`# corpus : ${un.rex} REX, ${nbLecons} leçons non_verifiee ; 2e chargement : ${deux.rex} nouveau, ${deux.rexDejaPresents} déjà présents`);
 });
+
+test('fichiers statiques : impossible de sortir de dist/', async (t) => {
+  if (!dispo) return t.skip('pas de base');
+  for (const chemin of ['/%2e%2e/package.json', '/..%2f..%2fpackage.json', '/%2e%2e%2f%2e%2e%2fCLAUDE.md']) {
+    const r = await appel('GET', chemin);
+    assert.notEqual(r.code, 200, chemin);
+  }
+});
