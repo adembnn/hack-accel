@@ -45,7 +45,7 @@ test('chaque décideur a un menu non vide, chaque levier est sourcé et son exem
   const sc = scenarioDeTest();
   for (const d of DECIDEURS) assert.ok(leviersDe(d).length >= 1, `menu vide pour ${d}`);
   for (const l of LEVIERS) {
-    assert.match(l.source, /contraintes-forum-des-halles/, `source manquante : ${l.id}`);
+    assert.match(l.source, /(contraintes-forum-des-halles|catalogue-decisions-leviers)/, `source manquante : ${l.id}`);
     const r = appliquerActions(etatInitial(), [{ decideur: l.decideur, levier: l.id, valeur: l.exemple }], { scenario: sc });
     assert.deepEqual(r.refusees, [], `exemple refusé pour ${l.decideur}/${l.id}`);
   }

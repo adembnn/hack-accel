@@ -10,8 +10,13 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { spawn } from 'node:child_process';
 import type { Journal, Plan } from './types.ts';
-import { remplirChamps, verifierChiffres, verifierChiffresZone, type RapportVerification } from './verificateur.ts';
+import { extraireNombres, remplirChamps, verifierChiffres, verifierChiffresZone, type RapportVerification } from './verificateur.ts';
 import { blocDonneeNonFiable, incoherencesAvecPlan } from './limites.ts';
+import { gardePayant } from './garde-payant.ts';
+import { ouvrirScelle, sceller, type EntreeScellee } from './integrite.ts';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join as joindre } from 'node:path';
 
 export type TypeTexte = 'explication' | 'ordre_de_service';
 export type Porteur = 'agent_de_securite' | 'annonce_sonore' | 'ecran' | 'direction';
@@ -24,7 +29,7 @@ export interface DemandeRedaction {
   // Texte libre de tiers (REX, noms d'enseignes) : donnée non fiable, placée après les consignes, jamais exécutée.
   donnees_libres?: string[];
 }
-export interface TexteRedige { type: TypeTexte; zone?: string; porteur?: Porteur; texte: string; origine: 'gabarit' | 'rejeu' | 'claude' }
+export interface TexteRedige { type: TypeTexte; zone?: string; porteur?: Porteur; texte: string; gabarit?: string; origine: 'gabarit' | 'rejeu' | 'claude' }
 
 export interface Redacteur { rediger(demande: DemandeRedaction): Promise<TexteRedige> }
 
@@ -73,7 +78,8 @@ export function faitsZone(journal: Journal, zone: string): { faits: Record<strin
       heure_depart: heureTexte(depart),
       agents_zone: guid,
       personnes_restantes: z ? z.personnes : 0,
-      message: der.plan.messages_par_zone[zone] ?? '',
+      // Texte libre : jamais d'auto-validation de ses nombres (audit F1) ; un message chiffré n'est pas recopié.
+      message: /[\d\p{Nd}]/u.test(der.plan.messages_par_zone[zone] ?? '') ? '(message chiffré : voir le plan)' : (der.plan.messages_par_zone[zone] ?? ''),
     },
   };
 }
@@ -101,7 +107,7 @@ export class RedacteurGabarit implements Redacteur {
     const gabarit = d.type === 'explication'
       ? 'Plan retenu : mode {{mode}}, {{portes_fermees}} porte(s) fermée(s), {{agents_places}} agent(s) de guidage. À {{minute_fin}} minutes du jour, {{sortis_fin}} personnes sont sorties, {{non_sortis_fin}} restent dans le centre et {{sortis_danger_fin}} ont été dirigées vers une zone de danger. La densité maximale a atteint {{densite_pic}} pers./m² à la minute {{minute_pic}}. Les stations ferment à {{heure_stations}}.'
       : 'Zone {{zone}} : départ à {{heure_depart}} ({{agents_zone}} agent(s) sur place, {{personnes_restantes}} personnes à faire sortir). Message : {{message}}';
-    return { type: d.type, zone: d.zone, porteur: d.porteur, texte: remplirChamps(gabarit, d.faits), origine: 'gabarit' };
+    return { type: d.type, zone: d.zone, porteur: d.porteur, texte: remplirChamps(gabarit, d.faits), gabarit, origine: 'gabarit' };
   }
 }
 
@@ -113,19 +119,19 @@ export class ErreurRejeuAbsent extends Error {
 
 export class RedacteurRejeu implements Redacteur {
   #chemin: string;
-  #cache: Record<string, TexteRedige>;
+  #cache: Record<string, EntreeScellee<TexteRedige>>;
   constructor(chemin: string) {
     this.#chemin = chemin;
-    this.#cache = existsSync(chemin) ? (JSON.parse(readFileSync(chemin, 'utf8')) as Record<string, TexteRedige>) : {};
+    this.#cache = existsSync(chemin) ? (JSON.parse(readFileSync(chemin, 'utf8')) as Record<string, EntreeScellee<TexteRedige>>) : {};
   }
   async rediger(d: DemandeRedaction): Promise<TexteRedige> {
     const cle = cleDeDemande(d);
-    const t = this.#cache[cle];
-    if (!t) throw new ErreurRejeuAbsent(cle, d.type);
-    return { ...t, origine: 'rejeu' };
+    const brut = this.#cache[cle];
+    if (!brut) throw new ErreurRejeuAbsent(cle, d.type);
+    return { ...ouvrirScelle<TexteRedige>(brut, cle), origine: 'rejeu' };
   }
   enregistrer(d: DemandeRedaction, t: TexteRedige): void {
-    this.#cache[cleDeDemande(d)] = t;
+    this.#cache[cleDeDemande(d)] = sceller(t);
     mkdirSync(dirname(this.#chemin), { recursive: true });
     writeFileSync(this.#chemin, `${JSON.stringify(this.#cache, null, 2)}\n`);
   }
@@ -161,10 +167,7 @@ export class RedacteurClaude implements Redacteur {
   #modele: string;
   #fetch: typeof fetch;
   constructor(o: OptionsClaude) {
-    if (!o.autorise_payant) throw new Error('RedacteurClaude : appel payant non autorisé (accord d\'Adem requis, voir LISEZMOI règle 9)');
-    const cle = (o.env ?? process.env).ANTHROPIC_API_KEY;
-    if (!cle) throw new Error('RedacteurClaude : ANTHROPIC_API_KEY absente de l\'environnement');
-    this.#cle = cle;
+    this.#cle = gardePayant('RedacteurClaude', o, 'ANTHROPIC_API_KEY') as string;
     this.#modele = o.modele ?? 'claude-sonnet-5-5';
     this.#fetch = o.fetchImpl ?? fetch;
   }
@@ -178,14 +181,35 @@ export class RedacteurClaude implements Redacteur {
     if (!reponse.ok) throw new Error(`Anthropic a répondu ${reponse.status}`);
     const corps = (await reponse.json()) as { content?: { type: string; text?: string }[] };
     const gabarit = (corps.content ?? []).filter((c) => c.type === 'text').map((c) => c.text ?? '').join('').trim();
-    return { type: d.type, zone: d.zone, porteur: d.porteur, texte: remplirChamps(gabarit, d.faits), origine: 'claude' };
+    return { type: d.type, zone: d.zone, porteur: d.porteur, texte: remplirChamps(gabarit, d.faits), gabarit, origine: 'claude' };
   }
 }
 
-// Lanceur de la CLI `claude -p` non interactif, prompt sur l'entrée standard, abonnement de l'équipe (aucune clé facturée).
+// Lanceur de la CLI `claude -p` non interactif, DURCI (audit F4). Options vérifiées avec `claude --help` le 22 oct. 2026 :
+//   --tools ""                  désactive TOUS les outils intégrés (Bash, Read, Write, Edit, WebFetch…) ;
+//   --strict-mcp-config         n'utilise aucun serveur MCP (aucun --mcp-config fourni) ;
+//   --disable-slash-commands    désactive les skills ;
+//   --no-session-persistence    rien n'est enregistré sur disque.
+// Le processus tourne dans un dossier temporaire vide (aucun fichier du projet à portée) et sans les clés des autres services.
+// --bare n'est PAS utilisé : il impose ANTHROPIC_API_KEY et exclut l'abonnement. Cette classe n'est jamais lancée par les tests.
 export type LanceurCli = (prompt: string) => Promise<string>;
+
+export const ARGS_CLAUDE_CLI = ['-p', '--tools', '', '--strict-mcp-config', '--disable-slash-commands', '--no-session-persistence'] as const;
+
+export function argsClaudeCli(windows = process.platform === 'win32'): string[] {
+  // Avec un shell Windows, l'argument vide doit être transmis sous la forme "" .
+  return ARGS_CLAUDE_CLI.map((a) => (a === '' && windows ? '""' : a));
+}
+
+export function envSansSecrets(env: Record<string, string | undefined> = process.env): Record<string, string | undefined> {
+  const sortie: Record<string, string | undefined> = { ...env };
+  for (const k of Object.keys(sortie)) if (/(KEY|TOKEN|SECRET|PASSWORD|DATABASE_URL|WEBHOOK)/i.test(k) && k !== 'ANTHROPIC_API_KEY') delete sortie[k];
+  return sortie;
+}
+
 export const lanceurClaudeCli: LanceurCli = (prompt) => new Promise((resolve, reject) => {
-  const p = spawn('claude', ['-p'], { stdio: ['pipe', 'pipe', 'pipe'], shell: process.platform === 'win32' });
+  const dossierVide = mkdtempSync(joindre(tmpdir(), 'claude-cli-'));
+  const p = spawn('claude', argsClaudeCli(), { cwd: dossierVide, env: envSansSecrets() as NodeJS.ProcessEnv, stdio: ['pipe', 'pipe', 'pipe'], shell: process.platform === 'win32' });
   let sortie = '', erreur = '';
   p.stdout.on('data', (b) => { sortie += b; });
   p.stderr.on('data', (b) => { erreur += b; });
@@ -194,19 +218,21 @@ export const lanceurClaudeCli: LanceurCli = (prompt) => new Promise((resolve, re
   p.stdin.end(prompt);
 });
 
-export interface OptionsClaudeCli { autorise: boolean; lanceur?: LanceurCli }
+export interface OptionsClaudeCli { autorise: boolean; lanceur?: LanceurCli; env?: Record<string, string | undefined> }
 
 // Deuxième implémentation Claude : via la CLI, abonnement de l'équipe. Jamais appelée dans les tests (lanceur injecté ou absent).
 export class RedacteurClaudeCli implements Redacteur {
   #lanceur: LanceurCli;
   constructor(o: OptionsClaudeCli) {
-    if (!o.autorise) throw new Error('RedacteurClaudeCli : lancement non autorisé (option autorise requise)');
+    // Lanceur injecté (test) : aucun processus réel. Lanceur par défaut : garde globale MODE_PAYANT comme les autres transports.
+    if (!o.lanceur) gardePayant('RedacteurClaudeCli', { autorise_payant: o.autorise, env: o.env }, null);
+    else if (!o.autorise) throw new Error('RedacteurClaudeCli : lancement non autorisé (option autorise requise)');
     this.#lanceur = o.lanceur ?? lanceurClaudeCli;
   }
   async rediger(d: DemandeRedaction): Promise<TexteRedige> {
     const { systeme, utilisateur } = construirePrompt(d);
     const gabarit = await this.#lanceur(`${systeme}\n\n${utilisateur}`);
-    return { type: d.type, zone: d.zone, porteur: d.porteur, texte: remplirChamps(gabarit, d.faits), origine: 'claude' };
+    return { type: d.type, zone: d.zone, porteur: d.porteur, texte: remplirChamps(gabarit, d.faits), gabarit, origine: 'claude' };
   }
 }
 
@@ -231,8 +257,16 @@ export class ErreurIncoherence extends Error {
   constructor(problemes: string[]) { super(`texte incohérent avec le plan : ${problemes.join(' ; ')}`); this.problemes = problemes; }
 }
 
+function rapportRejet(textes: string[]): RapportVerification {
+  return { total: textes.length, retrouves: 0, taux: 0, ok: false, non_retrouves: textes.map((t, i) => ({ texte: t, valeur: Number.NaN, position: i })) };
+}
+
 function controler(texte: TexteRedige, d: DemandeRedaction, journal: Journal): RapportVerification {
-  // Pour un ordre de service, seuls les nombres de SA zone (et les nombres globaux) sont admis (A9).
+  // 1. Aucun nombre littéral : les chiffres ne viennent que de jetons {{cle}} remplacés par le code depuis le journal (audit F1).
+  const hors = texte.gabarit !== undefined ? texte.gabarit.replace(/{{[^}]*}}/g, ' ') : texte.texte;
+  const libres = extraireNombres(hors);
+  if (libres.length) throw new ErreurChiffres(rapportRejet(libres.map((n) => n.texte)));
+  // 2. Les valeurs substituées doivent se retrouver dans le journal, restreint à la zone pour un ordre de service (A9).
   const rapport = d.zone ? verifierChiffresZone(texte.texte, journal, d.zone) : verifierChiffres(texte.texte, journal);
   if (!rapport.ok) throw new ErreurChiffres(rapport);
   const inco = incoherencesAvecPlan(texte.texte, journal.entrees[journal.entrees.length - 1].plan);

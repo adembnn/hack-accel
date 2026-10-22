@@ -2,10 +2,13 @@
 // pas d'enum, pas de propriété de paramètre de constructeur, imports de types avec `import type`).
 // Hypothèses marquées (H) = valeurs non publiques, à confirmer ; voir reports/contraintes-forum-des-halles.md §7.
 
-export type Decideur = 'prefecture' | 'ratp' | 'securite_centre' | 'directeur';
-export const DECIDEURS: readonly Decideur[] = ['prefecture', 'ratp', 'securite_centre', 'directeur'];
+// Les quatre décideurs qui jouent à chaque minute (instantané-3 §9) ; UGC et BSPP complètent les six acteurs du catalogue.
+export type DecideurJeu = 'prefecture' | 'ratp' | 'securite_centre' | 'directeur';
+export type Decideur = DecideurJeu | 'ugc' | 'bspp';
+export const ACTEURS_CATALOGUE: readonly Decideur[] = ['prefecture', 'ratp', 'securite_centre', 'directeur', 'ugc', 'bspp'];
+export const DECIDEURS: readonly DecideurJeu[] = ['prefecture', 'ratp', 'securite_centre', 'directeur'];
 // Ordre de jeu à chaque minute : les meneurs (préfecture, RATP) s'engagent, le directeur répond (rapport instantané-3 §3, Stackelberg).
-export const ORDRE_DE_JEU: readonly Decideur[] = ['prefecture', 'ratp', 'securite_centre', 'directeur'];
+export const ORDRE_DE_JEU: readonly DecideurJeu[] = ['prefecture', 'ratp', 'securite_centre', 'directeur'];
 
 export type Mode = 'rester_ouvert' | 'fermer_par_etapes' | 'fermer';
 export const MODES: readonly Mode[] = ['rester_ouvert', 'fermer_par_etapes', 'fermer'];
@@ -110,6 +113,8 @@ export interface EntreeJournal {
   etat: EtatResume;
   note: Note;
   hors_plan: Record<string, unknown>;
+  // Événements de la minute : perturbations reçues (événement `contrainte`) et conflits déclenchés.
+  evenements?: { contraintes: unknown[]; conflits: unknown[] };
   // Agrégats calculés par le code, pour que tout nombre d'un texte se retrouve littéralement dans le journal.
   synthese: { portes_fermees: number; portes_ouvertes: number; agents_places: number; agents_par_zone: Record<string, number> };
   decisions: EntreeTableau[];

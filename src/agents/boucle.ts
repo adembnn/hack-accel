@@ -1,9 +1,10 @@
 // Boucle décider → simuler → noter, à chaque minute simulée. Écrite contre des interfaces injectées :
 // Simulateur (lots #8/#9), ClientDecision (Jev en production), StockageTableau (PostgreSQL du lot aiven).
-import type { Action, Decideur, EntreeJournal, EntreeTableau, EtatResume, Grille, Journal, Note, Scenario, Simulateur, StockageTableau } from './types.ts';
+import type { Action, Decideur, DecideurJeu, EntreeJournal, EntreeTableau, EtatResume, Grille, Journal, Note, Scenario, Simulateur, StockageTableau } from './types.ts';
 import { ORDRE_DE_JEU } from './types.ts';
 import { appliquerActions, etatInitial, type EtatDecisions } from './leviers.ts';
-import { leconsPertinentes, type Lecon } from './rex.ts';
+import { assainirLecons, leconsPertinentes, peutChangerUnLevier, type Lecon } from './rex.ts';
+import { appliquerContrainte, detecterConflits, lirePerturbations, motsPerturbations, validerContrainte, type EvenementConflit, type EvenementContrainte } from './evenements.ts';
 import { construireQuestion, lireReponse, type ClientDecision } from './questions.ts';
 
 // Note d'un état. Écrasement = personnes-minutes au-dessus du seuil (5 pers./m², décision d'Adem #15), cumulées par la boucle.
@@ -36,11 +37,18 @@ export function synthesePlan(plan: import('./types.ts').Plan, zones: string[]): 
   return { portes_fermees: etats.filter((e) => e === 'fermee').length, portes_ouvertes: etats.filter((e) => e === 'ouverte').length, agents_places: plan.guidage.reduce((s, g) => s + g.agents, 0), agents_par_zone: parZone };
 }
 
+function manquant(d: Decideur): never {
+  throw new Error(`aucun client de décision fourni pour ${d}`);
+}
+
 export interface OptionsBoucle {
   simulateur: Simulateur;
   scenario: Scenario;
-  clients: Record<Decideur, ClientDecision>;
+  clients: Partial<Record<Decideur, ClientDecision>>;
   stockage: StockageTableau;
+  // Perturbations posées par le juré (événement `contrainte`) : appliquées à leur minute, puis vues par les décideurs.
+  contraintes?: EvenementContrainte[];
+  acteurs?: readonly Decideur[];   // défaut : les 4 décideurs du jeu
   lecons?: Lecon[];           // leçons du REX, relues avant chaque décision
   minutes: number;            // durée maximale en minutes simulées
   surMinute?: (entree: EntreeJournal) => void;
@@ -53,19 +61,35 @@ export async function lancerBoucle(o: OptionsBoucle): Promise<Journal> {
   let etat = o.simulateur.etat();
   let derniere: Note | null = null;
   let ecrasement = 0;
+  // Leçons du REX : texte de tiers tronqué, consignes déguisées et contradictoires écartées une fois pour toutes.
+  const assainies = assainirLecons(o.lecons ?? []);
+  let conflitsPrecedents: EvenementConflit[] = [];
+  const attente = [...(o.contraintes ?? [])].sort((x, y) => x.minute - y.minute);
   const journal: Journal = { scenario: structuredClone(o.scenario), entrees: [] };
 
   for (let i = 0; i < o.minutes; i++) {
     const minute = etat.minute;
     const decisionsMinute: EntreeTableau[] = [];
     const vues: { decideur: Decideur; actions: Action[] }[] = [];
-    for (const d of ORDRE_DE_JEU) {
-      const lecons = leconsPertinentes(o.lecons ?? [], Object.entries(etat.par_zone).filter(([, z]) => z.personnes > 0).map(([z]) => z));
-      const question = construireQuestion({ decideur: d, lecons, minute, etat, derniere_note: derniere, plan_courant: decisions.plan, decisions_des_autres: vues });
+    decisions = { ...decisions, hors_plan: { ...decisions.hors_plan, minute_courante: minute } };
+    // Réception des perturbations dues : événement `contrainte` → état → les décideurs re-décident sur le nouvel état.
+    const appliquees: EvenementContrainte[] = [];
+    const refuseesContraintes: { evenement: EvenementContrainte; raisons: string[] }[] = [];
+    while (attente.length && attente[0].minute <= minute) {
+      const evt = attente.shift() as EvenementContrainte;
+      const raisons = validerContrainte(evt, o.scenario);
+      if (raisons.length) { refuseesContraintes.push({ evenement: evt, raisons }); continue; }
+      decisions = appliquerContrainte(decisions, evt);
+      appliquees.push(evt);
+    }
+    const mots = motsPerturbations(lirePerturbations(decisions));
+    for (const d of (o.acteurs ?? ORDRE_DE_JEU)) {
+      const lecons = leconsPertinentes(assainies.gardees, Object.entries(etat.par_zone).filter(([, z]) => z.personnes > 0).map(([z]) => z));
+      const question = construireQuestion({ decideur: d, lecons, minute, etat, derniere_note: derniere, plan_courant: decisions.plan, decisions_des_autres: vues, lecons_validees: lecons.filter(peutChangerUnLevier).map((l) => l.id), perturbations: mots, conflits: conflitsPrecedents.map((c) => c.code), nouvelles_perturbations: appliquees.length > 0 });
       let actions: Action[] = [];
       const refusees: EntreeTableau['actions_refusees'] = [];
       try {
-        const lue = lireReponse(d, await o.clients[d].decider(question));
+        const lue = lireReponse(d, await (o.clients[d] ?? manquant(d)).decider(question));
         actions = lue.actions;
         for (const e of lue.erreurs) refusees.push({ action: { decideur: d, levier: '?', valeur: null }, raisons: [e] });
       } catch (err) {
@@ -79,10 +103,12 @@ export async function lancerBoucle(o: OptionsBoucle): Promise<Journal> {
       decisionsMinute.push(entree);
       vues.push({ decideur: d, actions: res.acceptees });
     }
+    conflitsPrecedents = detecterConflits(decisions, etat, o.scenario);
+    const evenementsMinute = { contraintes: [...appliquees, ...refuseesContraintes], conflits: conflitsPrecedents };
     etat = o.simulateur.avancer(decisions.plan, 1);
     ecrasement += ecrasementMinute(etat, grille);
     derniere = noter(etat, grille, ecrasement);
-    const ligne: EntreeJournal = { minute: etat.minute, plan: structuredClone(decisions.plan), hors_plan: structuredClone(decisions.hors_plan), synthese: synthesePlan(decisions.plan, Object.keys(etat.par_zone)), etat, note: derniere, decisions: decisionsMinute };
+    const ligne: EntreeJournal = { minute: etat.minute, plan: structuredClone(decisions.plan), hors_plan: structuredClone(decisions.hors_plan), synthese: synthesePlan(decisions.plan, Object.keys(etat.par_zone)), etat, note: derniere, evenements: evenementsMinute, decisions: decisionsMinute };
     journal.entrees.push(ligne);
     o.surMinute?.(ligne);
     if (etat.dans_le_centre === 0) break;
@@ -91,7 +117,7 @@ export async function lancerBoucle(o: OptionsBoucle): Promise<Journal> {
 }
 
 // Décideur déterministe de secours / de test : joue une consigne simple, toujours dans le menu.
-export function clientsHeuristiques(): Record<Decideur, ClientDecision> {
+export function clientsHeuristiques(): Record<DecideurJeu, ClientDecision> {
   return {
     prefecture: { decider: async (q) => (q.minute === q.entree.etat.minute && q.entree.derniere_note === null ? { actions: [{ levier: 'demande_fermeture_stations', valeur: true }] } : { actions: [] }) },
     ratp: { decider: async (q) => (q.entree.derniere_note === null ? { actions: [{ levier: 'heure_fermeture_stations', valeur: 1320 }, { levier: 'correspondances', valeur: true }] } : { actions: [] }) },

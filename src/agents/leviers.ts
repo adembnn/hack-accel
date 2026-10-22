@@ -3,6 +3,9 @@
 // (instantané-3 §6, preuve 4). Chaque levier porte sa source et sa limite connue.
 import type { Action, Decideur, Mode, Plan, Scenario, EtatPorte } from './types.ts';
 import { MODES, PORTES, planInitial } from './types.ts';
+import { LEVIERS_CATALOGUE } from './catalogue-leviers.ts';
+
+export * from './catalogue-leviers.ts';
 
 export type { Plan, Mode } from './types.ts';
 
@@ -61,7 +64,7 @@ function horsPlanSet(etat: EtatDecisions, cle: string, valeur: unknown): EtatDec
   return e;
 }
 
-export const LEVIERS: readonly Levier[] = [
+export const LEVIERS_NOYAU: readonly Levier[] = [
   // ---------------- Directeur du centre ----------------
   {
     id: 'mode', decideur: 'directeur', champ: 'mode', statut: 'bon_sens',
@@ -79,11 +82,13 @@ export const LEVIERS: readonly Levier[] = [
     limite: "Trop de portes fermées = goulot ; les sorties réglementaires ne sont pas libres de fermeture [?] (le plan exige au moins 4 portes ouvertes tant qu'on n'est pas en mode fermer)",
     valeur_schema: { type: 'object', required: ['porte', 'etat'], properties: { porte: { type: 'string', enum: [...PORTES] }, etat: { type: 'string', enum: ['ouverte', 'fermee'] } } },
     exemple: { porte: 'berger', etat: 'fermee' },
-    valider: (v) => {
+    valider: (v, ctx) => {
       if (!estObjet(v)) return ['valeur attendue : {porte, etat}'];
       const r: string[] = [];
       if (typeof v.porte !== 'string' || !PORTES.includes(v.porte)) r.push(`porte inconnue : ${String(v.porte)}`);
       if (v.etat !== 'ouverte' && v.etat !== 'fermee') r.push(`état de porte inconnu : ${String(v.etat)}`);
+      const bloquees = ((ctx.etat.hors_plan.perturbations as { portes_bloquees?: string[] } | undefined)?.portes_bloquees) ?? [];
+      if (v.etat === 'ouverte' && typeof v.porte === 'string' && bloquees.includes(v.porte)) r.push(`la porte ${v.porte} est bloquée (perturbation B1) : impossible de l'ouvrir`);
       return r;
     },
     appliquer: (e, v) => planSet(e, (p) => { const x = v as { porte: string; etat: EtatPorte }; p.portes[x.porte] = x.etat; }),
@@ -266,6 +271,9 @@ export const LEVIERS: readonly Levier[] = [
   },
 ];
 
+// Menu complet : 16 leviers exécutables du noyau (Plan) + les 46 du catalogue (6 décideurs).
+export const LEVIERS: readonly Levier[] = [...LEVIERS_NOYAU, ...LEVIERS_CATALOGUE];
+
 // Contraintes imposées de l'extérieur : pas des leviers (rien ne les change dans le jeu).
 export const CONTRAINTES_FIXES = [
   { id: 'couvre_feu_23h_6h', valeur: '23 h-6 h', source: `${C} §0 écart 1 (Le Parisien)` },
@@ -281,11 +289,12 @@ export function trouverLevier(decideur: Decideur, id: string): Levier | undefine
 }
 
 // Invariants du plan entier (indépendants de qui a agi).
-export function verifierPlan(plan: Plan, scenario: Scenario): string[] {
+export function verifierPlan(plan: Plan, scenario: Scenario, bloquees = 0): string[] {
   const r: string[] = [];
   for (const p of Object.keys(plan.portes)) if (!PORTES.includes(p)) r.push(`porte inconnue dans le plan : ${p}`);
   const ouvertes = Object.values(plan.portes).filter((e) => e === 'ouverte').length;
-  if (plan.mode !== 'fermer' && ouvertes < 4) r.push(`seulement ${ouvertes} portes ouvertes : minimum 4 hors mode fermer (H, goulot)`);
+  const minimum = Math.min(4, PORTES.length - bloquees);
+  if (plan.mode !== 'fermer' && ouvertes < minimum) r.push(`seulement ${ouvertes} portes ouvertes : minimum ${minimum} hors mode fermer (H, goulot)`);
   const agents = plan.guidage.reduce((s, g) => s + g.agents, 0);
   if (agents > scenario.effectif_securite) r.push(`${agents} agents placés pour un effectif de ${scenario.effectif_securite}`);
   for (const [z, t] of Object.entries(plan.messages_par_zone)) if (INTERDIT_ALARME.test(t)) r.push(`message de la zone ${z} évoque une alarme générale ou un incendie`);
@@ -304,6 +313,7 @@ export interface ResultatApplication {
 // Applique une liste d'actions d'UN décideur : refuse tout levier inconnu pour lui, toute valeur hors domaine,
 // et toute action qui casserait un invariant du plan (annulée, les autres continuent).
 export function appliquerActions(etat: EtatDecisions, actions: Action[], ctx: { scenario: Scenario }): ResultatApplication {
+  const bloquees = ((etat.hors_plan.perturbations as { portes_bloquees?: string[] } | undefined)?.portes_bloquees ?? []).length;
   let courant = etat;
   const acceptees: Action[] = [];
   const refusees: { action: Action; raisons: string[] }[] = [];
@@ -313,7 +323,7 @@ export function appliquerActions(etat: EtatDecisions, actions: Action[], ctx: { 
     const raisons = lev.valider(a.valeur, { scenario: ctx.scenario, etat: courant });
     if (raisons.length) { refusees.push({ action: a, raisons }); continue; }
     const essai = lev.appliquer(courant, a.valeur);
-    const casse = verifierPlan(essai.plan, ctx.scenario);
+    const casse = verifierPlan(essai.plan, ctx.scenario, bloquees);
     if (casse.length) { refusees.push({ action: a, raisons: casse }); continue; }
     courant = essai;
     acceptees.push(a);

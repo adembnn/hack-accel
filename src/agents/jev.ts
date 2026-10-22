@@ -9,6 +9,9 @@ import { dirname } from 'node:path';
 import type { Action, Decideur, EtatResume } from './types.ts';
 import { PORTES_VERS_PERIMETRE } from './types.ts';
 import type { ClientDecision, QuestionJev, ReponseJev } from './questions.ts';
+import { gardePayant } from './garde-payant.ts';
+import { ouvrirScelle, sceller, type EntreeScellee } from './integrite.ts';
+import { CATALOGUE, type LevierCatalogue } from './catalogue-leviers.ts';
 
 export const MODELE_JEV = 'jev-1.14.0'; // version figée, jamais jev-latest (rejeu reproductible)
 
@@ -38,6 +41,9 @@ export interface NiveauxEtat {
   stations: 'ouvertes_longtemps' | 'ouvertes_bientot_fermees' | 'fermees';
   sortis_vers_danger: 'aucun' | 'quelques' | 'nombreux';
   leçons: string[];
+  perturbations: string[];   // ex. porte_bloquee:berger, station_fermee:chatelet, information_tardive
+  conflits: string[];        // codes des conflits détectés à la minute précédente
+  nouvelle_perturbation: boolean;
 }
 
 export function niveauxDe(q: QuestionJev, seuilDensite = 5, stationsMinute = 1320, precedent?: EtatResume, population0?: number): NiveauxEtat {
@@ -59,6 +65,9 @@ export function niveauxDe(q: QuestionJev, seuilDensite = 5, stationsMinute = 132
     stations: reste <= 0 ? 'fermees' : reste <= 30 ? 'ouvertes_bientot_fermees' : 'ouvertes_longtemps',
     sortis_vers_danger: dg === 0 ? 'aucun' : dg < 100 ? 'quelques' : 'nombreux',
     leçons: q.entree.lecons.map((l) => l.id),
+    perturbations: q.entree.perturbations ?? [],
+    conflits: q.entree.conflits ?? [],
+    nouvelle_perturbation: q.entree.nouvelles_perturbations ?? false,
   };
 }
 
@@ -73,6 +82,8 @@ export interface SpecQuestion {
 const NIVEAUX_GUIDAGE = ['aucun', 'messages sonores', 'agents sur place', 'évacuation dirigée'];
 
 export const SPECS_JEV: Record<Decideur, SpecQuestion[]> = {
+  ugc: [],
+  bspp: [],
   directeur: [
     {
       cle: 'plan',
@@ -123,6 +134,43 @@ export const SPECS_JEV: Record<Decideur, SpecQuestion[]> = {
   ],
 };
 
+// ---------- Questions Jev du catalogue complet (46 leviers, 6 décideurs) ----------
+// oui_non → noul ; choix → choice ; score → score (niveaux nommés) ; sous_ensemble → choice sur la porte préférée ;
+// oui_non_par_cible → noul sur la cible la plus critique. Les valeurs retournées passent ensuite par les bornes de leviers.ts.
+const NIVEAUX_SCORE = ['aucun', 'faible', 'moyen', 'fort', 'maximum'];
+
+export function specDepuisCatalogue(l: LevierCatalogue): SpecQuestion {
+  const base = { cle: l.code };
+  const enonce = `${l.libelle} (contrainte : ${l.contrainte}) ?`;
+  const agir = (valeur: unknown): Action[] => [{ decideur: l.decideur, levier: l.code, valeur }];
+  switch (l.type) {
+    case 'oui_non':
+      return { ...base, question: { type: 'noul', instructions: enonce }, versActions: (v) => agir(v === true) };
+    case 'choix': {
+      const options = (l.options ?? []).filter((o) => !l.interdits?.includes(o));
+      return { ...base, question: { type: 'choice', instructions: enonce, criteria: Object.fromEntries(options.map((o) => [o, o.replace(/_/g, ' ')])) }, versActions: (v) => agir(v) };
+    }
+    case 'score':
+      return {
+        ...base,
+        question: { type: 'score', instructions: enonce, criteria: NIVEAUX_SCORE },
+        versActions: (v, _n, effectif) => {
+          const max = l.bornes?.max === 'effectif' ? effectif : (l.bornes?.max ?? 0);
+          const min = l.bornes?.min ?? 0;
+          return agir(Math.round(min + (Math.min(Math.max(Number(v), 0), 4) / 4) * (max - min)));
+        },
+      };
+    case 'sous_ensemble':
+      return { ...base, question: { type: 'choice', instructions: enonce, criteria: Object.fromEntries((l.options ?? []).map((o) => [o, o.replace(/_/g, ' ')])) }, versActions: (v) => agir([String(v)]) };
+    case 'oui_non_par_cible':
+      return { ...base, question: { type: 'noul', instructions: enonce }, versActions: (v, n) => agir({ cible: l.cibles?.includes(n.zone_critique) ? n.zone_critique : (l.cibles ?? [])[0], oui: v === true }) };
+  }
+}
+
+export const SPECS_CATALOGUE: Record<Decideur, SpecQuestion[]> = Object.fromEntries(
+  (['prefecture', 'ratp', 'securite_centre', 'directeur', 'ugc', 'bspp'] as Decideur[]).map((d) => [d, CATALOGUE.filter((l) => l.decideur === d).map(specDepuisCatalogue)]),
+) as Record<Decideur, SpecQuestion[]>;
+
 // ---------- Décision à partir des réponses ----------
 export const SEUIL_CONFIANCE = 0.6;
 export const ZONE_INCERTAINE: [number, number] = [0.35, 0.65];
@@ -164,6 +212,7 @@ export interface OptionsClientJev {
   plafond_requetes?: number;        // garde-fou de coût (reco : 300)
   stations_minute?: number;
   surRepli?: (decideur: Decideur, raison: string) => void;
+  catalogue?: boolean;              // poser aussi les questions des 46 leviers du catalogue (défaut : non)
 }
 
 export class ClientJev implements ClientDecision {
@@ -177,7 +226,7 @@ export class ClientJev implements ClientDecision {
   async decider(q: QuestionJev): Promise<ReponseJev> {
     const n = niveauxDe(q, 5, this.#o.stations_minute ?? 1320, this.#precedent);
     this.#precedent = q.entree.etat;
-    const specs = SPECS_JEV[q.decideur];
+    const specs = this.#o.catalogue ? [...SPECS_JEV[q.decideur], ...SPECS_CATALOGUE[q.decideur]] : SPECS_JEV[q.decideur];
     let answers: Record<string, ReponseQuestionJev>;
     let source = 'jev';
     try {
@@ -187,7 +236,7 @@ export class ClientJev implements ClientDecision {
       delete etat.leçons;
       const res = await this.#o.transport.envoyer({
         model: this.#o.modele ?? MODELE_JEV,
-        state: { ...etat, lecons_du_retour_d_experience: n.leçons },
+        state: { ...etat, lecons_du_retour_d_experience: n.leçons, lecons_validees_par_simulation: q.entree.lecons_validees ?? [] },
         questions: Object.fromEntries(specs.map((s) => [s.cle, s.question])),
       });
       answers = res.answers;
@@ -229,19 +278,19 @@ export class ErreurRejeuJevAbsent extends Error {
 // Rejeu : cache fichier JSON { cle: ReponseSystemOne }. Aucun réseau, échoue si absent.
 export class TransportRejeuJev implements TransportJev {
   #chemin: string;
-  #cache: Record<string, ReponseSystemOne>;
+  #cache: Record<string, EntreeScellee<ReponseSystemOne>>;
   constructor(chemin: string) {
     this.#chemin = chemin;
-    this.#cache = existsSync(chemin) ? (JSON.parse(readFileSync(chemin, 'utf8')) as Record<string, ReponseSystemOne>) : {};
+    this.#cache = existsSync(chemin) ? (JSON.parse(readFileSync(chemin, 'utf8')) as Record<string, EntreeScellee<ReponseSystemOne>>) : {};
   }
   async envoyer(r: RequeteJev): Promise<ReponseSystemOne> {
     const cle = cleDeRequete(r);
-    const rep = this.#cache[cle];
-    if (!rep) throw new ErreurRejeuJevAbsent(cle);
-    return structuredClone(rep);
+    const brut = this.#cache[cle];
+    if (!brut) throw new ErreurRejeuJevAbsent(cle);
+    return structuredClone(ouvrirScelle<ReponseSystemOne>(brut, cle));
   }
   enregistrer(r: RequeteJev, rep: ReponseSystemOne): void {
-    this.#cache[cleDeRequete(r)] = rep;
+    this.#cache[cleDeRequete(r)] = sceller(rep);
     mkdirSync(dirname(this.#chemin), { recursive: true });
     writeFileSync(this.#chemin, `${JSON.stringify(this.#cache, null, 2)}\n`);
   }
@@ -252,10 +301,7 @@ export class TransportHttpJev implements TransportJev {
   #cle: string;
   #fetch: typeof fetch;
   constructor(o: { autorise_payant: boolean; env?: Record<string, string | undefined>; fetchImpl?: typeof fetch }) {
-    if (!o.autorise_payant) throw new Error('TransportHttpJev : appel payant non autorisé (accord d\'Adem requis)');
-    const cle = (o.env ?? process.env).TYPESAFE_API_KEY;
-    if (!cle) throw new Error('TransportHttpJev : TYPESAFE_API_KEY absente de l\'environnement');
-    this.#cle = cle;
+    this.#cle = gardePayant('TransportHttpJev', o, 'TYPESAFE_API_KEY') as string;
     this.#fetch = o.fetchImpl ?? fetch;
   }
   async envoyer(r: RequeteJev): Promise<ReponseSystemOne> {

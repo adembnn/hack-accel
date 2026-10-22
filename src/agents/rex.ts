@@ -2,7 +2,7 @@
 // « Analyste de leçons ») en tire des leçons, relues avant chaque décision en crise. Les tables rex_crises et lecons
 // seront fournies par le lot aiven : ici, une interface de stockage et une version en mémoire.
 import { verifierChiffres } from './verificateur.ts';
-import { LIMITES, validerRex, empreinteRex } from './limites.ts';
+import { LIMITES, validerRex, empreinteRex, marquerSuspect, tronquer } from './limites.ts';
 
 export type StatutLecon = 'non_verifiee' | 'contradictoire' | 'validee_par_simulation';
 
@@ -130,3 +130,17 @@ export function promouvoir(l: Lecon, o: { simulation: { run_id: string; meilleur
 
 // Seules les leçons validées par simulation peuvent influencer les leviers (règle des décideurs) ; les autres restent des indices.
 export const peutChangerUnLevier = (l: Lecon): boolean => l.statut === 'validee_par_simulation';
+
+// Assainissement avant tout passage aux décideurs : les champs issus des REX (texte de tiers) sont tronqués, les leçons
+// qui ressemblent à une consigne sont écartées (jamais corrigées) et les contradictoires ne sont pas proposées (audit A2/A16).
+export function assainirLecons(lecons: Lecon[]): { gardees: Lecon[]; ecartees: { id: string; raisons: string[] }[] } {
+  const gardees: Lecon[] = [];
+  const ecartees: { id: string; raisons: string[] }[] = [];
+  for (const l of lecons) {
+    const suspects = marquerSuspect([l.id, l.type_incident, l.zone, l.enonce].join(' '));
+    if (suspects.length) { ecartees.push({ id: l.id.slice(0, 60), raisons: suspects }); continue; }
+    if (l.statut === 'contradictoire') { ecartees.push({ id: l.id.slice(0, 60), raisons: ['contradictoire'] }); continue; }
+    gardees.push({ ...l, id: tronquer(l.id, 120), type_incident: tronquer(l.type_incident, 60), zone: tronquer(l.zone, 60), enonce: tronquer(l.enonce) });
+  }
+  return { gardees, ecartees };
+}

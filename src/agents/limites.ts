@@ -10,6 +10,7 @@ export const LIMITES = {
   appels_modele_par_minute: 3,  // appels Claude / Jev max par minute simulée (hors décideurs)
   mesures_max: 10,
   duree_max_min: 24 * 60,
+  debit_max_pers_s: 9,          // personnes/seconde pour l'ensemble du lieu (même borne que src/server/valider.mjs)
   personnes_max: 50_000,        // ordre de grandeur : ~50 M visites par an, cinéma 3 800 places (contraintes §2)
 } as const;
 
@@ -26,7 +27,7 @@ export function marquerSuspect(texte: string): string[] {
   return MOTIFS_SUSPECTS.filter(([, re]) => re.test(texte)).map(([nom]) => nom);
 }
 
-export const tronquer = (s: string, max = LIMITES.champ_texte_max): string => (s.length > max ? s.slice(0, max) : s);
+export const tronquer = (s: string, max: number = LIMITES.champ_texte_max): string => (s.length > max ? s.slice(0, max) : s);
 
 // Bloc de données non fiables, placé APRÈS les consignes ; le texte est tronqué, balisé, jamais exécuté comme consigne.
 export function blocDonneeNonFiable(champs: string[]): { bloc: string; suspects: { index: number; motifs: string[] }[] } {
@@ -60,7 +61,13 @@ export function validerRex(r: unknown, aujourdhui = new Date()): ResultatValidat
   }
   if (typeof x.duree_min !== 'number' || !Number.isFinite(x.duree_min) || x.duree_min < 0 || x.duree_min > LIMITES.duree_max_min) erreurs.push(`duree_min : nombre de 0 à ${LIMITES.duree_max_min}`);
   if (x.personnes_touchees !== undefined && (typeof x.personnes_touchees !== 'number' || !Number.isInteger(x.personnes_touchees) || x.personnes_touchees < 0 || x.personnes_touchees > LIMITES.personnes_max)) erreurs.push(`personnes_touchees : entier de 0 à ${LIMITES.personnes_max}`);
+  // A1 : un nombre de personnes sans durée ne se vérifie pas ; le débit moyen doit rester physiquement plausible.
+  if (typeof x.personnes_touchees === 'number' && x.personnes_touchees > 0) {
+    if (typeof x.duree_min !== 'number' || x.duree_min <= 0) erreurs.push('personnes_touchees exige une duree_min > 0');
+    else if (x.personnes_touchees / (x.duree_min * 60) > LIMITES.debit_max_pers_s) erreurs.push(`débit de ${(x.personnes_touchees / (x.duree_min * 60)).toFixed(1)} pers./s au-dessus de la borne physique de ${LIMITES.debit_max_pers_s} pers./s`);
+  }
   if (typeof x.date === 'string') {
+    if (!/^\d{4}-\d{2}-\d{2}/.test(x.date)) erreurs.push('date : format AAAA-MM-JJ attendu');
     const d = new Date(x.date);
     if (Number.isNaN(d.getTime())) erreurs.push('date illisible');
     else if (d.getTime() > aujourdhui.getTime()) erreurs.push('date dans le futur');
@@ -80,33 +87,40 @@ import type { DemandeRedaction, Redacteur, TexteRedige } from './redacteur.ts';
 export class RedacteurPlafonne implements Redacteur {
   #r: Redacteur;
   #max: number;
-  #compte = new Map<number, number>();
+  #compte = new Map<string, number>();
   constructor(r: Redacteur, max: number = LIMITES.appels_modele_par_minute) { this.#r = r; this.#max = max; }
   async rediger(d: DemandeRedaction): Promise<TexteRedige> {
     const minute = Number(d.faits.minute_fin ?? d.faits.minute_depart ?? 0);
-    const n = (this.#compte.get(minute) ?? 0) + 1;
-    if (n > this.#max) throw new Error(`plafond de ${this.#max} appels au modèle par minute simulée atteint (minute ${minute})`);
-    this.#compte.set(minute, n);
+    const cle = `${d.type}|${d.zone ?? ''}|${minute}`;
+    const n = (this.#compte.get(cle) ?? 0) + 1;
+    if (n > this.#max) throw new Error(`plafond de ${this.#max} appels au modèle atteint pour ${d.type} ${d.zone ?? ''} (minute ${minute})`);
+    this.#compte.set(cle, n);
     return this.#r.rediger(d);
   }
 }
 
 // ---------- Cohérence du texte avec le plan et les contraintes (A17) ----------
-const libellePorte = (p: string): string => p.replace(/_/g, ' ');
-const sansAccents = (s: string): string => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+// Normalisation : minuscules, sans accents, tirets, apostrophes et soulignés lus comme des espaces (« Saint-Eustache »).
+const normaliser = (s: string): string => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().replace(/[-_'’]+/g, ' ').replace(/\s+/g, ' ').trim();
+const nomsDePorte = (p: string): string[] => {
+  const n = normaliser(p);
+  const alias: Record<string, string[]> = { 'parking turbigo': ['parking', 'turbigo'], 'marguerite de navarre': ['navarre', 'marguerite'], canopee: ['canopee'] };
+  return [n, ...(alias[n] ?? [])];
+};
 
 // Un texte ne doit pas inviter à emprunter, ouvrir ou rouvrir une porte que le plan a fermée.
+// Chaque porte est testée proposition par proposition (coupure sur . ; : ? ! , « et » « mais » « puis »), pas phrase par phrase.
 export function incoherencesAvecPlan(texte: string, plan: Plan): string[] {
   const r: string[] = [];
-  const phrases = texte.split(/(?<=[.!?])\s+/);
+  const propositions = texte.split(/[.;:?!,]|\s(?:et|mais|puis|ou|sauf)\s/i).map((x) => x.trim()).filter(Boolean);
   for (const p of PORTES) {
     if (plan.portes[p] !== 'fermee') continue;
-    const nom = sansAccents(libellePorte(p));
-    for (const ph of phrases) {
-      const s = sansAccents(ph);
-      if (!s.includes(nom)) continue;
-      const ferme = /\bferm/.test(s) && !/\b(rouvr|reouvr)/.test(s);
-      if (!ferme) r.push(`la porte ${libellePorte(p)} est fermée dans le plan : « ${ph.trim().slice(0, 80)} »`);
+    const noms = nomsDePorte(p);
+    for (const prop of propositions) {
+      const s = normaliser(prop);
+      if (!noms.some((n) => new RegExp(`(^| )${n}( |$)`).test(s))) continue;
+      const annonceFermee = /(^| )(ferm|condamn|bloqu|inaccessible|interdit|evit)/.test(s) && !/(rouvr|reouvr|ouvr)/.test(s);
+      if (!annonceFermee) r.push(`la porte ${p.replace(/_/g, ' ')} est fermée dans le plan : « ${prop.slice(0, 80)} »`);
     }
   }
   if (/alarme\s+(g[ée]n[ée]rale|incendie)/i.test(texte)) r.push('évoque une alarme générale ou un incendie');

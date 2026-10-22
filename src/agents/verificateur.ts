@@ -15,6 +15,9 @@ export interface RapportVerification {
 export interface ValeursJournal { nombres: Set<number>; heures: Set<string> }
 
 // Parcourt le journal (nombres, mais aussi nombres dans les chaînes : « niveau_-2 », « porte 3 »).
+// Textes libres de tiers : leurs nombres ne sont JAMAIS des faits (audit F1/A9).
+const CLES_TEXTE_LIBRE = new Set(['messages_par_zone', 'texte', 'justification', 'description', 'lecons_enseigne']);
+
 export function valeursDuJournal(journal: unknown): ValeursJournal {
   const nombres = new Set<number>();
   const heures = new Set<string>();
@@ -29,7 +32,7 @@ export function valeursDuJournal(journal: unknown): ValeursJournal {
     if (typeof v === 'number') ajouter(v);
     else if (typeof v === 'string') for (const m of v.matchAll(/-?\d+(?:[.,]\d+)?/g)) ajouter(Number(m[0].replace(',', '.')));
     else if (Array.isArray(v)) v.forEach(aller);
-    else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) { aller(k); aller(x); }
+    else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) { if (CLES_TEXTE_LIBRE.has(k)) continue; aller(k); aller(x); }
   };
   aller(journal);
   return { nombres, heures };
@@ -47,6 +50,10 @@ export function verifierChiffres(texte: string, journal: Journal | unknown): Rap
   let retrouves = 0;
   for (const t of trouves) {
     let ok = false;
+    if (t.interdit) {
+      non_retrouves.push({ texte: t.texte, valeur: Number.NaN, position: t.position });
+      continue;
+    }
     if (t.heure !== undefined) {
       // « 22 h » : accepté si 22h00 est dans le journal (1320), ou si le nombre d'heures seul y figure.
       ok = heures.has(t.heure) || (t.heure.endsWith('h00') && nombres.has(Number(t.heure.split('h')[0])));

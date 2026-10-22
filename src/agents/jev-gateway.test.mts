@@ -16,7 +16,7 @@ let appelsReels = 0;
 const fetchReel = globalThis.fetch;
 globalThis.fetch = (async () => { appelsReels++; throw new Error('RÉSEAU RÉEL INTERDIT'); }) as typeof fetch;
 
-const ENV = { AI_GATEWAY_API_KEY: 'cle-factice-de-test' };
+const ENV = { AI_GATEWAY_API_KEY: 'cle-factice-de-test', MODE_PAYANT: 'oui' };
 const REQ: RequeteJev = {
   model: MODELE_JEV,
   state: { densite: 'critique', tendance: 'monte' },
