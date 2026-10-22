@@ -2,7 +2,7 @@
 
 Vraie géométrie OpenStreetMap : 3 013 bâtiments avec hauteurs, 334 espaces intérieurs du Forum (niveaux 0 à -5), 107 escalators,
 17 ascenseurs, 528 portes, 59 bouches de métro, 351 bouches d'incendie (couverture bénévole OSM), arbres, bancs, bornes, Vélib, rues.
-Trois styles commutables (A fil de fer, B argile, C thermique), caméras (orbite, dessus, coupe, Forum), isolation d'un niveau,
+Quatre styles commutables (A fil de fer, B argile, C thermique, D Paris texturé par défaut : façades haussmanniennes, vitrines, toits en zinc, chaussées et trottoirs, ciel et ombres), caméras (orbite, dessus, coupe, Forum), isolation d'un niveau,
 écartement des niveaux souterrains, surface transparente, calques, fiche de chaque élément au clic.
 
 Lancer :
