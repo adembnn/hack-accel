@@ -1,0 +1,428 @@
+[
+ {
+  "nom": "Porte Lescot",
+  "type": "porte",
+  "niveau": "0 (descend jusqu'au -4)",
+  "lat": 48.861623,
+  "lon": 2.347777,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/1713195678 (Overpass, 22 oct. 2026) + Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdeshalles/access)"
+ },
+ {
+  "nom": "Porte Berger",
+  "type": "porte",
+  "niveau": "0",
+  "lat": 48.861374,
+  "lon": 2.346412,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/3753296381 (Overpass, 22 oct. 2026) + Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdeshalles/access)"
+ },
+ {
+  "nom": "Porte Rambuteau",
+  "type": "porte",
+  "niveau": "0",
+  "lat": 48.862615,
+  "lon": 2.347044,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/9547125104 (Overpass, 22 oct. 2026) + Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdeshalles/access)"
+ },
+ {
+  "nom": "Porte du Pont Neuf",
+  "type": "porte",
+  "niveau": "0 (escaliers -1;0 puis -2;-1)",
+  "lat": 48.86164,
+  "lon": 2.345234,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/5954227359 (Overpass, 22 oct. 2026) + Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdeshalles/access)"
+ },
+ {
+  "nom": "Porte Saint-Eustache",
+  "type": "porte",
+  "niveau": "0",
+  "lat": 48.862439,
+  "lon": 2.345658,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/9554596026 (Overpass, 22 oct. 2026) + Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdeshalles/access)"
+ },
+ {
+  "nom": "Porte Marguerite de Navarre",
+  "type": "porte",
+  "niveau": "0 (portes coulissantes)",
+  "lat": 48.86059,
+  "lon": 2.346528,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/9554596034 (Overpass, 22 oct. 2026) + Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdeshalles/access)"
+ },
+ {
+  "nom": "Porte du Jour",
+  "type": "porte",
+  "niveau": "0",
+  "lat": 48.863175,
+  "lon": 2.343882,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/5913737144 (Overpass, 22 oct. 2026) + Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdeshalles/access)",
+  "note": "Absente de la liste des 7 portes du modèle actuel ; Westfield la cite"
+ },
+ {
+  "nom": "Porte du Louvre (rue, niveau 0)",
+  "type": "porte",
+  "niveau": "0",
+  "lat": 48.86242,
+  "lon": 2.343939,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/9545578222 (Overpass, 22 oct. 2026) + Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdeshalles/access)",
+  "note": "Porte du Louvre : Westfield la cite ; absente du modèle actuel"
+ },
+ {
+  "nom": "Porte du Louvre (accès niveau -3)",
+  "type": "porte",
+  "niveau": "-3",
+  "lat": 48.862344,
+  "lon": 2.343435,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/5914444314 (Overpass, 22 oct. 2026) ; relie le -3 au niveau 0 par escaliers fixes (way 569285574, 20 marches) et escalators (way 626482711/712). Zone ouest du cinéma UGC."
+ },
+ {
+  "nom": "Entrée Canopée / jardin Nelson Mandela",
+  "type": "porte",
+  "niveau": "0",
+  "lat": null,
+  "lon": null,
+  "largeur_m": null,
+  "certitude": "estimé",
+  "source": "Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdeshalles/access) : « entre le jardin Nelson Mandela et le centre »",
+  "repere": "Entre le jardin Nelson Mandela et la Canopée ; pas de nœud OSM nommé"
+ },
+ {
+  "nom": "Sortie de métro Rue de Turbigo (ref 1)",
+  "type": "porte",
+  "niveau": "0",
+  "lat": 48.863707,
+  "lon": 2.348986,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/681294134 (Overpass, 22 oct. 2026)",
+  "note": "Accès RATP, extérieur du Forum, hors périmètre Westfield"
+ },
+ {
+  "nom": "Sortie de métro Rue Montorgueil (ref 9)",
+  "type": "porte",
+  "niveau": "0",
+  "lat": 48.862845,
+  "lon": 2.346587,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/5321652780 (Overpass, 22 oct. 2026)",
+  "note": "Accès RATP/Canopée côté nord-est"
+ },
+ {
+  "nom": "Issue de secours (côté Porte du Louvre / Piscine)",
+  "type": "issue",
+  "niveau": "-1",
+  "lat": 48.862358,
+  "lon": 2.344265,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/5914443920 (Overpass, 22 oct. 2026) entrance=emergency, access=customers",
+  "note": "Au pied des escaliers 626482698-700 (-1;0), vers la rue côté Louvre"
+ },
+ {
+  "nom": "Issue de secours (côté Porte du Louvre / Piscine)",
+  "type": "issue",
+  "niveau": "-1",
+  "lat": 48.862326,
+  "lon": 2.344359,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/5914443923 (Overpass, 22 oct. 2026) entrance=emergency, access=customers",
+  "note": "Au pied des escaliers 626482698-700 (-1;0), vers la rue côté Louvre"
+ },
+ {
+  "nom": "Issue de secours (côté Porte du Louvre / Piscine)",
+  "type": "issue",
+  "niveau": "-1",
+  "lat": 48.862311,
+  "lon": 2.344378,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/5914443924 (Overpass, 22 oct. 2026) entrance=emergency, access=customers",
+  "note": "Au pied des escaliers 626482698-700 (-1;0), vers la rue côté Louvre"
+ },
+ {
+  "nom": "Issue de secours niveau -2 (ouest)",
+  "type": "issue",
+  "niveau": "-2",
+  "lat": 48.862768,
+  "lon": 2.34372,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/5913768893 (Overpass, 22 oct. 2026) entrance=emergency",
+  "note": "Proche des escaliers 626410276/277 (-2;0) et du cinéma UGC"
+ },
+ {
+  "nom": "Issue de secours (nord, près de l'accès Rambuteau)",
+  "type": "issue",
+  "niveau": null,
+  "lat": 48.862752,
+  "lon": 2.346993,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/4111880719 (Overpass, 22 oct. 2026) entrance=emergency"
+ },
+ {
+  "nom": "Issue de secours « ref 824 »",
+  "type": "issue",
+  "niveau": null,
+  "lat": 48.862009,
+  "lon": 2.343192,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/10054908598 (Overpass, 22 oct. 2026) entrance=emergency ref=824",
+  "note": "Extrême ouest, au bord de la zone Porte du Jour"
+ },
+ {
+  "nom": "Sortie de secours rue Berger n°11",
+  "type": "issue",
+  "niveau": null,
+  "lat": 48.861077,
+  "lon": 2.347287,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/9383668597 (Overpass, 22 oct. 2026) exit=emergency, survey=yes",
+  "note": "Relevé terrain OSM (survey) ; façade sud côté rue Berger"
+ },
+ {
+  "nom": "Sortie de secours rue Berger n°15",
+  "type": "issue",
+  "niveau": null,
+  "lat": 48.861105,
+  "lon": 2.347166,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/9383668599 (Overpass, 22 oct. 2026) exit=emergency, survey=yes",
+  "note": "Relevé terrain OSM (survey) ; façade sud côté rue Berger"
+ },
+ {
+  "nom": "Sortie de secours rue Berger n°19",
+  "type": "issue",
+  "niveau": null,
+  "lat": 48.861171,
+  "lon": 2.34688,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/9383668598 (Overpass, 22 oct. 2026) exit=emergency, survey=yes",
+  "note": "Relevé terrain OSM (survey) ; façade sud côté rue Berger"
+ },
+ {
+  "nom": "Sortie de secours rue Berger n°21",
+  "type": "issue",
+  "niveau": null,
+  "lat": 48.861206,
+  "lon": 2.346731,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/9383668600 (Overpass, 22 oct. 2026) exit=emergency, survey=yes",
+  "note": "Relevé terrain OSM (survey) ; façade sud côté rue Berger"
+ },
+ {
+  "nom": "Parking Berger (accès)",
+  "type": "parking",
+  "niveau": "-",
+  "lat": 48.861001,
+  "lon": 2.347577,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/3511250930 (Overpass, 22 oct. 2026) capacité 220, Espace Expansion"
+ },
+ {
+  "nom": "Parking Saint-Eustache (accès Place Carrée)",
+  "type": "parking",
+  "niveau": "-",
+  "lat": 48.862238,
+  "lon": 2.345614,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/3037488640 (Overpass, 22 oct. 2026)"
+ },
+ {
+  "nom": "Parking du Forum (accès piéton, niveau -3)",
+  "type": "parking",
+  "niveau": "-3",
+  "lat": 48.862634,
+  "lon": 2.346943,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/5034881489 (Overpass, 22 oct. 2026) foot=yes, motor_vehicle=no"
+ },
+ {
+  "nom": "Ascenseurs Lescot",
+  "type": "ascenseur",
+  "niveau": "-4 à 0",
+  "lat": 48.86184,
+  "lon": 2.347722,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/9549382182 (Overpass, 22 oct. 2026)"
+ },
+ {
+  "nom": "Ascenseur Porte Rambuteau",
+  "type": "ascenseur",
+  "niveau": "0;-1;-2;-3",
+  "lat": 48.862609,
+  "lon": 2.346882,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/1272604556 (Overpass, 22 oct. 2026)"
+ },
+ {
+  "nom": "Ascenseur Porte du Louvre",
+  "type": "ascenseur",
+  "niveau": "0;-3",
+  "lat": 48.862409,
+  "lon": 2.343941,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/5914409034 (Overpass, 22 oct. 2026)"
+ },
+ {
+  "nom": "Ascenseurs Saint-Eustache (x2)",
+  "type": "ascenseur",
+  "niveau": "0;-2;-3",
+  "lat": 48.862427,
+  "lon": 2.345717,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/8758692838 (Overpass, 22 oct. 2026) et 8758692839"
+ },
+ {
+  "nom": "Ascenseur Marguerite de Navarre",
+  "type": "ascenseur",
+  "niveau": "-4;-3;0",
+  "lat": 48.860609,
+  "lon": 2.346506,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM node/6466296811 (Overpass, 22 oct. 2026) (+ jumeau 9545122411)"
+ },
+ {
+  "nom": "Escalators Porte du Louvre (2 sens)",
+  "type": "escalator",
+  "niveau": "-3;0",
+  "lat": 48.862394,
+  "lon": 2.343235,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM way/626482711 (Overpass, 22 oct. 2026) et 626482712, conveying=forward",
+  "note": "Principal accès direct au UGC côté ouest"
+ },
+ {
+  "nom": "Escaliers fixes Porte du Louvre",
+  "type": "escalier",
+  "niveau": "-3;0",
+  "lat": 48.862415,
+  "lon": 2.342993,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM way/569285574 (Overpass, 22 oct. 2026) 20 marches"
+ },
+ {
+  "nom": "Escaliers vers rue (3 volées) côté Piscine",
+  "type": "escalier",
+  "niveau": "-1;0",
+  "lat": 48.862336,
+  "lon": 2.344331,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM way/626482698 (Overpass, 22 oct. 2026), 699, 700"
+ },
+ {
+  "nom": "Escaliers -2 vers rue (ouest du UGC)",
+  "type": "escalier",
+  "niveau": "-2;0",
+  "lat": 48.862808,
+  "lon": 2.343662,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM way/626410276 (Overpass, 22 oct. 2026) et 626410277"
+ },
+ {
+  "nom": "Escaliers -2 vers rue (Saint-Eustache)",
+  "type": "escalier",
+  "niveau": "-2;0",
+  "lat": 48.862823,
+  "lon": 2.345214,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM way/626478398 (Overpass, 22 oct. 2026)"
+ },
+ {
+  "nom": "Escaliers Porte du Pont Neuf",
+  "type": "escalier",
+  "niveau": "-1;0",
+  "lat": 48.86168,
+  "lon": 2.34528,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM way/159224724 (Overpass, 22 oct. 2026) 19 marches ; way 630886108 -2;-1 : 32 marches estimées"
+ },
+ {
+  "nom": "Escalators Lescot (chaîne -4 à 0)",
+  "type": "escalator",
+  "niveau": "-4 à 0",
+  "lat": 48.86169,
+  "lon": 2.34726,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM way/630222402 (Overpass, 22 oct. 2026) à 630222415 et 630223882-885",
+  "note": "Chaîne continue d'escalators montants uniquement (forward)"
+ },
+ {
+  "nom": "Escalators Saint-Eustache (-3;-2)",
+  "type": "escalator",
+  "niveau": "-3;-2",
+  "lat": 48.862314,
+  "lon": 2.345496,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM way/1036049963 (Overpass, 22 oct. 2026) / 964 (un montant, un descendant)"
+ },
+ {
+  "nom": "Escalators ouest (-3;-2)",
+  "type": "escalator",
+  "niveau": "-3;-2",
+  "lat": 48.862568,
+  "lon": 2.343993,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM way/1036049973 (Overpass, 22 oct. 2026) / 974 (+ -2;-1 : 1036049976/977)"
+ },
+ {
+  "nom": "Escalators Rambuteau (-4;-3, -2;-3, -1;0)",
+  "type": "escalator",
+  "niveau": "-4 à 0",
+  "lat": 48.862455,
+  "lon": 2.346968,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM way/1036261828 (Overpass, 22 oct. 2026), 1036561654/656/659, 1036261834"
+ },
+ {
+  "nom": "Escalators Marguerite de Navarre (-4 à 0)",
+  "type": "escalator",
+  "niveau": "-4;0",
+  "lat": 48.86081,
+  "lon": 2.3463,
+  "largeur_m": null,
+  "certitude": "source",
+  "source": "OSM way/609927841 (Overpass, 22 oct. 2026) à 609927844 et 609935063-066"
+ }
+]
