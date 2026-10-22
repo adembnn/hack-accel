@@ -183,7 +183,8 @@ export class ClientJev implements ClientDecision {
     try {
       if (this.#o.plafond_requetes !== undefined && this.requetes >= this.#o.plafond_requetes) throw new Error('plafond de requêtes atteint');
       this.requetes++;
-      const { leçons: _l, ...etat } = n;
+      const etat: Record<string, unknown> = { ...n };
+      delete etat.leçons;
       const res = await this.#o.transport.envoyer({
         model: this.#o.modele ?? MODELE_JEV,
         state: { ...etat, lecons_du_retour_d_experience: n.leçons },

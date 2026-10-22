@@ -9,7 +9,7 @@ import { join } from 'node:path';
 import { LEVIERS, leviersDe, appliquerActions, etatInitial, verifierPlan } from './leviers.ts';
 import { DECIDEURS, PORTES } from './types.ts';
 import type { Action, Decideur, Journal } from './types.ts';
-import { construireQuestion, lireReponse, schemaReponse } from './questions.ts';
+import { lireReponse, schemaReponse } from './questions.ts';
 import { lancerBoucle, clientsHeuristiques, comparerNotes } from './boucle.ts';
 import { FauxSimulateur, scenarioDeTest } from './fausse-sim.ts';
 import { StockageMemoire } from './stockage.ts';
@@ -106,7 +106,7 @@ test('la boucle est déterministe pour une même graine', async () => {
 });
 
 test('fermer les portes du périmètre réduit les sortis vers la zone de danger (ordre de grille d\'Adem)', async () => {
-  const sansRien = Object.fromEntries(DECIDEURS.map((d) => [d, { decider: async () => ({ actions: [] }) }])) as ReturnType<typeof clientsHeuristiques>;
+  const sansRien = Object.fromEntries(DECIDEURS.map((d) => [d, { decider: async () => ({ actions: [] }) }])) as unknown as ReturnType<typeof clientsHeuristiques>;
   const base = await jouer(sansRien, 12);
   const defendu = await jouer(clientsHeuristiques(), 12);
   const nb = base.journal.entrees.at(-1)!.note;
@@ -237,7 +237,7 @@ test('Jev : version figée, état en niveaux nommés (pas de chiffres bruts), un
   clients.directeur = new ClientJev({ transport: t });
   await jouer(clients, 3);
   assert.equal(vues.length, 3);
-  assert.ok(vues.every((v) => v.model === MODELE_JEV && v.model !== 'jev-latest'));
+  assert.ok(vues.every((v) => v.model === MODELE_JEV && (v.model as string) !== 'jev-latest'));
   assert.deepEqual(Object.keys(vues[0].questions).sort(), SPECS_JEV.directeur.map((s) => s.cle).sort());
   for (const v of vues) for (const val of Object.values(v.state)) assert.ok(typeof val !== 'number', 'pas de nombre brut dans le state');
 });
