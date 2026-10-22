@@ -18,4 +18,15 @@ Le vocabulaire commun des quatre orchestrateurs et de leurs sous-agents. Un mot,
 
 ## Le produit
 
-_(à remplir dès que le concept est choisi : utilisateur, objets du domaine, événements, sources de données)_
+_(à compléter : utilisateur, objets du domaine, événements, sources de données)_
+
+- **Plan** : la décision d'évacuation à un instant donné (mode, portes ouvertes ou fermées, départ des salles par vagues, agents de guidage, consignes par zone, confinement), produite par les décideurs. Son format fait foi dans `lot/decideurs`. Pas « stratégie », pas « scénario ».
+- **Scénario** : la situation de départ que l'on rejoue (graine, heure de l'annonce, fermeture des stations, couvre-feu, population par zone). Un scénario se joue avec un ou plusieurs plans.
+- **Porte** : une sortie publique nommée du Forum vers la rue (`lescot`, `berger`, `rambuteau`…). Une porte regroupe une ou plusieurs sorties physiques de la scène. Pas « issue » pour une porte nommée.
+- **Issue** : un passage par lequel une personne quitte la zone où elle se trouve (porte, issue de secours, escalator, accès métro), vu par le comportement d'une personne.
+- **Zone** : une partie nommée du lieu, `niveau_<n>` (un niveau) ou `salle_<kk>` (une salle du cinéma). Les mêmes noms servent partout entre les lots.
+- **Consigne** : ce qu'une zone reçoit (porte conseillée et clarté de 0 à 1). Le texte affiché est un « message ».
+- **Intention** : ce que le comportement d'une personne demande au mouvement à chaque pas (sortie visée, vitesse voulue, groupe, état).
+- **État résumé** : ce que la simulation rend à chaque minute simulée (personnes dedans et sorties, sorties vers une zone de danger, densité maximale, état par zone, débit des portes, pression).
+- **Grille** : les critères qui notent un plan, dans l'ordre décidé par Adem (#15) : non-sortis, zone de danger, écrasement.
+- **Graine** : le nombre qui fixe le hasard d'une simulation ; deux plans joués avec la même graine voient les mêmes personnes.
