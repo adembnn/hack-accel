@@ -1,0 +1,14 @@
+{
+  "name": "maquette-chatelet",
+  "private": true,
+  "type": "module",
+  "description": "Serveur local de la maquette Châtelet : fichiers statiques et compréhension des ordres du directeur par Claude.",
+  "scripts": {
+    "start": "node serveur.mjs",
+    "test:ordres": "node test-ordres.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.135.0",
+    "zod": "^3.25.0"
+  }
+}

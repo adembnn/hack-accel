@@ -17,6 +17,9 @@ function textTex(s,bg,fg){const c=document.createElement('canvas');const x=c.get
 const TEXC={};function pinMat(type,closed){const k=type+closed;if(!TEXC[k]){const g={bouche:'M',porte:'⇥',issue:'IS',incendie:'BI',ascenseur:'⇅'}[type];
  TEXC[k]=new THREE.SpriteMaterial({map:pinTex(g,LEVCOL[type],closed,type==='incendie'),sizeAttenuation:false,depthTest:false,transparent:true});}return TEXC[k];}
 
+// « Sortie de secours rue Berger n°11 » -> « Issue rue Berger 11 » ; « Issue de secours (côté … Piscine) » -> « Issue côté piscine »
+function nomIssue(s){if(!s)return 'Issue de secours';let n=s.replace(/^(Issue|Sortie) de secours\s*/i,'').replace(/[«»]/g,'').replace(/n°\s*/,'').trim();
+ const p=n.match(/^\((.*)\)$/);if(p)n=p[1];n=n.replace(/côté Porte du Louvre \/ Piscine/i,'côté piscine').replace(/^niveau (-?\d) \((.*)\)$/,'$2 niveau $1').replace(/près de l'accès /,'');return ('Issue '+n).replace(/\s+/g,' ');}
 function cellXYZ(cell){const g=SIM.g;return [g.bbox[0]+(cell[2]+.5)*g.res,alt(g.levels[cell[0]]),g.bbox[1]+(cell[1]+.5)*g.res];}
 function near(x,z,r){return Math.hypot(x-FORUM[0],z-FORUM[1])<r;}
 
@@ -26,15 +29,22 @@ function levBuild(){levGrp=new THREE.Group();levGrp.renderOrder=10;scene.add(lev
   LEV.push({code:'B1',id:'porte-'+k,nom:G.n,type:'porte',x,z,y:Math.max(y,0),niveau:SIM.g.levels[G.cells[0].cell[0]],etat:'ouvert',source:'OpenStreetMap (porte nommée du Forum)',effet:'Sortie de la simulation : fermée, la foule repart vers une autre porte',grp:k});});
  // Issues de secours (B1) : une épingle par issue ; fermer une issue la retire du groupe « Issues de secours »
  SIM.groups.forEach((G,k)=>{if(G.type!=='secours')return;G.all=G.cells.slice();G.all.forEach((e,j)=>{const [x,y,z]=cellXYZ(e.cell);
-  LEV.push({code:'B1',id:'issue-'+j,nom:'Issue de secours',type:'issue',x,z,y:Math.max(y,0),niveau:SIM.g.levels[e.cell[0]],etat:'ouvert',e:!!e.estime,source:e.source||'OpenStreetMap (exit=emergency)',effet:'Sortie de secours de la simulation ; fermée, elle disparaît des choix',grp:k,cellRef:e});});});
+  LEV.push({code:'B1',id:'issue-'+j,nom:nomIssue(e.label),type:'issue',x,z,y:Math.max(y,0),niveau:SIM.g.levels[e.cell[0]],etat:'ouvert',e:!!e.estime,source:e.source||'OpenStreetMap (exit=emergency)',effet:'Sortie de secours de la simulation ; fermée, elle disparaît des choix',grp:k,cellRef:e});});});
  // Bouches de métro et RER autour du Forum (C1)
- SCN.metro.forEach((o,i)=>{if(!near(o.x,o.z,420))return;LEV.push({code:'C1',id:'bouche-'+i,nom:o.n||'Accès métro',type:'bouche',x:o.x,z:o.z,y:0,niveau:0,etat:'ouvert',source:'OpenStreetMap (railway=subway_entrance)',effet:'Toutes fermées : stations du Forum fermées, les quais ne sont plus une sortie (19 oct., ~20h07)'});});
+ SCN.metro.forEach((o,i)=>{if(!near(o.x,o.z,420))return;LEV.push({code:'C1',id:'bouche-'+i,nom:'Métro '+(o.n||'accès'),type:'bouche',x:o.x,z:o.z,y:0,niveau:0,etat:'ouvert',source:'OpenStreetMap (railway=subway_entrance)',effet:'Toutes fermées : stations du Forum fermées, les quais ne sont plus une sortie (19 oct., ~20h07)'});});
  // Ascenseurs (B5)
  SCN.ascenseurs.forEach((o,i)=>{const lv=o.l.length?Math.min(...o.l):0;LEV.push({code:'B5',id:'ascenseur-'+i,nom:o.n||'Ascenseur',type:'ascenseur',x:o.x,z:o.z,y:alt(Math.max(0,...(o.l.length?o.l:[0])))+2,niveau:lv,etat:'ouvert',source:'OpenStreetMap (highway=elevator)',effet:'Cabine de 13 personnes, ~0,6 pers./s. En panne : le lien disparaît de la simulation, les personnes à mobilité réduite de ce niveau attendent les secours'});});
  // Bouches d'incendie (pas un levier du juré : leur accès est bloqué si une zone les couvre)
  SCN.incendie.forEach((p,i)=>{const x=p[0]??p.x,z=p[1]??p.z;if(!near(x,z,320))return;LEV.push({code:'—',id:'incendie-'+i,nom:"Bouche d'incendie",type:'incendie',x,z,y:0,niveau:0,etat:'accessible',source:'OpenStreetMap (emergency=fire_hydrant)',effet:'Pompiers (BSPP) : doit rester dégagée ; masquée si une manifestation la couvre'});});
+ // un nom unique par levier (les doublons prennent un numéro), pour pouvoir les citer à la voix
+ LEV.forEach(L=>{if(L.type==='ascenseur'&&!/^ascenseur/i.test(L.nom))L.nom='Ascenseur '+L.nom;});
+ const cnt={};LEV.forEach(L=>{if(L.type==='incendie')return;cnt[L.nom]=(cnt[L.nom]||0)+1;});const seen={};
+ LEV.forEach(L=>{if(L.type==='incendie'||cnt[L.nom]<2)return;seen[L.nom]=(seen[L.nom]||0)+1;L.nom=L.nom+' '+seen[L.nom];});
+ // (les bouches portent le préfixe « Métro » : jamais le même nom qu'une porte du Forum)
  LEV.forEach(L=>{const s=new THREE.Sprite(pinMat(L.type,false));s.position.set(L.x,L.y+(L.type==='incendie'?5:L.type==='bouche'?10:14),L.z);s.center.set(.5,0);
   const sc=L.type==='incendie'?.022:.034;s.scale.set(sc,sc,1);s.renderOrder=20;s.userData.lev=L;L.sprite=s;levGrp.add(s);
+  if(L.type==='porte'||L.type==='issue'){const t=textTex(L.nom,L.type==='porte'?'rgba(11,107,69,.92)':'rgba(46,125,50,.88)','#fff');const lb=new THREE.Sprite(new THREE.SpriteMaterial({map:t,sizeAttenuation:false,depthTest:false,transparent:true}));
+   const h=L.type==='porte'?.017:.014;lb.scale.set(h*t.userData.w/48,h,1);lb.center.set(.5,-2.3);lb.position.copy(s.position);lb.renderOrder=21;L.label=lb;levGrp.add(lb);}
   if(L.type!=='incendie'){const st=new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,s.position.y-L.y,6),new THREE.MeshBasicMaterial({color:new THREE.Color(LEVCOL[L.type]),transparent:true,opacity:.7,depthTest:false}));st.position.set(L.x,(s.position.y+L.y)/2,L.z);st.renderOrder=19;L.stem=st;levGrp.add(st);}});
  streetLabels();levPanel();levRefresh();}
 
@@ -118,5 +128,5 @@ rnd.domElement.addEventListener('pointerup',e=>{if(!levGrp||!dn||Math.hypot(e.cl
 
 (function wait(){if(typeof SCN==='undefined'||!SCN||!SIM.groups||!SIM.F){setTimeout(wait,200);return;}levBuild();
  let t=performance.now();(function tick(now){const dt=Math.min(.1,(now-t)/1000);t=now;flyTick(dt);zonesTick(dt);
-  const under=lvSel!=='all'&&+lvSel<0;LEV.forEach(L=>{const v=L.type==='ascenseur'||L.type==='porte'||!under;L.sprite.visible=v;if(L.stem)L.stem.visible=v;});labelGrp.visible=!under;
+  const under=lvSel!=='all'&&+lvSel<0;LEV.forEach(L=>{const v=L.type==='ascenseur'||L.type==='porte'||!under;L.sprite.visible=v;if(L.stem)L.stem.visible=v;if(L.label)L.label.visible=v;});labelGrp.visible=!under;
   requestAnimationFrame(tick);})(t);})();

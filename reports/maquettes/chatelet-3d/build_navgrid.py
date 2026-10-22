@@ -165,7 +165,7 @@ for e in (json.load(open(ISS, encoding='utf-8')) if os.path.exists(ISS) else [])
             c, est = (r0, c0), True
     if c:
         exits.append({'id': len(exits), 'n': n, 'type': 'rue' if e['type'] == 'porte' else 'secours', 'cell': [LI[l], *c],
-                      'estime': est, 'source': e['source'][:80]})
+                      'estime': est, 'label': e['nom'], 'source': e['source'][:80]})
     else:
         print('hors grille :', e['nom'], l)
 
