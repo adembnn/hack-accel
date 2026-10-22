@@ -13,7 +13,7 @@ body[data-s="C"]{--bg:#050505;--ink:#f1e6d8;--ink2:#a89a8a;--line:#3a2f26;--pane
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;overflow:hidden}
 #view{position:fixed;inset:0}
 .pn{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 12px}
-#left{left:12px;top:12px;width:250px;max-height:calc(100vh - 24px);overflow:auto}
+#left{left:12px;top:12px;width:300px;max-height:calc(100vh - 24px);overflow:auto}
 #info{right:12px;top:12px;width:280px;min-height:60px}
 #foot{left:12px;right:12px;bottom:10px;padding:6px 12px;display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink2)}
 h1{font-size:13px;margin:0 0 8px;letter-spacing:.06em}
@@ -384,20 +384,25 @@ document.getElementById('nightBtn').onclick=()=>{night=true;document.getElementB
 document.getElementById('spread').oninput=e=>{spread=+e.target.value;buildIndoor();buildRail();};
 document.getElementById('xray').onchange=e=>{xray=e.target.checked;pick.length=0;if(S==='D'){buildGroundParis();buildParis();}else{buildGround();buildBuildings();}buildIndoor();buildStreet();buildRail();rnd.shadowMap.needsUpdate=true;};
 Promise.all([fetch('scene.json').then(r=>r.json()),loadPH()]).then(([d])=>{SCN=d;document.getElementById('load').remove();rebuild();});
-let last=performance.now();(function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;if(SIM.on){for(let k=0;k<2;k++)simStep(.1);simDraw();evacStatsTick();}else movePeople(dt);ctl.update();rnd.render(scene,cam);requestAnimationFrame(loop);})(performance.now());
+let last=performance.now();(function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;if(SIM.on){if(SIM.mode==='calme')simStep(Math.min(.1,dt*2));else for(let k=0;k<2;k++)simStep(.1);simDraw();evacStatsTick();}else movePeople(dt);ctl.update();rnd.render(scene,cam);requestAnimationFrame(loop);})(performance.now());
 
 // ---------- Évacuation : branchement de sim.js ----------
-function evacStatsTick(){if(!SIM.A||(SIM.tick=(SIM.tick||0)+1)%15)return;const rest=SIM.A.filter(a=>!a.out).length;const top=Object.entries(SIM.outBy).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([n,v])=>n.replace('Porte ','')+' '+v).join(' · ');
+function evacStatsTick(){if(!SIM.A||SIM.mode!=='evac'||(SIM.tick=(SIM.tick||0)+1)%15)return;const rest=SIM.A.filter(a=>!a.out).length;const top=Object.entries(SIM.outBy).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([n,v])=>n.replace('Porte ','')+' '+v).join(' · ');
  document.getElementById('evacStats').innerHTML=`T+${Math.floor(SIM.T/60)} min ${String(Math.floor(SIM.T%60)).padStart(2,'0')} · sortis <b>${SIM.out}</b> / ${SIM.A.length} · restants ${rest}<br>densité max ${SIM.dmax} pers./m² · pers.·s &gt; 5/m² ${Math.round(SIM.expo)} · vers la zone ${SIM.zoneOut}<br>${top}`;}
 function buildPerturb(){const box=document.getElementById('perturb');box.innerHTML='';
  SIM.groups.forEach((G,k)=>{const l=document.createElement('label');l.innerHTML=`<input type="checkbox" checked> ${G.type==='train'?'Stations ouvertes (C1 si décoché)':G.n+(G.zone?' (zone)':'')}`;l.querySelector('input').onchange=e=>{G.open=e.target.checked;const t0=performance.now();simField(k);document.getElementById('evacStats').dataset.ms=Math.round(performance.now()-t0);};box.appendChild(l);});
  const esc=document.createElement('label');esc.innerHTML='<input type="checkbox"> Escalators arrêtés (B3 : deviennent escaliers, débit réduit)';esc.querySelector('input').onchange=e=>{SIM.g.links.forEach(k=>{if(k.k==='escalator')k.debit=e.target.checked?.9:1.25;});};box.appendChild(esc);}
 document.getElementById('delay').oninput=e=>{SIM.delay=+e.target.value;document.getElementById('delayV').textContent=e.target.value+' s';};
 document.getElementById('zoneD').onchange=e=>{SIM.zoneOn=e.target.checked;};
-document.getElementById('evacGo').onclick=()=>{if(!SIM.g)return;simSpawn(Math.min(PEO.length||3200,3200));SIM.on=true;};
-document.getElementById('evacReset').onclick=()=>{SIM.on=false;SIM.A=null;document.getElementById('evacStats').textContent='Prêt.';};
-simLoad().then(()=>{buildPerturb();document.getElementById('evacStats').textContent=`Grille chargée : ${SIM.g.exits.length} sorties, ${SIM.g.links.length} liens verticaux. Prêt.`;});
+document.getElementById('evacGo').onclick=()=>{if(!SIM.A)return;simAlert();};
+const calm=()=>{SIM.mode='calme';simSpawn(Math.min(PEO.length||3200,3200));SIM.on=true;document.getElementById('evacStats').textContent='Avant l\'alerte : séance en cours au cinéma, clients dans le Forum, voyageurs sur les quais.';};
+document.getElementById('evacReset').onclick=calm;
+simLoad().then(()=>{buildPerturb();(function w(){if(SCN&&PEO.length)calm();else setTimeout(w,200);})();document.getElementById('evacStats').textContent=`Grille chargée : ${SIM.g.exits.length} sorties, ${SIM.g.links.length} liens verticaux. Prêt.`;});
 </script>
 <script src="leviers.js"></script>
+<script src="../commun/regie-ui.js"></script>
+<script src="interface.js"></script>
+<script src="directeur.js"></script>
+<script src="dispositif.js"></script>
 </body>
 </html>
