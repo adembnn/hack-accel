@@ -1,6 +1,7 @@
 // Test de la couche de données sur une vraie base PostgreSQL locale (jamais Aiven).
 // Lancer : TEST_DATABASE_URL=postgres://postgres:<mot de passe jetable>@localhost:5434/postgres node --test src/server/
 // (défaut : le conteneur `docker run -d -p 5434:5432 -e POSTGRES_PASSWORD=test postgres:16`).
+process.env.ALLOW_OPEN_WRITES = '1';   // tests locaux : écritures ouvertes (le jeton est testé dans correctifs.test.mjs)
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';

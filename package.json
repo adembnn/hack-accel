@@ -14,7 +14,7 @@
     "test": "vitest run",
     "build": "vite build",
     "e2e:socle": "node --test tests/e2e/socle.test.mjs",
-    "test:db": "node --test src/server/db.test.mjs src/server/securite.test.mjs src/server/vecteur.test.mjs",
+    "test:db": "node --test src/server/db.test.mjs src/server/securite.test.mjs src/server/correctifs.test.mjs src/server/vecteur.test.mjs",
     "test:decideurs": "node scripts/lot-absent.mjs decideurs src/agents",
     "test:scene": "node scripts/lot-absent.mjs scene src/scene",
     "test:motion": "node scripts/lot-absent.mjs motion src/sim/motion",

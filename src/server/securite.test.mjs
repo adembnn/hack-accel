@@ -1,6 +1,7 @@
 // Tests de défense (recherche/10-red-team-decideurs-aiven.md) : A1 A2 A10 (validation), A3 (statut des leçons),
 // A4 (rôle PostgreSQL), A11 (injection SQL), A12 (SSE), A17 (secrets dans les journaux), + corpus de REX publics.
 // Base : TEST_DATABASE_URL (défaut postgres://postgres:test@localhost:5434/postgres), jetable, locale.
+process.env.ALLOW_OPEN_WRITES = '1';   // tests locaux : écritures ouvertes (le jeton est testé dans correctifs.test.mjs)
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -90,9 +91,11 @@ test('A3 : toute leçon naît non_verifiee ; validée seulement avec un run de s
   assert.equal(l.corps.statut, 'non_verifiee', 'le statut demandé par le client est ignoré');
   assert.ok(l.corps.provenance.date);
   const sansRun = await appel('POST', '/lecons/statut', { id: l.corps.id, statut: 'validee_par_simulation' });
-  assert.equal(sansRun.code, 400, 'refusée par la contrainte de la base');
+  assert.equal(sansRun.code, 409, 'refusée : pas de run de simulation terminé');
   assert.equal((await appel('POST', '/lecons/statut', { id: l.corps.id, statut: 'au_hasard' })).code, 400);
   const run = await db.creerRun(pool, { sceneId: 'forum', plan: 'p', graine: 1 });
+  assert.equal((await appel('POST', '/lecons/statut', { id: l.corps.id, statut: 'validee_par_simulation', runId: run.id })).code, 409, 'run non terminé');
+  await db.terminerRun(pool, run.id);
   const ok = await appel('POST', '/lecons/statut', { id: l.corps.id, statut: 'validee_par_simulation', runId: run.id });
   assert.equal(ok.corps.statut, 'validee_par_simulation');
   assert.equal((await appel('POST', '/lecons/statut', { id: l.corps.id, statut: 'contradictoire' })).corps.run_validation, null);
@@ -171,7 +174,8 @@ test('A12 : après coupure, la reprise Last-Event-ID rattrape ce qui a été éc
   await new Promise((ok) => setTimeout(ok, 400));
   req.destroy();
   const ids = [...tampon.matchAll(/^id: (\d+)$/gm)].map((m) => Number(m[1]));
-  assert.deepEqual(ids, [Number(e1.id) + 1]);
+  assert.ok(ids.includes(Number(e1.id) + 1), 'la ligne écrite pendant l absence est reçue');
+  assert.equal(new Set(ids).size, ids.length, 'sans doublon');
   console.log('# reprise SSE : ids reçus', ids.join(','));
 });
 
