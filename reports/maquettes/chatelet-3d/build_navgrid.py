@@ -51,6 +51,11 @@ def fill(mask, pts):
 
 walk = np.zeros((len(LEVELS), H, W), bool)
 wall = np.zeros((len(LEVELS), H, W), bool)
+# fl (kind) : le sol dessiné (source de vérité unique : la page dessine ces cases, la simulation ne marche que sur elles)
+# 0 aucun, 1 zone, 2 couloir, 3 local/boutique, 4 quai, 5 passage estimé
+fl = np.zeros((len(LEVELS), H, W), np.uint8)
+KORDER = {'area': 1, 'yes': 1, 'corridor': 2, 'room': 3}
+polys = []
 for o in S['interieur']:
     ls = lvl_list(o['l'])
     if not ls:
@@ -58,22 +63,46 @@ for o in S['interieur']:
     pts = pairs(o['p'])
     if not pts or max(abs(x) for x, _ in pts) > 2000:
         continue
-    for l in ls:
-        if o['k'] in ('corridor', 'area', 'room', 'yes'):
-            fill(walk[LI[l]], pts)
-        elif o['k'] == 'wall':
+    polys.append((o, ls, pts))
+for want in (1, 2, 3):  # ordre de dessin : zone < couloir < local (le dernier gagne)
+    for o, ls, pts in polys:
+        if KORDER.get(o['k']) == want:
+            for l in ls:
+                m = np.zeros((H, W), bool)
+                fill(m, pts)
+                fl[LI[l]][m] = want
+for o, ls, pts in polys:
+    if o['k'] == 'wall':
+        for l in ls:
             fill(wall[LI[l]], pts)
 for q in S['quais']:
     for l in lvl_list(q['l']):
-        fill(walk[LI[l]], pairs(q['p']))
+        m = np.zeros((H, W), bool)
+        fill(m, pairs(q['p']))
+        fl[LI[l]][m] = 4
 
-# dilatation d'une case pour recoudre les polygones voisins, puis retrait des murs
+# recoudre les polygones voisins : fermeture (dilatation puis érosion d'une case) ; une case ajoutée prend le type voisin
 def dilate(m):
     d = m.copy()
     d[1:, :] |= m[:-1, :]; d[:-1, :] |= m[1:, :]; d[:, 1:] |= m[:, :-1]; d[:, :-1] |= m[:, 1:]
     return d
+def erode(m):
+    return ~dilate(~m)
 for i in range(len(LEVELS)):
-    walk[i] = dilate(walk[i]) & ~wall[i]
+    k0 = fl[i]
+    cl = erode(dilate(k0 > 0)) & ~(k0 > 0)
+    if cl.any():
+        # type voisin dominant (max sur le voisinage 4)
+        nb = np.zeros_like(k0)
+        nb[1:, :] = np.maximum(nb[1:, :], k0[:-1, :]); nb[:-1, :] = np.maximum(nb[:-1, :], k0[1:, :])
+        nb[:, 1:] = np.maximum(nb[:, 1:], k0[:, :-1]); nb[:, :-1] = np.maximum(nb[:, :-1], k0[:, 1:])
+        for _ in range(2):
+            nb2 = nb.copy()
+            nb2[1:, :] = np.maximum(nb2[1:, :], nb[:-1, :]); nb2[:-1, :] = np.maximum(nb2[:-1, :], nb[1:, :])
+            nb2[:, 1:] = np.maximum(nb2[:, 1:], nb[:, :-1]); nb2[:, :-1] = np.maximum(nb2[:, :-1], nb[:, 1:])
+            nb = np.where(nb > 0, nb, nb2)
+        k0[cl] = np.where(nb[cl] > 0, nb[cl], 2)
+    walk[i] = (k0 > 0) & ~wall[i]
 
 
 def cell(x, z):
@@ -162,6 +191,8 @@ for e in (json.load(open(ISS, encoding='utf-8')) if os.path.exists(ISS) else [])
             for k in range(steps + 1):
                 rr, cc = round(r0 + (t[0] - r0) * k / steps), round(c0 + (t[1] - c0) * k / steps)
                 walk[LI[l], max(0, rr - 1):rr + 1, max(0, cc - 1):cc + 1] = True
+                sl = (LI[l], slice(max(0, rr - 1), rr + 1), slice(max(0, cc - 1), cc + 1))
+                fl[sl] = np.where(fl[sl] > 0, fl[sl], 5)
             c, est = (r0, c0), True
     if c:
         exits.append({'id': len(exits), 'n': n, 'type': 'rue' if e['type'] == 'porte' else 'secours', 'cell': [LI[l], *c],
@@ -199,7 +230,14 @@ while dq:
         if not seenc[t]:
             seenc[t] = True; dq.append(t)
 
-out = {'bbox': [X0, Z0, X1, Z1], 'res': RES, 'w': W, 'h': H, 'levels': LEVELS,
+def rle(a):
+    f = a.ravel()
+    ch = np.flatnonzero(np.diff(f)) + 1
+    st = np.concatenate(([0], ch))
+    ln = np.diff(np.concatenate((st, [f.size])))
+    return [int(v) for p in zip(f[st].tolist(), ln.tolist()) for v in p]
+assert not (walk & (fl == 0)).any()
+out = {'fk': [rle(fl[i]) for i in range(len(LEVELS))], 'bbox': [X0, Z0, X1, Z1], 'res': RES, 'w': W, 'h': H, 'levels': LEVELS,
        'walk': [base64.b64encode(np.packbits(walk[i]).tobytes()).decode() for i in range(len(LEVELS))],
        'reach': [base64.b64encode(np.packbits(seenc[i]).tobytes()).decode() for i in range(len(LEVELS))],
        'links': links, 'exits': exits}
