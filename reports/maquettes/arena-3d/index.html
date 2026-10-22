@@ -56,7 +56,7 @@ const STY={
  W:{bg:0xD9D9D4,wall:0xF5F5F2,wallOp:1,edge:0x111111,edgeOp:.55,floor:0x8c8c88,road:0xA9A9A4,ped:0xC4C4BF,green:0xC2C7BC,water:0xB7C3C6,indoor:0x111111,esc:0xFFD100,stairs:0x111111,lift:0x111111,door:0xFFD100,metro:0xFFD100,hyd:0x111111,tree:0x9BA394,people:0x111111,ground:0xCFCFCA,seat:0x3A3A38},
  K:{bg:0xC99A5E,wall:0xF4F1EA,wallOp:1,edge:0x1B1D21,edgeOp:.5,floor:0xB98A4E,road:0xF4F1EA,ped:0xD9B07A,green:0xB89660,water:0x2B5BA8,indoor:0x1B1D21,esc:0xFFB21E,stairs:0x1B1D21,lift:0x2B5BA8,door:0xFFB21E,metro:0x2B5BA8,hyd:0x1B1D21,tree:0xA77F4A,people:0x1B1D21,ground:0xD9A869,seat:0x2B5BA8},
  P:{bg:0xC7CCC9,wall:0xDDE1DE,wallOp:1,edge:0x141414,edgeOp:.6,floor:0x8E9490,road:0xAEB3B0,ped:0xBCC1BE,green:0xB5BDB5,water:0xA9B6BA,indoor:0x141414,esc:0xF2A900,stairs:0x141414,lift:0x00843D,door:0x00843D,metro:0x00843D,hyd:0xC8102E,tree:0xA3ABA4,people:0x141414,ground:0xC2C7C4,seat:0x6E7470}};
-const QP=new URLSearchParams(location.search);const isL=()=>'BWKP'.includes(S);let S=QP.get('sty')||'A',SCN=null,spread=2.2,lvSel='all',xray=true;
+const QP=new URLSearchParams(location.search);const isL=()=>'BWKPM'.includes(S);let S=QP.get('sty')||'A',SCN=null,spread=2.2,lvSel='all',xray=true;
 const host=document.getElementById('view');const rnd=new THREE.WebGLRenderer({antialias:true});rnd.setPixelRatio(Math.min(2,devicePixelRatio));host.appendChild(rnd.domElement);
 const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(42,1,1,8000);cam.position.set(420,520,620);const ctl=new THREE.OrbitControls(cam,rnd.domElement);ctl.target.set(0,-10,0);ctl.enableDamping=true;ctl.maxPolarAngle=Math.PI*.98;
 const hemi=new THREE.HemisphereLight(0xffffff,0x8a8c86,.85),sun=new THREE.DirectionalLight(0xffffff,.55);sun.position.set(-300,600,250);scene.add(hemi,sun);
@@ -183,5 +183,6 @@ if(QP.get('embed')){document.querySelectorAll('.pn').forEach(e=>e.style.display=
 fetch('scene.json').then(r=>r.json()).then(d=>{SCN=d;document.getElementById('load').remove();rebuild();const c=QP.get('cam');if(c){const v=c.split(',').map(Number);camGo(v.slice(0,3),v.slice(3,6));}window.READY=1;});
 let last=performance.now();(function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;movePeople(dt);ctl.update();rnd.render(scene,cam);requestAnimationFrame(loop);})(performance.now());
 </script>
+<script src="maquette-tex.js"></script>
 </body>
 </html>
