@@ -7,7 +7,7 @@ import { readFile } from 'node:fs/promises';
 import { dirname, extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Anthropic from '@anthropic-ai/sdk';
-import { z } from 'zod';
+import { z } from 'zod/v4'; // le helper zodOutputFormat du SDK attend des schémas zod v4
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 
 const ICI = dirname(fileURLToPath(import.meta.url));
