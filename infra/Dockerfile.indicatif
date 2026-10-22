@@ -1,7 +1,7 @@
 # INDICATIF : serveur de données seul. Le Dockerfile du socle (#6) fait foi et le remplace.
 FROM node:24-slim
 WORKDIR /app
-COPY package*.json ./
+COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 COPY infra ./infra
 COPY src/server ./src/server

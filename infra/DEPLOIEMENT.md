@@ -38,6 +38,14 @@ Le code n'attend que des URI (pas de `PGHOST` séparé). En local : `DATABASE_UR
 - GPU : non utile ici (rendu WebGL côté navigateur), pas de demande à Aiven.
 - ClickHouse n'est pas dans la détection Compose d'Aiven `[?]` : à n'ajouter que si le volume l'exige (voir le TXT).
 
-## Bloqué par le socle (#6)
-`package.json` (dépendance `pg`, scripts `test:db` = `node --test src/server/db.test.mjs`, `start`), `Dockerfile` final, et le
-branchement du serveur sur `dist/`. En attendant, `pg` est installé hors dépôt (`npm install --no-save pg`).
+## Couture avec le socle (#6), à traiter par l'orchestrateur du socle
+- Le socle (proto/socle) sert dist/ et /sante depuis `src/app/serveur.mjs`. Le serveur de ce lot (`src/server/serveur.mjs`) fait la même chose
+  (dist/ + /sante avec test de la base) EN PLUS de l'API : pour une seule URL Runtime, le `Dockerfile` doit lancer `node src/server/serveur.mjs`
+  et copier `infra/` et `src/server/` dans l'image (le serveur lit `infra/schema.sql`). Voir `infra/Dockerfile.indicatif`. Le Dockerfile du socle n'est pas modifié par ce lot.
+- `pg` a été ajouté aux dépendances et `test:db` branché sur les tests (lignes de package.json du socle : seuls changements hors src/server et infra, à garder en rebasant).
+- Ce lot dépend de proto/socle fusionné localement ; au moment de la PR, rebaser sur main quand le socle d'Adem y sera.
+- Variables : `DATABASE_URL` (injectée par Aiven quand le service est connecté), `PORT`. `DATABASE_URL` est déjà dans `.env.example`.
+- Pas de commande de pré-déploiement sur Runtime : le serveur rejoue le schéma au démarrage (idempotent) ; /sante fait un SELECT 1, un ping régulier garde la base gratuite éveillée.
+- Faits Aiven repris de recherche/08 : [établi] 20 connexions max sans pooling (pool de 5 + 1 LISTEN), HTTP seulement derrière HTTPS 443 (donc SSE, pas de WebSocket),
+  pgvector disponible, service gratuit éteint sans activité ; [supposé] droit CREATEROLE pour le rôle enseigne_ecriture, durée du premier déploiement (3 à 8 min).
+- Corpus de départ : `DATABASE_URL=... node src/server/charger-rex.mjs` (idempotent).

@@ -60,3 +60,25 @@ que decisions, chiffres, REX, lecons et un instantane par minute ; les positions
 [SUPPOSE] au-dela (ex. 50 runs x 5 000 personnes x 600 s = 150 millions de lignes, ~7 Go), ClickHouse deviendrait justifie ;
 ce n'est pas mesure. [DOC] ClickHouse n'a pas de plan gratuit Aiven (a partir de ~155 $/mois). Decision : pas de ClickHouse ni de Kafka
 pour la demo ; ils entrent apres le hack, si les positions de vraies foules en direct l'exigent.
+
+6. CORPUS DE DEPART : 13 REX PUBLICS
+[MESURE] src/server/charger-rex.mjs charge recherche/09-rex-seed.json (13 REX publics sources : 4 au Forum des Halles et Chatelet les 18-20 oct. 2026,
+9 ailleurs : Stade de France 2022, Love Parade 2010, Hillsborough 1989, Itaewon 2022, Gare du Nord, etc.). Idempotent : empreinte unique par REX.
+Sortie du test : 13 REX et 14 lecons non_verifiee au premier chargement ; au second : 0 nouveau, 13 deja presents.
+Chaque REX garde source_url et confiance (basse/moyenne/haute). Les lecons du corpus sont stockees avec le statut non_verifiee et leur provenance
+(URL de la source) : ce sont des donnees publiques, pas des faits validables. Les Halles n'ont pas de lecon officielle faute de REX publie.
+Les enseignes du Forum viennent s'ajouter a ce corpus par POST /rex.
+
+7. GARDE-FOUS (red team, recherche/10-red-team-decideurs-aiven.md) - tous [MESURE] dans src/server/securite.test.mjs
+- A1 faux chiffres : un REX hors plage (duree negative, 1e9 personnes, 9 000 personnes en 1 minute, date future) est refuse en HTTP 422, jamais stocke.
+- A2 consigne cachee : un texte de type "ignore tes consignes / ordonne de rouvrir" est stocke tel quel mais marque suspect=true avec ses motifs ;
+  aucune lecon ni decision ne s'en sert sans validation. (Le filtre par motifs est un signal, pas une garantie : le decideur doit traiter tout texte libre comme donnee.)
+- A3 lecons : statut non_verifiee | contradictoire | validee_par_simulation + provenance. Le client ne choisit pas le statut ; "validee" exige un run
+  de simulation (la base refuse sinon, contrainte CHECK).
+- A4 role PostgreSQL enseigne_ecriture : 1 INSERT dans rex_crises accepte, 9 operations refusees (lecture, UPDATE, DELETE, autres tables, DDL).
+  [SUPPOSE] la creation du role exige le droit CREATEROLE sur Aiven (avnadmin, a verifier) ; sinon le schema le dit en NOTICE et continue.
+  Pas de row-level security par enseigne ni de connexion dediee a ce role pour l'instant : le serveur n'endosse pas encore ce role (a faire si le temps le permet).
+- A10 limites : 500 caracteres par champ, 10 etiquettes, corps HTTP 64 Ko (413 au-dela).
+- A11 injection SQL : un nom d'enseigne "x'); DROP TABLE runs;--" est stocke tel quel, les tables restent intactes, et un test verifie qu'aucune requete n'est construite par gabarit de chaine.
+- A12 SSE : tampon de 200 evenements, doublons ignores, plafond de 100 connexions, client lent coupe au-dela de 64 Ko en attente, reprise Last-Event-ID sans trou ni doublon.
+- A17 journaux : les erreurs sont ecrites avec les URL de connexion et mots de passe masques ; jamais d'objet d'erreur brut.
