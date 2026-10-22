@@ -1,7 +1,6 @@
 // Tests de la logique pure : `node --test src/app/ui/logique.test.mts`
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-// @ts-expect-error Node exige l'extension .mts ; tsc ne l'accepte pas sans allowImportingTsExtensions.
 import * as L from './logique.mts';
 
 const lieux = [
