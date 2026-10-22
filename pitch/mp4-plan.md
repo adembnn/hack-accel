@@ -1,7 +1,7 @@
 # Plan du MP4 de 3 minutes
 
 Source : captures de `node tools/capture.mjs --demo` (dossier `captures/`, une image par étape ; noms issus de `demo/parcours.json` : accueil, donnee-qui-arrive, agent-agit, le-jury-agit, resultat-source, route-utilisateurs). Lire les noms exacts de fichiers dans `captures/rapport.json` avant d'assembler.
-Voix : lue par Titouan, ou ElevenLabs (crédits fournis ; appel payant, accord d'Adem requis).
+Voix : ElevenLabs, plan gratuit (décision de Titouan), texte dans `pitch/voix-off.md` (758 caractères, quota gratuit 10 000 par mois). Génération : `ELEVENLABS_API_KEY=... node pitch/generer-voix.mjs --oui-payant`, qui écrit `pitch/audio/plan-N.mp3`. Sans `--oui-payant`, le script n'appelle rien. Bloquant : remplacer `A_REMPLIR` (plan 6) avant toute génération.
 
 | Plan | Durée | Image | Voix (demo/SCRIPT.md) |
 |---|---|---|---|
@@ -14,16 +14,21 @@ Voix : lue par Titouan, ou ElevenLabs (crédits fournis ; appel payant, accord d
 
 Total 170 s, 10 s de marge.
 
-## Commande ffmpeg (images fixes + voix)
-Prérequis : `ffmpeg`, `voix.mp3` (voix continue), noms réels dans `captures/` (adapter les six premiers `-i`).
+## Commande ffmpeg (captures + une voix par plan)
+Prérequis : `ffmpeg`, `pitch/audio/plan-1.mp3` à `plan-6.mp3` (produits par `generer-voix.mjs`), noms réels dans `captures/` (adapter les six premiers `-i` d'après `captures/rapport.json`). Chaque plan dure exactement sa durée : l'image est bouclée sur `-t`, la voix est complétée de silence (`apad`) puis coupée (`atrim`).
 
 ```
-ffmpeg -loop 1 -t 20 -i captures/1-accueil.png -loop 1 -t 30 -i captures/2-donnee-qui-arrive.png \
- -loop 1 -t 40 -i captures/3-agent-agit.png -loop 1 -t 30 -i captures/4-le-jury-agit.png \
- -loop 1 -t 30 -i captures/5-resultat-source.png -loop 1 -t 20 -i captures/slide.png -i voix.mp3 \
- -filter_complex "[0:v][1:v][2:v][3:v][4:v][5:v]concat=n=6:v=1:a=0,scale=1280:720,format=yuv420p[v]" \
- -map "[v]" -map 6:a -c:v libx264 -r 30 -c:a aac -shortest demo/demo.mp4
+ffmpeg -loop 1 -t 20 -i captures/1-accueil.png -i pitch/audio/plan-1.mp3 \
+ -loop 1 -t 30 -i captures/2-donnee-qui-arrive.png -i pitch/audio/plan-2.mp3 \
+ -loop 1 -t 40 -i captures/3-agent-agit.png -i pitch/audio/plan-3.mp3 \
+ -loop 1 -t 30 -i captures/4-le-jury-agit.png -i pitch/audio/plan-4.mp3 \
+ -loop 1 -t 30 -i captures/5-resultat-source.png -i pitch/audio/plan-5.mp3 \
+ -loop 1 -t 20 -i captures/slide.png -i pitch/audio/plan-6.mp3 \
+ -filter_complex "[0:v]scale=1280:720,setsar=1,format=yuv420p[v0];[2:v]scale=1280:720,setsar=1,format=yuv420p[v1];[4:v]scale=1280:720,setsar=1,format=yuv420p[v2];[6:v]scale=1280:720,setsar=1,format=yuv420p[v3];[8:v]scale=1280:720,setsar=1,format=yuv420p[v4];[10:v]scale=1280:720,setsar=1,format=yuv420p[v5];[1:a]apad=whole_dur=20,atrim=0:20[a0];[3:a]apad=whole_dur=30,atrim=0:30[a1];[5:a]apad=whole_dur=40,atrim=0:40[a2];[7:a]apad=whole_dur=30,atrim=0:30[a3];[9:a]apad=whole_dur=30,atrim=0:30[a4];[11:a]apad=whole_dur=20,atrim=0:20[a5];[v0][a0][v1][a1][v2][a2][v3][a3][v4][a4][v5][a5]concat=n=6:v=1:a=1[v][a]" \
+ -map "[v]" -map "[a]" -c:v libx264 -r 30 -pix_fmt yuv420p -c:a aac demo/demo.mp4
 ```
+
+Vérifier la durée finale (170 s) avec `ffprobe -show_entries format=duration demo/demo.mp4`. Si une voix dépasse son plan, `atrim` la coupe : relire le texte concerné avant de regénérer.
 
 Secours : copier `demo/demo.mp4` vers `demo/secours.mp4`. Si un enregistrement d'écran `ecran.mp4` existe, le substituer aux plans 3 et 4 (`-i ecran.mp4 -ss .. -t ..`).
 Livrable : le MP4 est téléversé par Alexandre (agenda de `plan-9h.md` : 14:15).

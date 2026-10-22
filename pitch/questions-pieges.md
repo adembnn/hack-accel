@@ -14,8 +14,8 @@ Les deux côtés, sans en cacher un : la zone de danger baisse de 17 718 à 13 3
 ## 4. D'où viennent vos données, et sont-elles à jour ?
 Géométrie et rues : OpenStreetMap (ODbL) et données publiques ; incident d'ancrage : presse du 20 oct. 2026 (plus de 3 000 spectateurs évacués). Les plans intérieurs du Forum sont stylisés, pas relevés. Le flux en direct (état des stations, manifestation) n'est pas branché : les contraintes sont saisies à la main pour l'instant. Pas d'extraction de géométrie Google ; Street View sert d'inspiration visuelle seulement.
 
-## 5. Que fait Jev (le LLM, GPT ou Claude) que la simulation ne fait pas ?
-Il ne calcule pas la foule. Quatre décideurs proposent des plans, la simulation les rejoue et les note, et le LLM rédige l'ordre de service. Chaque chiffre cité dans l'ordre est ensuite vérifié contre la simulation ; un chiffre introuvable est signalé. Le taux de chiffres retrouvés n'est pas encore mesuré (champ à remplir sur la slide). Le LLM peut se tromper de formulation, jamais de chiffre non détecté, c'est la garantie visée, pas une certitude prouvée.
+## 5. Que fait Jev que la simulation ne fait pas ?
+Jev est un modèle de décision de TypeSafe AI : il ne rédige rien, il répond par des probabilités à des questions typées (choix, score, oui/non). Il ne calcule pas la foule. Quatre décideurs choisissent leurs leviers (avec Jev, ou à défaut avec des règles déterministes), la simulation rejoue et note chaque plan, et Claude rédige l'ordre de service.
 
 ## 6. Qui paie, combien, et pourquoi pas un bureau d'études ?
 Cible : responsables sûreté de centres commerciaux, salles de spectacle, sites recevant du public. Hypothèse : un exercice sur table rejoué en minutes remplace une partie d'une étude, et laisse une trace de décision. Nous n'avons pas de tarif ni de client signé ; aucun prix n'est affiché. Cette hypothèse reste à tester par entretiens.
