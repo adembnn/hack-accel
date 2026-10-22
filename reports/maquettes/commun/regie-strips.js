@@ -425,7 +425,7 @@
   const pv = document.createElement('div'); pv.id = 'rc-vuep';
   pv.style.cssText = 'position:fixed;top:60px;right:12px;z-index:60;display:none;background:#14181d;border:1px solid #FFB21E;border-radius:6px;padding:10px 12px;font:600 13px Barlow Condensed,system-ui,sans-serif;color:#eee;min-width:300px';
   const ligne = (titre, items) => `<div style="margin:6px 0 2px;color:#FFB21E;letter-spacing:.06em">${titre}</div><div style="display:flex;flex-wrap:wrap;gap:4px">${items}</div>`;
-  const bt = (attr, txt) => `<button class="tb" ${attr} style="padding:5px 9px">${txt}</button>`;
+  const bt = (attr, txt) => `<button ${attr} style="all:unset;cursor:pointer;padding:6px 10px;border:1px solid #4a5058;border-radius:4px;background:#232931;color:#f2f2f2;font:600 13px Barlow Condensed,system-ui,sans-serif">${txt}</button>`;
   pv.innerHTML = ligne('STYLE', bt('data-vs="A"', 'Holographique (fil de fer)') + bt('data-vs="B"', 'Argile') + bt('data-vs="C"', 'Thermique') + bt('data-vs="D"', 'Paris texturé'))
     + ligne('MOMENT', bt('data-vm="dayBtn"', 'Jour') + bt('data-vm="nightBtn"', 'Nuit · 19 oct. 20 h'))
     + ligne('CAMÉRA', bt('data-vc="orbit"', 'Orbite') + bt('data-vc="top"', 'Dessus') + bt('data-vc="cut"', 'Coupe') + bt('data-vc="forum"', 'Forum'))
@@ -441,7 +441,12 @@
       if (b.dataset.vc) document.querySelector(`button[data-c="${b.dataset.vc}"]`)?.click();
       if (b.dataset.vl) { const s = $('lvl'); if (s) { s.value = b.dataset.vl; s.dispatchEvent(new Event('change', { bubbles: true })); s.dispatchEvent(new Event('input', { bubbles: true })); } }
     } catch (x) { console.warn('vue', x); }
+    // le choix actif de chaque groupe ressort en ambre
+    const k = Object.keys(b.dataset)[0];
+    pv.querySelectorAll(`button[data-${k}]`).forEach((x) => { x.style.background = x === b ? '#FFB21E' : '#232931'; x.style.color = x === b ? '#111' : '#f2f2f2'; });
   });
+  // un clic ailleurs referme le panneau
+  addEventListener('mousedown', (e) => { if (pv.style.display !== 'none' && !pv.contains(e.target) && e.target.id !== 'rc-vue') pv.style.display = 'none'; });
   $('rc-spread').addEventListener('input', (e) => { const s = $('spread'); if (s) { s.value = e.target.value; s.dispatchEvent(new Event('input', { bubbles: true })); s.dispatchEvent(new Event('change', { bubbles: true })); } });
   let ecoutait = false;
   setInterval(() => {
@@ -451,7 +456,7 @@
     if (on) {
       micBtn.textContent = '● J’ÉCOUTE… (V pour arrêter)';
       const t = d && d.value.trim();
-      $('rc-q').textContent = t ? `« ${t} »` : '« … parlez »'; $('rc-q').className = 'ecoute';
+      $('rc-q').textContent = t || '… parlez'; $('rc-q').className = 'ecoute';
       $('rc-who').textContent = 'Directeur · en direct';
     } else if (ecoutait) micBtn.textContent = '🎙 PARLER (V)';
     ecoutait = on;
