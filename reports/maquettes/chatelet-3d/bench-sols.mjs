@@ -7,7 +7,7 @@ const argEtape = (process.argv.find(a => a.startsWith('--etape=')) || '').slice(
 const N = +(process.argv.slice(2).find(a => /^\d+$/.test(a)) || 3200);
 // Étapes : 1 sols dessinés · 2 boutiques et façades · 3 escalators et ascenseurs · 4 mobilier.
 // Étapes livrées : sans option, seules ces étapes bloquent ; les autres sont affichées « À FAIRE ». --etape=N : ne bloque que sur l'étape N.
-const LIVREES = [1, 2, 4];
+const LIVREES = [1, 2, 3, 4];
 const read = f => fs.readFileSync(path.join(HERE, f), 'utf8');
 const sb = { console, Math, atob: s => Buffer.from(s, 'base64').toString('binary'), setTimeout, Float32Array, Uint8Array, Map, Set, Object, Array, JSON, Number, Date, Error, Promise, module: undefined };
 sb.fetch = async f => ({ json: async () => JSON.parse(read(f)) });
@@ -24,7 +24,7 @@ run('SIM.on=false;simSpawn(' + N + ');SIM.mode="calme";', 'spawn');
 
 // ---- mesures (exécutées dans le contexte de la page) ----
 run(`
-const BENCH={exMob:[],exFacade:[],exBoutique:[],maxSansSol:0,sumSansSol:0,maxBoutique:0,sumBoutique:0,facade:0,escAxe:0,escN:0,mobilier:0,exSansSol:[],rideMax:0};
+const BENCH={exEsc:[],liensLoin:0,liensInverses:0,exMob:[],exFacade:[],exBoutique:[],maxSansSol:0,sumSansSol:0,maxBoutique:0,sumBoutique:0,facade:0,escAxe:0,escN:0,mobilier:0,exSansSol:[],rideMax:0};
 // sol réellement dessiné : rectangles de solsFloors (mêmes que le maillage), indexés par ligne
 const DR=SIM.g.levels.map((L,l)=>{const rows=[];for(const k of [1,2,3,4,5])for(const o of solsRects(l,k))for(let r=o.r0;r<=o.r1;r++)(rows[r]=rows[r]||[]).push(o);return rows;});
 function drawnY(l,x,z){const g=SIM.g,c=(x-g.bbox[0])/g.res,r=Math.floor((z-g.bbox[1])/g.res);const rr=DR[l][r];if(!rr)return NaN;for(const o of rr)if(c>=o.c0&&c<o.c1+1)return solsY(g.levels[l],alt);return NaN;}
@@ -54,13 +54,22 @@ function boutiquesFermees(){let n=0;SIM.A.forEach((a,i)=>{if(a.out||a.ride)retur
 const MOB=[];(SIM.g.mobilier||[]).forEach(([L,x,z,rot,t])=>{if(t==='panneau')return;const h={banc:[1,.3],plante:[.6,.6],borne:[.3,.18]}[t];MOB.push({l:SIM.g.levels.indexOf(L),x,z,rot,hx:h[0],hz:h[1]});});
 const L0=SIM.g.levels.indexOf(0);SCN.bancs.forEach(([x,z])=>MOB.push({l:L0,x,z,rot:0,hx:.9,hz:.3}));SCN.bornes.forEach(([x,z])=>MOB.push({l:L0,x,z,rot:0,hx:.12,hz:.12}));SCN.arbres.forEach(([x,z])=>MOB.push({l:L0,x,z,rot:0,hx:.3,hz:.3}));SCN.velib.forEach(v=>MOB.push({l:L0,x:v.x,z:v.z,rot:0,hx:1.5,hz:.6}));
 function dansMobilier(){let n=0;SIM.A.forEach((a,i)=>{if(a.out||a.ride)return;for(const m of MOB){if(m.l!==a.l||Math.abs(a.x-m.x)>2||Math.abs(a.z-m.z)>2)continue;const px=a.x-m.x,pz=a.z-m.z,co=Math.cos(m.rot),si=Math.sin(m.rot);if(Math.abs(px*co+pz*si)<=m.hx&&Math.abs(-px*si+pz*co)<=m.hz){n++;if(BENCH.exMob.length<4)BENCH.exMob.push({i,niv:SIM.g.levels[a.l],x:+a.x.toFixed(1),z:+a.z.toFixed(1)});break;}}});BENCH.mobilier=Math.max(BENCH.mobilier,n);}
+
+// trajets verticaux : passagers à plus de 0,3 m de l'axe dessiné ; extrémités de liens loin de l'objet dessiné ; liens inversés
+function dSeg(px,pz,a,b){const dx=b[0]-a[0],dz=b[1]-a[1],L2=dx*dx+dz*dz||1e-9;let t=Math.max(0,Math.min(1,((px-a[0])*dx+(pz-a[1])*dz)/L2));return Math.hypot(px-a[0]-dx*t,pz-a[1]-dz*t);}
+function objOf(k){return k.k==='escalator'?SCN.escalators[k.obj]:k.k==='escalier'?SCN.escaliers[k.obj]:null;}
+function liensVerticaux(){const g=SIM.g;let inv=0,loin=0;g.links.forEach(k=>{const o=objOf(k);if(!o)return;const pts=pairs(o.p),A=pts[0],B=pts[pts.length-1];const cc=e=>[g.bbox[0]+(e[2]+.5)*g.res,g.bbox[1]+(e[1]+.5)*g.res];const ca=cc(k.a),cb=cc(k.b);
+  if(Math.hypot(ca[0]-A[0],ca[1]-A[1])>2.7||Math.hypot(cb[0]-B[0],cb[1]-B[1])>2.7)loin++;if(Math.hypot(ca[0]-B[0],ca[1]-B[1])<Math.hypot(ca[0]-A[0],ca[1]-A[1])-.5)inv++;});BENCH.liensLoin=loin;BENCH.liensInverses=inv;}
+function passagers(){let n=0,tot=0;SIM.A.forEach((a,i)=>{if(a.out||!a.ride)return;const k=SIM.g.links[a.ride.li],p=solsRidePos(a);if(p.t<.06||p.t>.94)return;tot++;
+  if(k.k==='ascenseur'){const o=SCN.ascenseurs[k.asc];if(Math.abs(p.x-o.x)>1.2||Math.abs(p.z-o.z)>1.2){n++;}return;}
+  const o=objOf(k);if(!o)return;const pts=pairs(o.p);if(dSeg(p.x,p.z,pts[0],pts[pts.length-1])>.3){n++;if(BENCH.exEsc.length<4)BENCH.exEsc.push({i,k:k.k,li:a.ride.li});}});BENCH.escAxe=Math.max(BENCH.escAxe,n);BENCH.escN=Math.max(BENCH.escN,tot);}
 `, 'bench-defs');
 const T0 = Date.now(); const rows = [];
-const step = (secs, label) => { const n = Math.round(secs / 0.1); for (let i = 0; i < n; i++) { run('simStep(.1);trackStep()', 's'); if (i % 50 === 49) { run('boutiquesFermees();dansMobilier()', 'bf'); rows.push(run(`checkpoint("${label} "+SIM.T.toFixed(0)+" s")`, 'cp')); } } };
+const step = (secs, label) => { const n = Math.round(secs / 0.1); for (let i = 0; i < n; i++) { run('simStep(.1);trackStep()', 's'); if (i % 50 === 49) { run('boutiquesFermees();dansMobilier();passagers()', 'bf'); rows.push(run(`checkpoint("${label} "+SIM.T.toFixed(0)+" s")`, 'cp')); } } };
 step(30, 'calme');
 run('simAlert()', 'alert');
 step(120, 'évac');
-const cs = run('casesSansSol()', 'cs'); const B = run('BENCH', 'B');
+run('liensVerticaux()','lv');const cs = run('casesSansSol()', 'cs'); const B = run('BENCH', 'B');
 console.log('personnes :', N, '· temps de calcul', ((Date.now() - T0) / 1000).toFixed(0), 's');
 for (const r of rows.filter((_, i) => i % 3 === 0)) console.log(' ', r.label.padEnd(12), 'actifs', String(r.n).padStart(5), 'sans sol dessiné', r.sans);
 const out = [
@@ -68,7 +77,9 @@ const out = [
   [1, 'cases praticables sans sol dessiné', cs.bad + ' / ' + cs.tot, cs.bad],
   [2, 'personnes dans une boutique fermée — max sur les points de mesure', B.maxBoutique],
   [2, 'franchissements de façade de boutique (hors ouverture)', B.facade],
-  [3, 'passagers d\'escalator à plus de 0,3 m de l\'axe', 'non mesuré (étape 3 pas livrée)', null],
+  [3, 'liens escalier/escalator inversés par rapport à l\'objet dessiné', B.liensInverses],
+  [3, 'extrémités de lien à plus de 2,7 m de l\'extrémité dessinée', B.liensLoin],
+  [3, 'passagers (escalator, escalier, ascenseur) hors de l\'axe (0,3 m) ou de la cage — max ; passagers simultanés max ' + B.escN, B.escAxe],
   [4, 'personnes dans le mobilier — max sur les points de mesure', B.mobilier],
 ];
 const bloquant = e => argEtape ? e === +argEtape : LIVREES.includes(e);
@@ -80,6 +91,7 @@ for (const [et, label, v, n] of out) {
   console.log(`[étape ${et}]`, etat.padEnd(7), label.padEnd(70), v, bloquant(et) ? '' : '(ne bloque pas)');
   if (bloquant(et) && val !== 0) ok = false;
 }
+if (B.exEsc.length) console.log('exemples passagers hors axe :', JSON.stringify(B.exEsc));
 if (B.exMob.length) console.log('exemples mobilier :', JSON.stringify(B.exMob));
 if (B.exFacade.length) console.log('exemples façade :', JSON.stringify(B.exFacade));
 if (B.exBoutique.length) console.log('exemples boutique fermée :', JSON.stringify(B.exBoutique));

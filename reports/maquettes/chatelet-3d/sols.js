@@ -75,6 +75,37 @@ function solsFloors(lvSel) {
   }
   return grp;
 }
+// ---------- Trajets verticaux : position dessinée d'un passager sur l'objet dessiné (escalator, escalier, ascenseur) ----------
+// sim.js déplace le passager en ligne droite du point de départ au centre de la case d'arrivée ; on le pose ici sur l'axe réellement dessiné
+// (liens : pa = extrémité du lien « a », pb = extrémité du lien « b », en mètres, lues dans le dessin). Entrée et sortie : 6 % du trajet chacune.
+const LIFTS = [];
+function solsRidePos(a) {
+  const g = SIM.g, k = g.links[a.ride.li], rt = rideT(k), t = Math.min(1, Math.max(0, 1 - (a.ride.t1 - SIM.T) / rt));
+  const to = a.ride.to, fr = a.ride.from, toB = to === k.b || (to[0] === k.b[0] && to[1] === k.b[1] && to[2] === k.b[2]);
+  const P0 = toB ? k.pa : k.pb, P1 = toB ? k.pb : k.pa, u = Math.min(1, Math.max(0, (t - .06) / .88));
+  let x = P0[0] + (P1[0] - P0[0]) * u, z = P0[1] + (P1[1] - P0[1]) * u;
+  const tx = g.bbox[0] + (to[2] + .5) * g.res, tz = g.bbox[1] + (to[1] + .5) * g.res;
+  if (t < .06) { const w = t / .06; x = fr[1] + (P0[0] - fr[1]) * w; z = fr[2] + (P0[1] - fr[2]) * w; }
+  else if (t > .94) { const w = (t - .94) / .06; x = P1[0] + (tx - P1[0]) * w; z = P1[1] + (tz - P1[1]) * w; }
+  const y0 = solsY(g.levels[fr[0]], alt) , y1 = solsY(g.levels[to[0]], alt);
+  return { x, z, y: y0 + (y1 - y0) * u, u, t, dx: P1[0] - P0[0], dz: P1[1] - P0[1] };
+}
+// Redessin des passagers en trajet et des cabines d'ascenseur (après simDraw de sim.js)
+function solsDrawRiders() {
+  if (typeof silBody === 'undefined' || !silBody || !SIM.A) return;
+  const show = L => lvSel === 'all' || L === +lvSel, g = SIM.g, lifts = new Map(); let dirty = false;
+  SIM.A.forEach((a, i) => {
+    if (a.out || !a.ride || i >= silBody.instanceMatrix.count) return;
+    const k = g.links[a.ride.li], p = solsRidePos(a), L0 = g.levels[a.ride.from[0]], L1 = g.levels[a.ride.to[0]];
+    if (k.k === 'ascenseur') { const c = lifts.get(k.asc); if (!c || p.u > 0) lifts.set(k.asc, { y: p.y, u: p.u }); }
+    if (!(show(L0) || show(L1))) return;
+    const h = Math.hypot(p.dx, p.dz) > .01 ? Math.atan2(p.dx, p.dz) : Math.atan2(a.vx, a.vz);
+    SQ.setFromEuler(SE.set(0, h, 0)); SM.compose(SV.set(p.x, p.y, p.z), SQ, ONE); silBody.setMatrixAt(i, SM); silHead.setMatrixAt(i, SM); dirty = true;
+  });
+  if (dirty) { silBody.instanceMatrix.needsUpdate = silHead.instanceMatrix.needsUpdate = true; }
+  LIFTS.forEach(l => { const c = lifts.get(l.idx); if (c) l.y = c.y; if (l.y !== undefined) l.cab.position.y = l.y + 1.2 - l.g.position.y; });
+}
+if (typeof document !== 'undefined' && typeof simDraw === 'function') { const _sd = simDraw; simDraw = function () { _sd(); solsDrawRiders(); }; }
 if (typeof document !== 'undefined' && typeof fetch === 'function') {
   SOLS.loading = true;
   fetch('navgrid.json').then(r => r.json()).then(g => { solsDecode(g); SOLS.loading = false; if (typeof SCN !== 'undefined' && SCN && typeof buildIndoor === 'function') { buildIndoor(); if (typeof rnd !== 'undefined') rnd.shadowMap.needsUpdate = true; } });

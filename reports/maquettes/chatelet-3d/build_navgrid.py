@@ -288,31 +288,50 @@ def snap(l, x, z, rmax=6):
 
 
 links = []
+carved = {'escalier': 0, 'escalator': 0, 'ascenseur': 0}
+def land(l, x, z, kind):
+    """Case d'arrivée d'un lien vertical : la case praticable à moins de 2 m de l'extrémité dessinée ; sinon on creuse la case de l'extrémité (sol dessiné de type passage)."""
+    c = snap(l, x, z, 1)
+    if c:
+        return c
+    r, cc = cell(x, z)
+    if not (0 < r < H - 1 and 0 < cc < W - 1):
+        return None
+    walk[LI[l], r, cc] = True
+    if fl[LI[l], r, cc] == 0:
+        fl[LI[l], r, cc] = 5
+    carved[kind] += 1
+    for ri2, l2, pts2 in room_polys:        # extrémité dans une boutique : l'escalier ou l'ascenseur y est une ouverture déclarée
+        if l2 == l and pip(cc_x(cc), cc_z(r), pts2):
+            open_doors.append({'l': l, 'x': round(cc_x(cc), 2), 'z': round(cc_z(r), 2), 'r': 1.2, 'room': ri2, 'src': 'accès vertical'})
+    return (r, cc)
 for kind, arr in (('escalator', S['escalators']), ('escalier', S['escaliers'])):
-    for o in arr:
+    for oi, o in enumerate(arr):
         ls = lvl_list(o['l'])
         pts = pairs(o['p'])
         if len(ls) < 2 or len(pts) < 2:
             continue
         a, b = max(ls), min(ls)
+        # sens et extrémités identiques à l'objet dessiné : le haut est pts[0] au niveau a, le bas pts[-1] au niveau b (comme index.html)
         A, B = pts[0], pts[-1]
         L = math.hypot(B[0] - A[0], B[1] - A[1]) + 6 * (a - b)
-        for (pa, pb) in ((A, B), (B, A)):
-            ca, cb = snap(a, *pa), snap(b, *pb)
-            if ca and cb:
-                links.append({'k': kind, 'n': o['n'], 'a': [LI[a], *ca], 'b': [LI[b], *cb], 'len': round(L, 1),
-                              'debit': 1.0 if kind == 'escalator' else 1.3})
-                break
+        ca, cb = land(a, *A, kind), land(b, *B, kind)
+        if ca and cb:
+            links.append({'k': kind, 'n': o['n'], 'obj': oi, 'a': [LI[a], *ca], 'b': [LI[b], *cb], 'len': round(L, 1),
+                          'pa': [round(A[0], 2), round(A[1], 2)], 'pb': [round(B[0], 2), round(B[1], 2)],
+                          'debit': 1.0 if kind == 'escalator' else 1.3})
 
-# Ascenseurs : un lien par paire de niveaux desservis. Cabine de 13 personnes (1 000 kg), cycle portes + trajet ~20 s
+# Ascenseurs : un lien par paire de niveaux desservis, dans la cage dessinée (centre = position OSM). Cabine de 13 personnes (1 000 kg), cycle portes + trajet ~20 s
 # -> débit ~0,6 pers./s ; coût de trajet augmenté de l'attente moyenne (~15 s, soit ~20 m de marche).
 for i, o in enumerate(S['ascenseurs']):
     ls = lvl_list(o['l'])
     for a, b in zip(ls[1:][::-1], ls[:-1][::-1]):
-        ca, cb = snap(b, o['x'], o['z']), snap(a, o['x'], o['z'])
+        ca, cb = land(b, o['x'], o['z'], 'ascenseur'), land(a, o['x'], o['z'], 'ascenseur')
         if ca and cb:
             links.append({'k': 'ascenseur', 'n': o['n'] or 'Ascenseur', 'asc': i, 'a': [LI[b], *ca], 'b': [LI[a], *cb],
+                          'pa': [round(o['x'], 2), round(o['z'], 2)], 'pb': [round(o['x'], 2), round(o['z'], 2)],
                           'len': round(20 + 6 * (b - a), 1), 'debit': 0.6})
+print('liens créés :', len(links), '; cases creusées sous les extrémités sans sol :', carved)
 
 exits = []
 seen = set()
