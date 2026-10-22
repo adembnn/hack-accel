@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Refuge - slide de pitch</title>
+<style>
+:root{--bg:#0f1420;--fg:#eef2f8;--mut:#9aa6bd;--acc:#ff7a45;--card:#182033;--ok:#4cc38a}
+@media (prefers-color-scheme:light){:root{--bg:#f6f7fb;--fg:#10182b;--mut:#55617a;--card:#fff}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,sans-serif}
+main{max-width:1280px;margin:0 auto;padding:24px 16px;display:grid;gap:14px;grid-template-columns:repeat(4,1fr)}
+header{grid-column:1/-1}h1{margin:0;font-size:34px}h1 span{color:var(--acc)}
+.l{color:var(--mut);margin:4px 0 0;font-size:18px}
+section{background:var(--card);border-radius:12px;padding:16px}
+h2{margin:0 0 8px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--acc)}
+ul{margin:0;padding-left:18px}li{margin:4px 0}
+.k{display:grid;grid-template-columns:1fr 1fr;gap:8px}.k div{background:var(--bg);border-radius:8px;padding:8px}
+.k b{display:block;font-size:22px;color:var(--ok)}.k small{color:var(--mut)}
+.A_REMPLIR{color:#e0a800;font-style:italic}
+footer{grid-column:1/-1;color:var(--mut);font-size:12px}
+@media(max-width:900px){main{grid-template-columns:1fr 1fr}}@media(max-width:560px){main{grid-template-columns:1fr}}
+</style></head><body><main>
+<header><h1><span data-champ="nom">Refuge</span> : s'entraîner à la décision de crise</h1>
+<p class="l" data-champ="pitch">Un jumeau 3D du Forum des Halles où le directeur du centre teste ses décisions d'évacuation avant d'avoir à les prendre.</p></header>
+<section><h2>Problème</h2><ul>
+<li>Lundi 19 oct. 2026, vers 20 h : plus de 3 000 spectateurs évacués de l'UGC des Halles (couvre-feu préfectoral).</li>
+<li>Le directeur décide seul, vite, avec des stations fermées et des issues incertaines.</li>
+<li>Utilisateur : directeur du centre, responsable sûreté.</li></ul></section>
+<section><h2>Produit</h2><ul>
+<li>Forum 0 à -5 et rues à environ 1 km en 3D, contraintes cliquables.</li>
+<li>Foule simulée par des modèles publiés (forces sociales, choix de sortie, départ log-logistique).</li>
+<li>Quatre décideurs proposent, la simulation départage, Claude rédige l'ordre de service et chaque chiffre est vérifié.</li></ul></section>
+<section><h2>Preuves chiffrées</h2><div class="k">
+<div><b class="A_REMPLIR" data-champ="gain_ecrasement">A_REMPLIR</b><small>écrasement, avant vs après (bench/resultats.csv)</small></div>
+<div><b class="A_REMPLIR" data-champ="gain_non_sortis">A_REMPLIR</b><small>personnes non sorties, avant vs après</small></div>
+<div><b class="A_REMPLIR" data-champ="gain_zone_danger">A_REMPLIR</b><small>sorties en zone de danger</small></div>
+<div><b class="A_REMPLIR" data-champ="graines">A_REMPLIR</b><small>tirages (graines) et effectif simulé</small></div>
+<div><b class="A_REMPLIR" data-champ="citations_verifiees">A_REMPLIR</b><small>chiffres des ordres retrouvés dans la simulation</small></div>
+<div><b class="A_REMPLIR" data-champ="latence">A_REMPLIR</b><small>durée d'un plan rejoué</small></div></div></section>
+<section><h2>Couche de données Aiven</h2><ul>
+<li>PostgreSQL : scènes, runs, décisions, mémoire des cas passés.</li>
+<li>ClickHouse : positions des personnes, si le volume le demande <span class="A_REMPLIR">(A_REMPLIR : utilisé ou non)</span>.</li>
+<li>Déployé sur Aiven Runtime : <span class="A_REMPLIR" data-champ="url">A_REMPLIR url</span>.</li></ul></section>
+<section style="grid-column:1/-1"><h2>Route vers les premiers clients</h2><ul>
+<li>Porte d'entrée : responsables sûreté de centres commerciaux, salles de spectacle, gestionnaires de sites recevant du public.</li>
+<li>Pourquoi ils paient : l'exercice sur table remplace un bureau d'études, et laisse une trace de décision. <span class="A_REMPLIR">(A_REMPLIR : tarif, aucun prix inventé)</span></li>
+<li>Semaine prochaine : un entretien avec un responsable sûreté de centre ; un second lieu chargé depuis OpenStreetMap.</li></ul></section>
+<footer>Simulation générée, modèle simplifié, non certifié, aide à la décision. Fond de carte OpenStreetMap (ODbL).</footer>
+</main></body></html>
