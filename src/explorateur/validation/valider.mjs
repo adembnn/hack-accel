@@ -4,7 +4,7 @@
 import { Worker, isMainThread, parentPort, workerData } from 'node:worker_threads';
 import { cpus } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { RECO } from './patches.mjs';
+import { CONFIGS, DEFAUT } from './patches.mjs';
 
 const ICI = fileURLToPath(import.meta.url);
 
@@ -33,7 +33,8 @@ const pad = (s, n) => String(s).padEnd(n);
 const verdict = (ok) => (ok ? 'PASS' : 'ÉCART');
 
 async function principal() {
-  const reco = process.argv.includes('--reco'), rapide = process.argv.includes('--rapide');
+  const argReco = process.argv.find((a) => a.startsWith('--reco')), rapide = process.argv.includes('--rapide');
+  const nomCfg = argReco ? (argReco.split('=')[1] || DEFAUT) : null, RECO = nomCfg ? CONFIGS[nomCfg] : null, reco = !!RECO;
   const patches = reco ? RECO.patches : [];
   const t0 = Date.now();
   const seeds = rapide ? [1] : [1, 2];
@@ -47,7 +48,7 @@ async function principal() {
   for (const type of ['escalier', 'escalator']) for (const graine of seeds) marque('e3', './exp3-escaliers.mjs', { type, graine });
   for (const graine of seeds) marque('e5', './exp5-contre-flux.mjs', { rho: 1, graine });
   const n = Math.max(2, Math.min(10, cpus().length - 6));
-  console.log(`Banc de validation du moteur de foule${reco ? ' [AVEC modifications recommandées : ' + RECO.resume + ']' : ' [sim.js tel quel]'} : ${taches.length} runs sur ${n} fils.\n`);
+  console.log(`Banc de validation du moteur de foule${reco ? ' [AVEC modifications ' + nomCfg + ' : ' + RECO.resume + ']' : ' [sim.js tel quel]'} : ${taches.length} runs sur ${n} fils.\n`);
   const res = await pool(taches.map((t) => [t[0], t[1]]), n);
   const de = (nom) => res.filter((_, i) => taches[i][2] === nom);
   const sondes = res.map((r) => r.sonde);
@@ -55,7 +56,7 @@ async function principal() {
   const synthese = [];
 
   // --- 1 ---
-  console.log('=== 1. Diagramme fondamental (couloir en anneau 44 x 4 m, 2 graines) - réf. Weidmann 1993 : v0 = 1,34 m/s, rho_max = 5,4 p/m2 ===');
+  console.log('=== 1. Diagramme fondamental (couloir en anneau 40 x 4 m, 2 graines) - réf. Weidmann 1993 : v0 = 1,34 m/s, rho_max = 5,4 p/m2 ===');
   console.log(pad('rho voulue', 11) + pad('rho mesurée', 12) + pad('v sim (m/s)', 12) + pad('v Weidmann', 11) + pad('J sim', 8) + pad('J Weidmann', 11) + pad('tolérance', 14) + 'verdict');
   const r1 = de('e1').map((r) => r.ligne);
   let ok1 = 0, tot1 = 0, jmax = 0;
@@ -106,7 +107,7 @@ async function principal() {
   }
 
   // --- 5 ---
-  console.log('\n=== 5. Contre-flux : couloir en anneau 44 x 4 m, 1 p/m2 mélangé 50/50, 150 s, 2 graines ===');
+  console.log('\n=== 5. Contre-flux : couloir en anneau 40 x 4 m, 1 p/m2 mélangé 50/50, 150 s, 2 graines ===');
   const r5 = de('e5').map((r) => r.ligne);
   const phi = moy(r5.map((x) => x.phiFin)), nulle = moy(r5.map((x) => x.phiNulle));
   console.log(`Paramètre d'ordre Phi final : ${f(phi)} (hypothèse nulle, directions mélangées : ${f(nulle, 3)} ; files parfaites : 1,00)`);
@@ -120,16 +121,21 @@ async function principal() {
   synthese.push(['5 Contre-flux : progression', `${f(prog)} m/s (${f((100 * prog) / vUni, 0)} % du flux unique)`, '>= 70 % du flux unique', verdict(okProg)]);
 
   // --- 4 ---
-  const S = sondes.reduce((a, s) => ({ pas: a.pas + s.pas, agentPas: a.agentPas + s.agentPas, ag: a.ag + s.agentsChevauchants, paires: a.paires + s.paires, pen: Math.max(a.pen, s.penMax), mur: a.mur + s.dansMur, corps: a.corps + s.corpsDansMur, cm: Math.max(a.cm, s.rhoCaseMax), ls: Math.max(a.ls, s.rhoLisseMax) }), { pas: 0, agentPas: 0, ag: 0, paires: 0, pen: 0, mur: 0, corps: 0, cm: 0, ls: 0 });
-  console.log(`\n=== 4. Collisions, murs, densité maximale (toutes expériences, ${taches.length} runs, ${f(S.agentPas / 1e6)} M observations marcheur-pas) ===`);
-  const fr = S.ag / S.agentPas;
-  console.log(`Marcheurs en chevauchement (distance < 2R - 0,02 = 0,46 m) : ${f(100 * fr, 2)} % des observations ; paires : ${f(S.paires / S.pas, 2)} par pas ; pénétration max : ${f(S.pen)} m (diamètre 0,48 m)`);
-  console.log(`Centres dans une case non praticable : ${S.mur} (exigé : 0) ; corps (carré +-R) touchant un mur : ${S.corps} observations`);
-  console.log(`Densité max : ${S.cm} personnes dans une case de 1 m2 (métrique dmax de sim.js) ; ${f(S.ls)} p/m2 lissée (disque de 1 m) ; empilement hexagonal maximal de disques de 0,48 m : 5,01 p/m2 ; limite physique citée ~6-8`);
-  const ok4a = S.mur === 0, ok4b = fr < 0.01 && S.pen < 0.12, ok4c = S.ls <= 8;
-  synthese.push(['4 Marcheurs dans un mur (centre)', `${S.mur}`, '0', verdict(ok4a)]);
-  synthese.push(['4 Chevauchements', `${f(100 * fr, 2)} % des marcheurs-pas, pén. max ${f(S.pen)} m`, '< 1 % et < 0,12 m', verdict(ok4b)]);
-  synthese.push(['4 Densité max lissée', `${f(S.ls)} p/m2 (case 1 m2 : ${S.cm})`, '<= 8 p/m2 (limite physique)', verdict(ok4c)]);
+  const cumul = (liste) => liste.reduce((a, s) => ({ agentPas: a.agentPas + s.agentPas, ag: a.ag + s.agentsChevauchants, pen: Math.max(a.pen, s.penMax), mur: a.mur + s.dansMur, corps: a.corps + s.corpsDansMur, cm: Math.max(a.cm, s.rhoCaseMax), ls: Math.max(a.ls, s.rhoLisseMax) }), { agentPas: 0, ag: 0, pen: 0, mur: 0, corps: 0, cm: 0, ls: 0 });
+  const dense = (i) => taches[i][2] === 'e1' && taches[i][1].rho >= 2;
+  const Sf = cumul(sondes.filter((_, i) => !dense(i))), Sd = cumul(sondes.filter((_, i) => dense(i))), St = cumul(sondes);
+  console.log(`
+=== 4. Collisions, murs, densité maximale (${taches.length} runs, ${f(St.agentPas / 1e6)} M observations marcheur-pas) ===`);
+  const ligne4 = (nom, S) => console.log(`${pad(nom, 42)}chevauchement (d < 0,46 m) : ${pad(f((100 * S.ag) / S.agentPas, 2) + ' %', 9)} pén. max ${f(S.pen)} m | centre hors case praticable : ${S.mur} | corps dans un mur : ${S.corps} | case 1 m2 max : ${S.cm} | lissée max : ${f(S.ls)} p/m2`);
+  ligne4('Régime courant (rho < 2, goulots, liens)', Sf);
+  ligne4('Couloir dense (rho voulue >= 2)', Sd);
+  console.log('Repères : diamètre du corps 0,48 m ; empilement hexagonal maximal = 5,01 p/m2 ; limite physique citée ~6-8 p/m2.');
+  const frF = Sf.ag / Sf.agentPas, frD = Sd.ag / Math.max(1, Sd.agentPas);
+  synthese.push(['4 Marcheurs dans un mur (centre)', `${St.mur}`, '0', verdict(St.mur === 0)]);
+  synthese.push(['4 Chevauchements, régime courant', `${f(100 * frF, 2)} %, pén. max ${f(Sf.pen)} m`, '< 1 % et < 0,12 m', verdict(frF < 0.01 && Sf.pen < 0.12)]);
+  synthese.push(['4 Chevauchements, couloir dense', `${f(100 * frD, 2)} %, pén. max ${f(Sd.pen)} m`, '< 1 % et < 0,12 m', verdict(frD < 0.01 && Sd.pen < 0.12)]);
+  synthese.push(['4 Densité max lissée (tous runs)', `${f(St.ls)} p/m2 (case 1 m2 : ${St.cm})`, '<= 8 p/m2', verdict(St.ls <= 8)]);
+
 
   console.log('\n=== SYNTHÈSE ===');
   console.log(pad('Mesure', 40) + pad('Mesuré', 50) + pad('Référence', 50) + 'Verdict');

@@ -1,4 +1,4 @@
-// Expérience 5 : deux flux opposés dans un couloir en anneau (44 × 4 m), mélange aléatoire au départ ; formation de files ?
+// Expérience 5 : deux flux opposés dans un couloir en anneau (40 × 4 m), mélange aléatoire au départ ; formation de files ?
 // Paramètre d'ordre (Yamori 1998 ; Helbing et al.) : pour chaque marcheur i, dans la bande |z − z_i| < 0,5 m, φ_i = ((n_mêmes − n_autres)/(n_mêmes + n_autres))²,
 // Φ = moyenne des φ_i. Aléatoire : Φ ≈ 1/n (n = marcheurs par bande, ≈ 20) ; files parfaites : Φ = 1. On donne aussi Φ d'un tirage mélangé (hypothèse nulle).
 // Références qualitatives : Helbing & Molnár 1995 (Phys. Rev. E 51) : les files émergent des forces sociales ; Zhang et al. 2012 (J. Stat. Mech. P02002) : files observées en expérience.

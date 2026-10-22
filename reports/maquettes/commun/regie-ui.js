@@ -148,5 +148,5 @@
   window.regieRefresh = () => { buildPins(); applyLayers(); };
   // Sur la vue du Forum : le panneau des plans du directeur, classés par l'explorateur (src/explorateur/)
   // (levGrp n'existe qu'une fois les leviers construits : on attend jusqu'à 20 s)
-  (function plans(n) { if (host() === 'chatelet') { const s = document.createElement('script'); s.type = 'module'; s.src = '../commun/plans-ui.js'; document.body.appendChild(s); const m = document.createElement('script'); m.src = '../commun/murs-cameras.js'; document.body.appendChild(m); } else if (n < 100 && typeof LEV !== 'undefined') setTimeout(() => plans(n + 1), 200); })(0);
+  (function plans(n) { if (host() === 'chatelet') { const s = document.createElement('script'); s.type = 'module'; s.src = '../commun/plans-ui.js'; document.body.appendChild(s); const m = document.createElement('script'); m.src = '../commun/murs-cameras.js'; document.body.appendChild(m); const d = document.createElement('script'); d.src = '../commun/decisions-ui.js'; document.body.appendChild(d); } else if (n < 100 && typeof LEV !== 'undefined') setTimeout(() => plans(n + 1), 200); })(0);
 })();
