@@ -17,10 +17,10 @@
     const pos = [], nor = []; parts.forEach(([g, dx, dy, dz]) => { const q = g.toNonIndexed(); q.translate(dx, dy, dz); pos.push(...q.attributes.position.array); nor.push(...q.attributes.normal.array); });
     const b = new THREE.BufferGeometry(); b.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); b.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); return b; };
   // Corps de base : 1,75 m, épaules 0,48 m (torse 0,40 + bras de 0,04 de rayon de chaque côté), profondeur 0,26 m
-  const torsoG = merge([[new THREE.CylinderGeometry(.19, .16, .62, 10), 0, 1.16, 0], [new THREE.CylinderGeometry(.04, .035, .62, 6), -.2, 1.13, 0], [new THREE.CylinderGeometry(.04, .035, .62, 6), .2, 1.13, 0]]);
+  const torsoG = merge([[new THREE.CylinderGeometry(.19, .16, .62, 8, 1, false), 0, 1.16, 0], [new THREE.CylinderGeometry(.04, .035, .62, 4, 1, true), -.2, 1.13, 0], [new THREE.CylinderGeometry(.04, .035, .62, 4, 1, true), .2, 1.13, 0]]);
   torsoG.scale(1, 1, .65);
-  const legsG = merge([[new THREE.CylinderGeometry(.075, .06, .85, 7), -.09, .425, 0], [new THREE.CylinderGeometry(.075, .06, .85, 7), .09, .425, 0]]); legsG.scale(1, 1, .8);
-  const headG = new THREE.SphereGeometry(.115, 10, 8); headG.translate(0, 1.6, 0);
+  const legsG = merge([[new THREE.CylinderGeometry(.075, .06, .85, 5, 1, true), -.09, .425, 0], [new THREE.CylinderGeometry(.075, .06, .85, 5, 1, true), .09, .425, 0]]); legsG.scale(1, 1, .8);
+  const headG = new THREE.SphereGeometry(.115, 8, 5); headG.translate(0, 1.6, 0);
   let A = null, st = null, mT, mL, mH, mS, last = performance.now();
   const Mx = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), S3 = new THREE.Vector3(), E = new THREE.Euler(), C = new THREE.Color();
   const shadowTex = () => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); const g = x.createRadialGradient(32, 32, 2, 32, 32, 32); g.addColorStop(0, 'rgba(0,0,0,.6)'); g.addColorStop(.55, 'rgba(0,0,0,.32)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); };
@@ -31,7 +31,7 @@
     if (mT) { [mT, mL, mH, mS].forEach(m => { m.parent && m.parent.remove(m); m.dispose && m.dispose(); }); }
     const mk = (g, mat) => { const m = new THREE.InstancedMesh(g, mat, n); m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.setColorAt(0, C.set(0xffffff)); m.instanceColor.setUsage(THREE.DynamicDrawUsage); m.count = 0; return m; };
     mT = mk(torsoG, new THREE.MeshStandardMaterial({ roughness: .85 })); mL = mk(legsG, new THREE.MeshStandardMaterial({ roughness: .9 })); mH = mk(headG, new THREE.MeshStandardMaterial({ roughness: .7 }));
-    const sg = new THREE.CircleGeometry(.4, 16); sg.rotateX(-Math.PI / 2);
+    const sg = new THREE.CircleGeometry(.4, 10); sg.rotateX(-Math.PI / 2);
     mS = new THREE.InstancedMesh(sg, new THREE.MeshBasicMaterial({ map: shadowTex(), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }), n);
     mS.frustumCulled = false; mS.renderOrder = 4; mS.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mS.count = 0;
     const par = (silBody && silBody.parent) || scene; par.add(mT, mL, mH, mS);
