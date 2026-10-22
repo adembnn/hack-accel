@@ -28,6 +28,8 @@ export interface OptionsSimulation {
   echeances?: { metro_s: number; couvre_feu_s: number };
   /** Nombre de personnes par salle (défaut 500 x 6 = 3 000, ordre de grandeur de l'incident du 19 oct.). */
   personnes_par_salle?: number;
+  /** Personnes par salle (clé = `salle_<kk>`), qui remplace `personnes_par_salle` ; une salle absente reste vide. Vient du scénario de #10. */
+  population_par_salle?: Record<string, number>;
   /**
    * Part de PERSONNES en groupe (défaut 0,7). Source : Moussaïd et al. 2010, PLoS ONE, rue commerçante de Toulouse :
    * 55 % un jour de semaine, 70 % un samedi [lu] ; aucune mesure pour un soir de cinéma (le samedi est le proxy). À balayer 0,55 / 0,7 / 0,85.
@@ -43,7 +45,8 @@ export interface OptionsSimulation {
   hesitation_s?: [number, number];
 }
 
-export const SALLES = ['salle-1', 'salle-2', 'salle-3', 'salle-4', 'salle-5', 'salle-6'];
+/** Les six salles du cinéma, nommées comme au glossaire : salle_<kk> sur deux chiffres. */
+export const SALLES = Array.from({ length: 6 }, (_, k) => `salle_${String(k + 1).padStart(2, '0')}`);
 const PAS_S = 1;
 /** Fenêtre du débit observé des portes (s). */
 const FENETRE_DEBIT_S = 60;
@@ -76,14 +79,14 @@ export function tirerTailleGroupe(rng: Rng, lambda: number, max = TAILLE_GROUPE_
 /** Population tirée UNIQUEMENT depuis la graine : identique pour tous les plans (comparaison à graines égales). */
 export function creerPopulation(graine: number, opts: OptionsSimulation = {}): Personne[] {
   const rngGroupes = creerRngPersonne(graine, -1, CANAL.groupes);
-  const parSalle = opts.personnes_par_salle ?? 500;
+  const parSalleDefaut = opts.personnes_par_salle ?? 500;
   const lambda = lambdaGroupes(opts.part_groupes ?? 0.7);
   const partPmr = opts.part_mobilite_reduite ?? 0.04;
   const choix = completerChoix(opts.choix);
   const gens: Personne[] = [];
   let prochainGroupe = 1;
   for (const salle of SALLES) {
-    let restant = parSalle;
+    let restant = opts.population_par_salle ? (opts.population_par_salle[salle] ?? 0) : parSalleDefaut;
     while (restant > 0) {
       const taille = Math.min(restant, tirerTailleGroupe(rngGroupes, lambda));
       const gid = taille > 1 ? prochainGroupe++ : 0;
@@ -148,7 +151,7 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
   const issuesId = scene.issues.map((i) => i.id);
   const debit = new Map(scene.issues.map((i) => [i.id, 1.3 * i.largeur_m])); // SFPE, 1,3 pers/s par mètre [lu]
   const issue = new Map(scene.issues.map((i) => [i.id, i]));
-  const nbSalles = new Set(personnes.map((p) => p.salle)).size;
+  const nbSalles = SALLES.length;
 
   // portes voisines (option IIA) : 1 + somme des ressemblances ; avec positions exp(-d/d0), sinon 1 pour une même zone
   const voisines = new Map<string, number>();
@@ -172,7 +175,7 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
   const fluxChangement = flux(CANAL.changement);
   const uGuidage = personnes.map((p) => creerRngPersonne(graine, p.id, CANAL.guidage).next());
 
-  const parSalle = new Map<string, number>();
+  const parSalle = new Map<string, number>(SALLES.map((s) => [s, 0]));
   for (const p of personnes) parSalle.set(p.salle, (parSalle.get(p.salle) ?? 0) + 1);
   const restantParSalle = new Map(parSalle);
 
@@ -238,7 +241,7 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
       if (phase[i] === 'dehors') continue;
       guide[i] = nouveau.guidage ? uGuidage[i] < Math.min(1, (nouveau.guidage.personnel * 40) / (parSalle.get(p.salle) ?? 1)) : false;
       if (phase[i] !== 'attente') continue;
-      if (nouveau.confinement) {
+      if (nouveau.confinement && (!nouveau.confinement_salles?.length || nouveau.confinement_salles.includes(p.salle))) {
         departT[i] = Infinity;
         continue;
       }

@@ -22,7 +22,7 @@ export interface Issue {
   derriere: 'sur' | 'vigilance' | 'interdite' | 'cul_de_sac';
   /** Après cet instant, la station derrière devient un cul-de-sac (station fermée). */
   devient_cul_de_sac_a_s?: number;
-  /** Groupe de zone pour les messages (ex. 'salle', 'niveau-3'). */
+  /** Groupe de zone pour les messages (ex. 'niveau_-3', nommage du glossaire). */
   zone: string;
   /** Position (m) dans le repère de la scène, facultative : sert seulement à repérer les portes voisines (correction IIA). */
   position?: { x: number; y: number };
@@ -47,6 +47,8 @@ export interface Plan {
   /** Messages par zone : la consigne reçue (issue conseillée) et sa clarté de 0 à 1. */
   messages_par_zone: { zone: string; issue_id: string | null; clarte: number; a_partir_de_s: number }[];
   confinement: boolean;
+  /** Si renseigné et non vide, le confinement ne vaut que pour ces salles ; sinon il vaut pour tout le monde. */
+  confinement_salles?: string[];
 }
 
 export type EtatPersonne = 'attente' | 'marche' | 'file' | 'hesite' | 'dehors';
@@ -112,8 +114,8 @@ export interface EtatMinute {
 
 /**
  * État résumé instantané (couture avec les décideurs, voir GLOSSARY.md). `par_zone` mélange deux familles de clés :
- * les salles du cinéma (`salle-k` : personnes encore dedans, densité = personnes / surface de la salle) et les zones
- * d'approche des issues (clé = `zone` de l'issue, ex. `niveau-1` : personnes en train de viser ces issues, densité = la plus
+ * les salles du cinéma (`salle_kk` : personnes encore dedans, densité = personnes / surface de la salle) et les zones
+ * d'approche des issues (clé = `zone` de l'issue, ex. `niveau_-1` : personnes en train de viser ces issues, densité = la plus
  * forte des zones d'approche de cette zone).
  */
 export interface EtatResume {

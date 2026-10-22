@@ -7,11 +7,11 @@ export const SCENE_UGC: Scene = {
   nom: 'Cinéma des Halles (scène illustrative)',
   surface_salle_m2: 4000,
   issues: [
-    { id: 'principale', nom: 'Hall principal (porte d’entrée)', distance_m: 120, largeur_m: 2.4, surface_approche_m2: 400, porte_entree: true, visible: true, ouverte: true, derriere: 'vigilance', zone: 'niveau-1' },
-    { id: 'secours', nom: 'Sortie de secours rue Rambuteau', distance_m: 90, largeur_m: 1.2, surface_approche_m2: 120, porte_entree: false, visible: false, ouverte: true, derriere: 'sur', zone: 'niveau-1' },
-    { id: 'escalators', nom: 'Escalators vers la Place Carrée', distance_m: 150, largeur_m: 1.6, surface_approche_m2: 150, porte_entree: false, visible: true, ouverte: true, derriere: 'sur', zone: 'niveau-0' },
-    { id: 'metro', nom: 'Accès métro et RER Châtelet', distance_m: 100, largeur_m: 3.0, surface_approche_m2: 500, porte_entree: false, visible: true, ouverte: true, derriere: 'sur', devient_cul_de_sac_a_s: 7 * 60, zone: 'niveau-3' },
-    { id: 'ferronnerie', nom: 'Sortie rue de la Ferronnerie (périmètre barré)', distance_m: 140, largeur_m: 1.8, surface_approche_m2: 200, porte_entree: false, visible: false, ouverte: true, derriere: 'interdite', zone: 'niveau-1' },
+    { id: 'principale', nom: 'Hall principal (porte d’entrée)', distance_m: 120, largeur_m: 2.4, surface_approche_m2: 400, porte_entree: true, visible: true, ouverte: true, derriere: 'vigilance', zone: 'niveau_-1' },
+    { id: 'secours', nom: 'Sortie de secours rue Rambuteau', distance_m: 90, largeur_m: 1.2, surface_approche_m2: 120, porte_entree: false, visible: false, ouverte: true, derriere: 'sur', zone: 'niveau_-1' },
+    { id: 'escalators', nom: 'Escalators vers la Place Carrée', distance_m: 150, largeur_m: 1.6, surface_approche_m2: 150, porte_entree: false, visible: true, ouverte: true, derriere: 'sur', zone: 'niveau_0' },
+    { id: 'metro', nom: 'Accès métro et RER Châtelet', distance_m: 100, largeur_m: 3.0, surface_approche_m2: 500, porte_entree: false, visible: true, ouverte: true, derriere: 'sur', devient_cul_de_sac_a_s: 7 * 60, zone: 'niveau_-3' },
+    { id: 'ferronnerie', nom: 'Sortie rue de la Ferronnerie (périmètre barré)', distance_m: 140, largeur_m: 1.8, surface_approche_m2: 200, porte_entree: false, visible: false, ouverte: true, derriere: 'interdite', zone: 'niveau_-1' },
   ],
 };
 

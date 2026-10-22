@@ -180,10 +180,10 @@ test('toutes les issues fermées : personne ne sort, le non-sorti est compté', 
 
 test('messages par zone : une zone qui reçoit une consigne vers une issue s’y rend davantage que les autres', () => {
   const sansMsg: Plan = { ...PLAN_AVANT, messages_par_zone: [] };
-  const avecMsg: Plan = { ...PLAN_AVANT, messages_par_zone: [{ zone: 'salle-1', issue_id: 'secours', clarte: 1, a_partir_de_s: 0 }] };
+  const avecMsg: Plan = { ...PLAN_AVANT, messages_par_zone: [{ zone: 'salle_01', issue_id: 'secours', clarte: 1, a_partir_de_s: 0 }] };
   const part = (plan: Plan) => {
     const m = creerMouvementSimple();
-    // on compte via un mouvement espion : sorties par issue pour les personnes de salle-1 (ids 0 à 499)
+    // on compte via un mouvement espion : sorties par issue pour les personnes de salle_01 (ids 0 à 499)
     const sorties: Record<string, number> = {};
     const orig = m.pas.bind(m);
     m.pas = (dt, t, it, o) => {
@@ -226,7 +226,7 @@ test('état résumé : temps, dedans, sortis, zones, débit des portes, pression
   const e = sim.etatResume();
   assert.ok(e.sortis > 0 && e.dans_le_centre < 3000 && e.t_s === 180);
   assert.deepEqual(Object.keys(e).sort(), ['dans_le_centre', 'debit_portes', 'densite_max', 'densite_max_depuis_debut', 'par_zone', 'pression_max', 'pression_max_depuis_debut', 'sortis', 'sortis_vers_zone_danger', 't_s']);
-  assert.ok(e.par_zone['salle-1'].personnes > 0 && e.par_zone['niveau-1'] !== undefined);
+  assert.ok(e.par_zone['salle_01'].personnes > 0 && e.par_zone['niveau_-1'] !== undefined);
   assert.equal(Object.keys(e.debit_portes).length, 5);
   assert.ok(Object.values(e.debit_portes).some((d) => d > 0));
   assert.ok(e.densite_max_depuis_debut >= e.densite_max);
