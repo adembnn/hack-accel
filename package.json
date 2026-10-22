@@ -13,7 +13,7 @@
     "build": "vite build",
     "e2e:socle": "node --test tests/e2e/socle.test.mjs",
     "test:db": "node scripts/lot-absent.mjs db src/server",
-    "test:decideurs": "node scripts/lot-absent.mjs decideurs src/agents",
+    "test:decideurs": "node --test src/agents/*.test.mts",
     "test:scene": "node scripts/lot-absent.mjs scene src/scene",
     "test:motion": "node scripts/lot-absent.mjs motion src/sim/motion",
     "test:behavior": "node scripts/lot-absent.mjs behavior src/sim/behavior",
