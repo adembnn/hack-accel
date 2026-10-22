@@ -9,7 +9,7 @@ export const TARGETS = ['metro12', 'tramOuest', 'tramEst', 'pied_sud', 'pied_est
 const T_METRO = 0, T_TRAM_W = 1, T_TRAM_E = 2;
 
 // ---------- Grille ----------
-const X0 = -200, Z0 = -130, GW = 460, GH = 400, NCL = GW * GH, NL = 3, NCELL = NL * NCL;
+const X0 = -200, Z0 = -130, GW = 460, GH = 480, NCL = GW * GH, NL = 3, NCELL = NL * NCL;
 const DX = [1, -1, 0, 0, 1, 1, -1, -1], DZ = [0, 0, 1, -1, 1, -1, 1, -1];
 const WT = [1, 1, 1, 1, 1.4142135623730951, 1.4142135623730951, 1.4142135623730951, 1.4142135623730951];
 const LCOST = 10.4; // coût d'un escalier dans les cartes de pentes (8 s × 1,3 m/s ; estimé)
@@ -222,106 +222,110 @@ class Engine {
 }
 
 // ---------- Monde ----------
+// Géométrie de l'Arena d'après le vrai plan NP2F (scene.reel) : niveau 0 = sol (parvis, rues, anneau de circulation du rez-de-chaussée, gymnase),
+// niveau 1 = salle (aire de jeu, tribunes basses et mobiles, 4 vomitoires), niveau 2 = balcons + galerie arrière. Hauteurs de sol réelles : world.floorY / drawPose.
+const GALERIE_Y = 14.1, Y_AIRE = 0.07, Y_RDC = 0.04; // galerie derrière les balcons (7,5 + 12 rangs x 0,55), aire de jeu, dalle du rez-de-chaussée
+const STAIR_RUN = 15, STAIR_DUR_UP = 24; // escalier de galerie : 15 m de long, 24 s (estimé)
+
+function quadUV(t, x, z) { // coordonnées (u le long du rang, v de 0 = côté terrain à 1 = fond) d'un point dans une tribune ; Newton sur l'interpolation bilinéaire
+  const I = t.inner, O = t.outer; let u = 0.5, v = 0.5;
+  for (let k = 0; k < 8; k++) {
+    const ax = I[0] + (I[2] - I[0]) * u, az = I[1] + (I[3] - I[1]) * u, bx = O[0] + (O[2] - O[0]) * u, bz = O[1] + (O[3] - O[1]) * u;
+    const px = ax + (bx - ax) * v, pz = az + (bz - az) * v, rx = x - px, rz = z - pz;
+    const dux = (I[2] - I[0]) * (1 - v) + (O[2] - O[0]) * v, duz = (I[3] - I[1]) * (1 - v) + (O[3] - O[1]) * v, dvx = bx - ax, dvz = bz - az;
+    const det = dux * dvz - duz * dvx; if (Math.abs(det) < 1e-9) break;
+    u += (rx * dvz - rz * dvx) / det; v += (dux * rz - duz * rx) / det;
+  }
+  return [u, v];
+}
+const quadPoly = t => [t.inner[0], t.inner[1], t.inner[2], t.inner[3], t.outer[2], t.outer[3], t.outer[0], t.outer[1]];
+function inPoly(p, x, z) { let c = false; const n = p.length / 2; for (let i = 0, j = n - 1; i < n; j = i++) { const xi = p[2 * i], zi = p[2 * i + 1], xj = p[2 * j], zj = p[2 * j + 1]; if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) c = !c; } return c; }
+
 export function buildWorld(scene) {
   const t0 = now();
+  const RL = scene.reel; if (!RL) throw new Error('buildWorld : scene.reel (plan NP2F) introuvable dans scene.json');
   const solid = new Uint8Array(NCELL), spd = new Float32Array(NCELL).fill(1);
   solid.fill(1, NCL); // niveaux 1 et 2 : tout est mur, on creuse ensuite
-  const set0 = (cx, cz, v) => { solid[cz * GW + cx] = v; };
-  // --- niveau 0 : bâtiments ---
+  const set0 = (cx, cz, v) => { if (cx >= 0 && cz >= 0 && cx < GW && cz < GH) solid[cz * GW + cx] = v; };
   const arena = scene.batiments.find(b => b.n === 'Adidas Arena');
   if (!arena) throw new Error("buildWorld : bâtiment « Adidas Arena » introuvable dans scene.json");
   for (const b of scene.batiments) if (b !== arena) rasterPoly(b.p, (cx, cz) => set0(cx, cz, 1));
   const inArena = new Uint8Array(NCL);
-  rasterPoly(arena.p, (cx, cz) => { inArena[cz * GW + cx] = 1; set0(cx, cz, 1); });
+  rasterPoly(arena.p, (cx, cz) => { inArena[cz * GW + cx] = 1; });
   const isIn = (cx, cz) => cx >= 0 && cz >= 0 && cx < GW && cz < GH && inArena[cz * GW + cx] === 1;
-  // hall (rect -50..30 x 36..55,8) hors anneau de façade
-  const hall = scene.interieur.find(o => /^Hall/.test(o.n));
-  const hp = hall.p; const hx0 = Math.min(hp[0], hp[2], hp[4]), hx1 = Math.max(hp[0], hp[2], hp[4]), hz0 = Math.min(hp[1], hp[3], hp[5]), hz1 = Math.max(hp[1], hp[3], hp[5]);
-  rasterRect(hx0, hz0, hx1, hz1, (cx, cz) => {
-    if (!isIn(cx, cz)) return;
-    for (let k = 0; k < 8; k++) if (!isIn(cx + DX[k], cz + DZ[k])) return; // anneau de façade : reste mur
-    set0(cx, cz, 0);
-  });
-  // portes publiques
-  const doors = scene.portes.filter(p => p.k === 'entrance' && p.l.includes(0) && !/gymnase|logistique|fermé/i.test(p.n));
-  const gates = [];
-  const ab = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity };
-  for (let i = 0; i < arena.p.length; i += 2) { ab.x0 = Math.min(ab.x0, arena.p[i]); ab.x1 = Math.max(ab.x1, arena.p[i]); ab.z0 = Math.min(ab.z0, arena.p[i + 1]); ab.z1 = Math.max(ab.z1, arena.p[i + 1]); }
-  for (const d of doors) {
-    const sides = [[0, 1, ab.z1 - d.z], [0, -1, d.z - ab.z0], [1, 0, ab.x1 - d.x], [-1, 0, d.x - ab.x0]].sort((a, b) => a[2] - b[2]);
-    const [dx, dz] = sides[0]; // direction vers l'extérieur
-    let cx = Math.floor(d.x - dx * 12 - X0), cz = Math.floor(d.z - dz * 12 - Z0);
-    if (!isIn(cx, cz)) throw new Error('buildWorld : porte ' + d.n + ' : point intérieur hors de l\'Arena');
-    while (isIn(cx + dx, cz + dz)) { cx += dx; cz += dz; } // dernière cellule de l'Arena = façade
-    const ux = dz !== 0 ? 1 : 0, uz = dx !== 0 ? 1 : 0; // axe transversal
-    const deep = d.n === 'Porte Chapelle' ? 9 : 6, half = d.n === 'Porte Chapelle' ? 4 : d.w / 2;
-    const cells = [], pocket = [];
-    for (let k = -deep; k <= 0; k++) for (let s = -Math.ceil(half); s <= Math.ceil(half); s++) {
-      if (Math.abs(s) > half - 0.5 + (d.n === 'Porte Chapelle' ? 0.5 : 0) && Math.abs(s) > 0) { if (Math.abs(s) - 0.5 >= half) continue; }
-      const px = cx + dx * k + ux * s, pz = cz + dz * k + uz * s;
-      if (px < 0 || pz < 0 || px >= GW || pz >= GH) continue;
-      set0(px, pz, 0); pocket.push(pz * GW + px);
-      if (k >= -1 && Math.abs(s) - 0.5 < d.w / 2) cells.push(pz * GW + px); // cellules que la fermeture remplit (façade, 2 m)
-    }
-    gates.push({ name: d.n, x: d.x, z: d.z, w: d.w, dir: [dx, dz], facade: [X0 + cx + 0.5, Z0 + cz + 0.5], cells, pocket, open: true });
+  // --- niveau 0 : l'emprise est praticable (anneau de façade = mur, percé aux portes), la salle (emprise_salle) est un bloc plein ---
+  for (let cz = 0; cz < GH; cz++) for (let cx = 0; cx < GW; cx++) {
+    if (!isIn(cx, cz)) continue;
+    let ring = false; for (let k = 0; k < 8; k++) if (!isIn(cx + DX[k], cz + DZ[k])) { ring = true; break; }
+    solid[cz * GW + cx] = ring ? 1 : 0;
   }
-  // sorties : intérieur de l'Arena (niveau 0) = surface de l'emprise
-  // --- niveau 1 ---
-  const [g0, g1] = scene.gradins; const FL = g0.floor, C = g0.corner;
-  const lowOut = g0.off + g0.rows * g0.depth; // 10,3
-  const WALL = 1.3; // mur tribune / coursive (estimé : épaisseur)
-  const L1 = NCL, L2 = 2 * NCL;
-  const open1 = (cx, cz) => { solid[L1 + cz * GW + cx] = 0; };
-  for (const o of scene.interieur) if (/^Coursive/.test(o.n)) rasterPoly(o.p, open1);
-  // coins non couverts par les bandes (rectangle intérieur hors tribune) : traités comme coursive (estimé)
-  const innerBox = [FL[0] - lowOut, FL[1] - lowOut, FL[2] + lowOut, FL[3] + lowOut];
-  rasterRect(innerBox[0], innerBox[1], innerBox[2], innerBox[3], (cx, cz) => {
-    const x = X0 + cx + 0.5, z = Z0 + cz + 0.5, sd = sdRR(FL, C, x, z);
-    if (sd > lowOut + 0.5) open1(cx, cz);
-  });
-  // tribune basse : anneau de rangs, vitesse x0,5 ; mur au-delà ; aire de jeu exclue
-  const spdL1 = L1;
-  rasterRect(innerBox[0] - 2, innerBox[1] - 2, innerBox[2] + 2, innerBox[3] + 2, (cx, cz) => {
-    const x = X0 + cx + 0.5, z = Z0 + cz + 0.5, sd = sdRR(FL, C, x, z), c = L1 + cz * GW + cx;
-    if (sd < g0.off - 0.5) { solid[c] = 1; return; }
-    if (sd <= lowOut + 0.5) { solid[c] = 0; spd[c] = 0.5; return; }
-    if (sd <= lowOut + 0.5 + WALL) { solid[c] = 1; return; }
-  });
-  // vomitoires : percements du mur
-  const vom = scene.portes.filter(p => p.k === 'vomitoire');
-  const vomitoires = vom.map(v => {
-    // point du mur le plus proche : on projette radialement depuis le rectangle réduit
-    const qx = Math.min(Math.max(v.x, FL[0] + C), FL[2] - C), qz = Math.min(Math.max(v.z, FL[1] + C), FL[3] - C);
-    let nx = v.x - qx, nz = v.z - qz; const len = Math.hypot(nx, nz) || 1; nx /= len; nz /= len;
-    const rad = C + lowOut + 0.5 + WALL / 2; let gx = qx + nx * rad, gz = qz + nz * rad; // centre du percement
-    if (Math.abs(nx) > 0.99) gz = Math.floor(gz) + 0.5; else if (Math.abs(nz) > 0.99) gx = Math.floor(gx) + 0.5; // centré sur une maille : 3 mailles de large
-    const tx = -nz, tz = nx, cells = [];
-    rasterRect(gx - 4, gz - 4, gx + 4, gz + 4, (cx, cz) => {
-      const x = X0 + cx + 0.5, z = Z0 + cz + 0.5, sd = sdRR(FL, C, x, z);
-      if (sd <= lowOut + 0.49 || sd > lowOut + 0.5 + WALL + 0.6) return; // seulement le mur (et 0,6 m de part et d'autre)
-      const off = (x - gx) * tx + (z - gz) * tz;
-      if (Math.abs(off) <= v.w / 2 + 0.3) cells.push(L1 + cz * GW + cx); // 2,4 m annoncés -> 3 mailles (3 m)
-    });
-    if (Math.abs(nx) > 0.3 && Math.abs(nz) > 0.3) { // percement en diagonale : on l'élargit d'une maille pour que les déplacements en diagonale passent
-      for (const c0 of [...cells]) {
-        const r0 = c0 % NCL, cx0 = r0 % GW, cz0 = (r0 / GW) | 0;
-        for (let k = 0; k < 4; k++) {
-          const cx = cx0 + DX[k], cz = cz0 + DZ[k], c = L1 + cz * GW + cx;
-          const sd = sdRR(FL, C, X0 + cx + 0.5, Z0 + cz + 0.5);
-          if (solid[c] && sd > lowOut + 0.49 && sd <= lowOut + 0.5 + WALL + 0.6 && !cells.includes(c)) cells.push(c);
-        }
-      }
+  rasterPoly(RL.emprise_salle, (cx, cz) => set0(cx, cz, 1));
+  const ringBase = solid.slice(0, NCL);
+  // --- sorties de l'emprise : entrée publique + 9 issues (identifiants du catalogue) ---
+  const A = arena.p, nA = A.length / 2, gates = [];
+  const facadeAt = (x, z) => {
+    let best = null;
+    for (let i = 0; i < nA; i++) {
+      const j = (i + 1) % nA, ax = A[2 * i], az = A[2 * i + 1], bx = A[2 * j], bz = A[2 * j + 1], L = Math.hypot(bx - ax, bz - az) || 1, tx = (bx - ax) / L, tz = (bz - az) / L;
+      const s = Math.max(0, Math.min(L, (x - ax) * tx + (z - az) * tz)), px = ax + tx * s, pz = az + tz * s, d = Math.hypot(px - x, pz - z);
+      if (!best || d < best.d) best = { d, px, pz, tx, tz };
     }
-    for (const c of cells) solid[c] = 0;
-    return { name: v.n, x: v.x, z: v.z, w: v.w, cells, open: true, g: [gx, gz] };
+    let nx = best.tz, nz = -best.tx; if (inPoly(A, best.px + nx * 2, best.pz + nz * 2)) { nx = -nx; nz = -nz; }
+    return { ...best, nx, nz };
+  };
+  const exits = scene.leviers.filter(l => l.code === 'B1' && l.type === 'issue');
+  if (exits.length !== 10) throw new Error('buildWorld : 10 sorties de façade attendues (entrée + 9 issues), trouvé ' + exits.length);
+  for (const l of exits) {
+    const F = facadeAt(l.x, l.z), w = l.largeur || 1.8, cells = [], seen = new Set();
+    for (let s = -w / 2; s <= w / 2 + 1e-6; s += 0.5) for (let k = -2; k <= 0.5; k += 0.5) {
+      const px = F.px + F.tx * s + F.nx * k, pz = F.pz + F.tz * s + F.nz * k, cx = Math.floor(px - X0), cz = Math.floor(pz - Z0), c = cz * GW + cx;
+      if (cx < 0 || cz < 0 || cx >= GW || cz >= GH || seen.has(c)) continue; seen.add(c);
+      if (solid[c] && ringBase[c] && isIn(cx, cz)) { solid[c] = 0; cells.push(c); }
+    }
+    gates.push({ name: l.nom, lev: l.id, x: F.px, z: F.pz, w, dir: [F.nx, F.nz], facade: [F.px, F.pz], cells, pocket: [], open: true });
+  }
+  // --- tribunes : quads du plan ---
+  const FL = RL.tribunes.map((t, i) => ({ ...t, i, lvl: t.l === 2 ? 2 : 1 }));
+  const standQ = [new Int8Array(NCELL).fill(-1)]; const sq = standQ[0];
+  const L1 = NCL, L2 = 2 * NCL;
+  // aire de jeu et ses abords (niveau 1) : l'aire dilatée de 3 m rejoint le pied des tribunes
+  const aireCells = [];
+  rasterPoly(RL.aire, (cx, cz) => aireCells.push([cx, cz]));
+  for (const [cx, cz] of aireCells) for (let dz = -3; dz <= 3; dz++) for (let dx = -3; dx <= 3; dx++) { const x = cx + dx, z = cz + dz; if (x >= 0 && z >= 0 && x < GW && z < GH && inPoly(RL.emprise_salle, X0 + x + 0.5, Z0 + z + 0.5)) solid[L1 + z * GW + x] = 0; }
+  // tribunes basses et mobiles (niveau 1, x0,5), balcons (niveau 2, x0,5) : un quad = rangs de marches
+  for (const t of [...FL.filter(t => t.lvl === 1 && !t.e), ...FL.filter(t => t.lvl === 1 && t.e), ...FL.filter(t => t.lvl === 2)]) {
+    const base = t.lvl === 1 ? L1 : L2;
+    rasterPoly(quadPoly(t), (cx, cz) => { const c = base + cz * GW + cx; solid[c] = 0; spd[c] = 0.5; sq[c] = t.i; });
+  }
+  // --- niveau 2 : couronne autour de l'aire (balcons + galerie de 3 m derrière), limitée à l'emprise du bâtiment ---
+  const B2 = FL.filter(t => t.lvl === 2);
+  const nord = B2.find(t => /nord/i.test(t.n)), est = B2.find(t => /est/i.test(t.n)), sud = B2.find(t => /sud/i.test(t.n)), ouest = B2.find(t => /ouest/i.test(t.n));
+  const outerPoly = [nord.outer[0], nord.outer[1], nord.outer[2], nord.outer[3], est.outer[0], est.outer[1], est.outer[2], est.outer[3], sud.outer[0], sud.outer[1], sud.outer[2], sud.outer[3], ouest.outer[0], ouest.outer[1], ouest.outer[2], ouest.outer[3]];
+  const innerPoly = [nord.inner[0], nord.inner[1], nord.inner[2], nord.inner[3], est.inner[0], est.inner[1], est.inner[2], est.inner[3], sud.inner[0], sud.inner[1], sud.inner[2], sud.inner[3], ouest.inner[0], ouest.inner[1], ouest.inner[2], ouest.inner[3]];
+  const ringCells = new Set();
+  rasterPoly(outerPoly, (cx, cz) => { for (let dz = -3; dz <= 3; dz++) for (let dx = -3; dx <= 3; dx++) ringCells.add((cz + dz) * GW + cx + dx); });
+  const innerSet = new Set(); rasterPoly(innerPoly, (cx, cz) => innerSet.add(cz * GW + cx));
+  for (const c of ringCells) {
+    const cx = c % GW, cz = (c / GW) | 0; if (cx < 1 || cz < 1 || cx >= GW - 1 || cz >= GH - 1) continue;
+    if (innerSet.has(c) || !isIn(cx, cz)) continue;
+    let ring = false; for (let k = 0; k < 8; k++) if (!isIn(cx + DX[k], cz + DZ[k])) { ring = true; break; }
+    if (ring) continue;
+    if (sq[L2 + c] < 0) { solid[L2 + c] = 0; spd[L2 + c] = 1; }
+  }
+  // --- vomitoires (niveau 1) : couloirs en diagonale entre l'aire et la coursive du rez-de-chaussée, liés au niveau 0 par un lien plat ---
+  const vomitoires = [], vomLinks = [];
+  const vlev = scene.leviers.filter(l => l.code === 'B1' && l.type === 'vomitoire');
+  RL.vomitoires.forEach((v, k) => {
+    const [x1, z1, x2, z2] = v.p, L = Math.hypot(x2 - x1, z2 - z1), dx = (x2 - x1) / L, dz = (z2 - z1) / L, nx = -dz, nz = dx, cells = [];
+    const open1 = (px, pz) => { const cx = Math.floor(px - X0), cz = Math.floor(pz - Z0); solid[L1 + cz * GW + cx] = 0; spd[L1 + cz * GW + cx] = 1; return L1 + cz * GW + cx; };
+    for (let s = -1; s <= L + 3; s += 0.5) for (let o = -v.w / 2 - 0.25; o <= v.w / 2 + 0.25; o += 0.5) { const c = open1(x1 + dx * s + nx * o, z1 + dz * s + nz * o); if (s > L * 0.3 && s < L * 0.7) cells.push(c); }
+    vomitoires.push({ name: v.n, lev: vlev[k] ? vlev[k].id : 'B1-vomitoire-' + (k + 1), x: (x1 + x2) / 2, z: (z1 + z2) / 2, w: v.w, cells: [...new Set(cells)], open: true, g: [(x1 + x2) / 2, (z1 + z2) / 2] });
+    vomLinks.push({ name: 'Sortie ' + v.n, x1, z1, dx, dz, nx, nz, L, w: v.w });
   });
-  // --- niveau 2 : tribune haute x0,5 + galerie 3 m ---
-  const hiOut = g1.off + g1.rows * g1.depth; // 17,2
-  const gal = 3;
-  rasterRect(FL[0] - hiOut - gal - 2, FL[1] - hiOut - gal - 2, FL[2] + hiOut + gal + 2, FL[3] + hiOut + gal + 2, (cx, cz) => {
-    const x = X0 + cx + 0.5, z = Z0 + cz + 0.5, sd = sdRR(FL, C, x, z), c = L2 + cz * GW + cx;
-    if (sd >= g1.off - 0.5 && sd <= hiOut + 0.5) { solid[c] = 0; spd[c] = 0.5; } else if (sd > hiOut + 0.5 && sd <= hiOut + 0.5 + gal) { solid[c] = 0; }
-  });
+  // --- emprise : aucune cellule praticable aux niveaux 1 et 2 hors de l'intérieur du bâtiment (OSM) ---
+  const interior = new Uint8Array(NCL);
+  for (let cz = 0; cz < GH; cz++) for (let cx = 0; cx < GW; cx++) { if (!isIn(cx, cz)) continue; let ring = false; for (let k = 0; k < 8; k++) if (!isIn(cx + DX[k], cz + DZ[k])) { ring = true; break; } if (!ring) interior[cz * GW + cx] = 1; }
+  for (let l = 1; l < NL; l++) for (let c = 0; c < NCL; c++) if (!interior[c]) { solid[l * NCL + c] = 1; }
   // --- barrages ---
   const barrages = [];
   const mkBarrage = (key, name, namePat, hint) => {
@@ -350,20 +354,21 @@ export function buildWorld(scene) {
   mkBarrage('rue_chapelle_sud', 'rue de la Chapelle sud', /^Rue de la Chapelle$/i, [-108, 255]);
   // --- cibles ---
   const sinks = [];
-  const bouches = scene.metro.filter(m => m.t === 'metro' && Math.hypot(m.x, m.z) < 300).sort((a, b) => a.z - b.z);
+  const bouches = scene.metro.filter(m => m.t === 'metro' && m.x > X0 + 5 && m.x < X0 + GW - 5 && m.z > Z0 + 5 && m.z < Z0 + GH - 5).sort((a, b) => a.z - b.z);
+  const clev = scene.leviers.filter(l => l.code === 'C1');
+  const levNear = (type, x, z, max = 3) => { const l = clev.filter(c => c.type === type).sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z))[0]; return l && Math.hypot(l.x - x, l.z - z) < max ? l.id : null; };
   bouches.forEach((b, i) => {
     const cells = []; const cx = Math.floor(b.x - X0), cz = Math.floor(b.z - Z0);
     for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) { set0(cx + dx, cz + dz, 0); cells.push((cz + dz) * GW + cx + dx); }
-    sinks.push({ kind: 'metro', target: T_METRO, name: 'Métro ' + (b.n || i), idx: i, x: b.x, z: b.z, cells, open: true, queue: [], credit: 0 });
+    sinks.push({ kind: 'metro', target: T_METRO, name: 'Métro ' + (b.n || i), lev: levNear('metro', b.x, b.z), idx: i, x: b.x, z: b.z, cells, open: true, queue: [], credit: 0 });
   });
   const quaiOf = { tramOuest: 'Porte de la Chapelle', tramEst: 'Colette Besson' };
   for (const [tn, qn] of Object.entries(quaiOf)) {
     const cells = [];
     for (const q of scene.quais.filter(q => q.n === qn)) rasterPoly(q.p, (cx, cz) => { set0(cx, cz, 0); cells.push(cz * GW + cx); });
-    const xs = cells.map(c => cellX(c)), zs = cells.map(c => cellZ(c));
-    sinks.push({ kind: 'tram', target: TARGETS.indexOf(tn), name: tn + ' (' + qn + ')', x: xs.reduce((a, b) => a + b, 0) / xs.length, z: zs.reduce((a, b) => a + b, 0) / zs.length, cells, open: true, wait: [], nextTrain: tn === 'tramOuest' ? 90 : 150, lastTrain: 0 });
+    const xs = cells.map(c => cellX(c)), zs = cells.map(c => cellZ(c)), mx = xs.reduce((a, b) => a + b, 0) / xs.length, mz = zs.reduce((a, b) => a + b, 0) / zs.length;
+    sinks.push({ kind: 'tram', target: TARGETS.indexOf(tn), name: tn + ' (' + qn + ')', lev: levNear('tram', mx, mz, 40), x: mx, z: mz, cells, open: true, wait: [], nextTrain: tn === 'tramOuest' ? 90 : 150, lastTrain: 0 });
   }
-  // à pied : bords du domaine sur les grands axes (cellules du bord à 12 m d'un croisement de rue principale, sinon tout le bord)
   const edges = { pied_sud: { z: Z0 + GH - 0.5, vert: false }, pied_est: { x: X0 + GW - 0.5, vert: true }, pied_nord: { z: Z0 + 0.5, vert: false } };
   for (const [tn, e] of Object.entries(edges)) {
     const cross = [];
@@ -389,58 +394,52 @@ export function buildWorld(scene) {
   // --- liens entre niveaux ---
   const linkUp = new Int32Array(NCELL).fill(-1), linkDown = new Int32Array(NCELL).fill(-1); // linkUp[bas] = haut ; linkDown[haut] = bas
   const links = [], linkOf = new Int16Array(NCELL).fill(-1);
-  const mkLink = (name, kind, lUp, xu, zu, lDn, xd, zd, width, axis) => {
-    const ups = [], downs = [], n = Math.round(width);
-    for (let s = 0; s < n; s++) {
-      const o = s - (n - 1) / 2, a = axis === 'x' ? [o, 0] : [0, o];
-      const cu = cellIdx(lUp, xu + a[0], zu + a[1]), cd = cellIdx(lDn, xd + a[0], zd + a[1]);
+  const mkLink = (name, kind, lUp, lDn, pairs, width, dur, x, z, ex = {}) => { // pairs : [xu, zu, xd, zd] par maille de largeur
+    const ups = [], downs = [];
+    for (const [xu, zu, xd, zd] of pairs) {
+      const cu = cellIdx(lUp, xu, zu), cd = cellIdx(lDn, xd, zd);
       if (solid[cu] || solid[cd]) continue;
       ups.push(cu); downs.push(cd); linkUp[cd] = cu; linkDown[cu] = cd; linkOf[cu] = links.length;
     }
     if (!ups.length) throw new Error('buildWorld : lien ' + name + ' sans cellule praticable');
-    links.push({ id: links.length, name, kind, lUp, lDn, width, gap: 1 / (FLOW_SPEC * width), dur: STAIR_DUR, ups, downs, x: xu, z: zu });
+    links.push({ id: links.length, name, kind, lUp, lDn, width, gap: 1 / (FLOW_SPEC * width), dur, ups, downs, x, z, ...ex });
   };
-  for (const g of gates) {
-    if (g.name === 'Porte Chapelle') mkLink('Escalier ' + g.name, 'hall', 1, -52, g.z, 0, g.facade[0] + 4, g.z, 4, 'z');
-    else mkLink('Escalier ' + g.name, 'hall', 1, g.x, 46, 0, g.x, g.facade[1] - 4.5, 4, 'x');
+  for (const v of vomLinks) { // lien plat : fin du couloir (niveau 1) -> coursive du rez-de-chaussée (niveau 0), 1,5 s
+    const n = Math.round(v.w), pairs = [];
+    for (let s = 0; s < n; s++) { const o = s - (n - 1) / 2, xu = v.x1 + v.dx * (v.L + 1.5) + v.nx * o, zu = v.z1 + v.dz * (v.L + 1.5) + v.nz * o; pairs.push([xu, zu, xu + v.dx * 2, zu + v.dz * 2]); }
+    mkLink(v.name, 'vomitoire', 1, 0, pairs, v.w, 1.5, v.x1 + v.dx * (v.L + 1.5), v.z1 + v.dz * (v.L + 1.5));
   }
-  const rgal = hiOut + 0.5 + gal / 2, cdiag = Math.SQRT1_2;
-  for (const [sx, sz, nm] of [[-1, -1, 'nord-ouest'], [1, -1, 'nord-est'], [-1, 1, 'sud-ouest'], [1, 1, 'sud-est']]) {
-    const qx = sx < 0 ? FL[0] + C : FL[2] - C, qz = sz < 0 ? FL[1] + C : FL[3] - C;
-    const x = qx + sx * cdiag * (C + rgal), z = qz + sz * cdiag * (C + rgal);
-    mkLink('Escalier galerie ' + nm, 'galerie', 2, x, z, 1, x, z, 3, 'x');
+  const nearCell = (lvl, x, z, rmax) => { // cellule libre la plus proche (anneau croissant)
+    for (let r = 0; r <= rmax; r++) for (let dz = -r; dz <= r; dz++) for (let dx = -r; dx <= r; dx++) { if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue; const c = cellIdx(lvl, x + dx, z + dz); if (!solid[c]) return [cellX(c), cellZ(c)]; }
+    return null;
+  };
+  const escCorners = [['nord-ouest', nord.outer[0], nord.outer[1], -1, -1], ['nord-est', nord.outer[2], nord.outer[3], 1, -1], ['sud-ouest', sud.outer[2], sud.outer[3], -1, 1], ['sud-est', sud.outer[0], sud.outer[1], 1, 1]];
+  for (const [nm, vx, vz, sx, sz] of escCorners) { // escaliers de galerie : du coin de la galerie (niveau 2) vers le sol (niveau 0), 15 m le long de l'axe est-ouest
+    const U = nearCell(2, vx + sx * 1.8, vz + sz * 2.2, 5); if (!U) throw new Error('buildWorld : escalier ' + nm + ' : pas de galerie');
+    const D = nearCell(0, U[0] + sx * STAIR_RUN, U[1], 4); if (!D) throw new Error('buildWorld : escalier ' + nm + ' : pas de sol');
+    const pairs = []; for (let s = 0; s < 3; s++) { const o = s - 1; pairs.push([U[0], U[1] + o, D[0], D[1] + o]); }
+    mkLink('Escalier galerie ' + nm, 'galerie', 2, 0, pairs, 3, STAIR_DUR_UP, U[0], U[1], { to: D });
   }
-  // --- sièges ---
+  // --- sièges : tous les rangs de toutes les tribunes (quads du plan), à la hauteur de la marche ---
   const seats = [];
-  scene.gradins.forEach((g, ti) => {
-    const lvl = ti === 0 ? 1 : 2;
-    for (let row = 0; row < g.rows; row++) {
-      const d = g.off + (row + 0.5) * g.depth, rr = g.corner + d, f = g.floor;
-      const sx = f[2] - f[0] - 2 * g.corner, sz = f[3] - f[1] - 2 * g.corner, arc = Math.PI / 2 * rr;
-      const Ltot = 2 * sx + 2 * sz + 4 * arc, n = Math.round(Ltot / 0.5), st = Ltot / n;
-      const cxs = [f[2] - g.corner, f[2] - g.corner, f[0] + g.corner, f[0] + g.corner], czs = [f[1] + g.corner, f[3] - g.corner, f[3] - g.corner, f[1] + g.corner];
-      for (let k = 0; k < n; k++) {
-        let u = k * st, x, z;
-        if (u < sx) { x = f[0] + g.corner + u; z = f[1] - d; }
-        else if ((u -= sx) < arc) { const a = -Math.PI / 2 + u / rr; x = cxs[0] + rr * Math.cos(a); z = czs[0] + rr * Math.sin(a); }
-        else if ((u -= arc) < sz) { x = f[2] + d; z = f[1] + g.corner + u; }
-        else if ((u -= sz) < arc) { const a = u / rr; x = cxs[1] + rr * Math.cos(a); z = czs[1] + rr * Math.sin(a); }
-        else if ((u -= arc) < sx) { x = f[2] - g.corner - u; z = f[3] + d; }
-        else if ((u -= sx) < arc) { const a = Math.PI / 2 + u / rr; x = cxs[2] + rr * Math.cos(a); z = czs[2] + rr * Math.sin(a); }
-        else if ((u -= arc) < sz) { x = f[0] - d; z = f[3] - g.corner - u; }
-        else { u -= sz; const a = Math.PI + u / rr; x = cxs[3] + rr * Math.cos(a); z = czs[3] + rr * Math.sin(a); }
-        seats.push({ x, z, l: lvl, tier: ti, row, k, n, y: g.y0 + row * g.rise + 0.7 });
-      }
+  FL.forEach((t, ti) => {
+    const lenMid = Math.hypot((t.inner[2] + t.outer[2] - t.inner[0] - t.outer[0]) / 2, (t.inner[3] + t.outer[3] - t.inner[1] - t.outer[1]) / 2), n = Math.max(4, Math.floor(lenMid / 0.5));
+    for (let row = 0; row < t.rows; row++) for (let k = 0; k < n; k++) {
+      const u = 0.04 + 0.92 * (k + 0.5) / n, v = (row + 0.5) / t.rows;
+      const ax = t.inner[0] + (t.inner[2] - t.inner[0]) * u, az = t.inner[1] + (t.inner[3] - t.inner[1]) * u, bx = t.outer[0] + (t.outer[2] - t.outer[0]) * u, bz = t.outer[1] + (t.outer[3] - t.outer[1]) * u;
+      const x = ax + (bx - ax) * v, z = az + (bz - az) * v, base = t.lvl === 1 ? L1 : L2, c = base + (Math.floor(z - Z0)) * GW + Math.floor(x - X0);
+      if (!interior[c % NCL]) continue;
+      solid[c] = 0; if (!(spd[c] > 0)) spd[c] = 0.5; if (sq[c] < 0) sq[c] = t.i;
+      seats.push({ x, z, l: t.lvl, tier: t.lvl, row: ti * 100 + row, k, n, y: t.y0 + row * t.rise });
     }
   });
-  const places = scene.gradins.reduce((a, g) => a + g.places, 0);
+  const places = RL.tribunes.reduce((a, g) => a + g.places, 0);
   // --- champs ---
   const wd = new Float32Array(NCELL), cost = new Float64Array(NCELL), zoneMul = new Float32Array(NCELL).fill(1);
   const eng = new Engine({ solid, wd, cost, zoneMul, spd, linkUp, linkDown, sinkAt, sinks });
   const t1 = now();
-  { // wd exact : on part des cellules ouvertes proches d'un mur
-    const R3 = 3;
-    wd.fill(3);
+  {
+    const R3 = 3; wd.fill(3);
     for (let l = 0; l < NL; l++) for (let cz = 0; cz < GH; cz++) for (let cx = 0; cx < GW; cx++) {
       const c = l * NCL + cz * GW + cx;
       if (!solid[c]) continue;
@@ -455,12 +454,31 @@ export function buildWorld(scene) {
   const t2 = now();
   const fieldMs = [];
   TARGETS.forEach((_, t) => { const a = now(); eng.fullCompute(t); fieldMs.push(Math.round(now() - a)); });
+  // --- hauteurs de sol réelles (pour l'affichage et les contrôles) ---
+  const floorY = (l, x, z) => {
+    if (l === 0) return inArena[cellIdx(0, x, z)] ? Y_RDC : 0;
+    const q = sq[cellIdx(l, x, z)];
+    if (q >= 0) { const t = FL[q], [, v] = quadUV(t, x, z); return t.y0 + Math.max(0, Math.min(t.rows - 1, Math.floor(v * t.rows))) * t.rise; }
+    return l === 1 ? Y_AIRE : GALERIE_Y;
+  };
+  const drawPose = (sim, i, out = {}) => {
+    const s = sim.st[i], l = sim.lv[i]; let x = sim.x[i], z = sim.z[i], y;
+    if (s === 4) {
+      const L = sim.rideLink[i], k = sim.links[L], c = sim.rideDown[i], ex = cellX(c), ez = cellZ(c);
+      const f = Math.max(0, Math.min(1, 1 - (sim.rideT1[i] - sim.T) / k.dur)), y0 = floorY(l, x, z), y1 = floorY(cellL(c), ex, ez);
+      y = y0 + (y1 - y0) * f; x += (ex - x) * f; z += (ez - z) * f;
+    } else if (s === 0) y = sim.sy[i];
+    else y = floorY(l, x, z);
+    out.x = x; out.y = y; out.z = z; return out;
+  };
   const world = {
-    solid, spd, inArena, gates, vomitoires, barrages, bouches, sinks, sinkAt, links, linkOf, seats, places, engine: eng, bounds: { X0, Z0, GW, GH },
+    solid, spd, inArena, gates, vomitoires, barrages, bouches, sinks, sinkAt, links, linkOf, seats, places, engine: eng, bounds: { X0, Z0, GW, GH }, floorY, drawPose, standQ: sq, tribunes: FL,
+    gallery: { y: GALERIE_Y, cells: null }, constants: { GALERIE_Y, Y_AIRE, Y_RDC },
     info: { buildMs: Math.round(now() - t0), geometryMs: Math.round(t1 - t0), distanceMs: Math.round(t2 - t1), fieldMs, seats: seats.length, places },
   };
   return world;
 }
+
 
 // ---------- Simulation ----------
 const S_SEATED = 0, S_WALK = 1, S_HES = 2, S_QUEUE = 3, S_STAIRS = 4, S_GONE = 5;
@@ -614,28 +632,28 @@ export class Sim {
       case 'C1': {
         if (lev.type === 'station') { out.recalc = this.setMetroStation(!on); out.applied = true; out.detail = 'station entière'; }
         else if (lev.type === 'metro') {
-          const b = near(this.sinks.filter(k => k.kind === 'metro'), lev.x, lev.z, 120);
+          const b = this.sinks.find(k => k.kind === 'metro' && k.lev === lev.id) || near(this.sinks.filter(k => k.kind === 'metro'), lev.x, lev.z, 120);
           if (b) { out.recalc = this.setMetroEntrance(b.idx, !on); out.applied = true; out.detail = b.name; } else out.detail = "aucune bouche modélisée à moins de 120 m (seules les bouches < 300 m de l'Arena le sont)";
         } else if (lev.type === 'tram') {
-          const b = near(this.sinks.filter(k => k.kind === 'tram'), lev.x, lev.z, 150);
+          const b = this.sinks.find(k => k.kind === 'tram' && k.lev === lev.id) || near(this.sinks.filter(k => k.kind === 'tram'), lev.x, lev.z, 150);
           if (b) { out.recalc = this.setTramStop(b.name, !on); out.applied = true; out.detail = b.name; } else out.detail = 'aucun arrêt de tram modélisé à moins de 150 m';
         }
         break;
       }
       case 'B1': {
-        const list = lev.type === 'vomitoire' ? this.vomitoires : this.gates;
-        const g = near(list, lev.x, lev.z, lev.type === 'vomitoire' ? 40 : 15);
-        if (g) { out.recalc = lev.type === 'vomitoire' ? this.setVomitoire(this.vomitoires.indexOf(g) + 1, !on) : this.setGate(this.gates.indexOf(g), !on); out.applied = true; out.detail = g.name; }
-        else out.detail = 'pas de porte/vomitoire de la géométrie estimée à moins de ' + (lev.type === 'vomitoire' ? 40 : 15) + ' m (issue du plan NP2F non modélisée)';
+        let g = this.vomitoires.find(e => e.lev === lev.id), isV = !!g;
+        if (!g) g = this.gates.find(e => e.lev === lev.id);
+        if (g) { out.recalc = isV ? this.setVomitoire(this.vomitoires.indexOf(g) + 1, !on) : this.setGate(this.gates.indexOf(g), !on); out.applied = true; out.detail = g.name; }
+        else out.detail = 'aucune sortie du moteur pour ' + lev.id;
         break;
       }
       case 'B3': { // escalator -> escalier : 0,7 m/s au lieu de 1,3 m/s, débit réduit dans le même rapport
-        const k = near(this.links.filter(l => l.kind === 'hall'), lev.x, lev.z, 30);
+        const k = near(this.links.filter(l => l.kind === 'galerie'), lev.x, lev.z, 1e9);
         if (k) { const f = on ? 1.3 / 0.7 : 1; k.dur = STAIR_DUR * f; k.gap = (1 / (FLOW_SPEC * k.width)) * f; out.applied = true; out.detail = k.name + ' : durée ' + k.dur.toFixed(1) + ' s, écart ' + k.gap.toFixed(2) + ' s'; }
         else out.detail = 'aucun escalier modélisé à moins de 30 m';
         break;
       }
-      case 'B5': this.pmrOut = on ? [...this.pmrOut, lev.id] : this.pmrOut.filter(i => i !== lev.id); out.detail = 'enregistré ; pas de profil PMR dans cette population : aucun effet sur la foule'; break;
+      case 'B5': out.applied = true; this.pmrOut = on ? [...this.pmrOut, lev.id] : this.pmrOut.filter(i => i !== lev.id); out.detail = 'enregistré ; pas de profil PMR dans cette population : aucun effet sur la foule'; break;
       case 'D1': case 'D2': {
         if (on && !this._levZones.has(lev.id)) this._levZones.set(lev.id, this.addDangerZone(lev.poly ? { level: 0, poly: lev.poly, x: lev.x, z: lev.z } : { level: 0, x: lev.x, z: lev.z, r: lev.rayon ?? 20 }));
         if (!on && this._levZones.has(lev.id)) { this.removeDangerZone(this._levZones.get(lev.id)); this._levZones.delete(lev.id); }
@@ -895,6 +913,7 @@ export class Sim {
       const cx0 = Math.floor(x[i] - X0), cz0 = Math.floor(z[i] - Z0);
       const c = lv[i] * NCL + cz0 * GW + cx0;
       if (s === S_HES) { this.hes[i] -= dt; vx[i] *= 0.7; vz[i] *= 0.7; if (this.hes[i] <= 0) { st[i] = s = S_WALK; this.next[i] = 0; } }
+      let waiting = false;
       if (s === S_WALK) {
         // choix de cible
         let need = tgt[i] < 0 || !this._avail(tgt[i]) || eng.f[tgt[i]][c] === Infinity;
@@ -931,14 +950,14 @@ export class Sim {
           const L = this.world.linkOf[c];
           if (L >= 0) {
             if (T >= this.linkNext[L]) { this.linkNext[L] = T + this.links[L].gap; st[i] = S_STAIRS; this.rideT1[i] = T + this.links[L].dur; this.rideDown[i] = dl; this.rideLink[i] = L; this.waitLink[i] = -1; continue; }
-            this.waitLink[i] = L; vx[i] *= 0.5; vz[i] *= 0.5; continue;
+            this.waitLink[i] = L; waiting = true; // il attend son tour, mais les forces de contact continuent de s'appliquer (sinon la foule se tasse sur lui)
           }
         }
-        this.waitLink[i] = -1;
+        if (!waiting) this.waitLink[i] = -1;
       }
       // direction souhaitée
       let dxn = 0, dzn = 0, vmax = v0[i];
-      if (st[i] === S_WALK && tgt[i] >= 0) {
+      if (waiting) { vmax = 0; } else if (st[i] === S_WALK && tgt[i] >= 0) {
         const f = eng.f[tgt[i]], fc = f[c];
         let sx = 0, sz = 0;
         for (let k = 0; k < 8; k++) {
@@ -965,7 +984,7 @@ export class Sim {
           const ddx = xi - x[j], ddz = zi - z[j], d2 = ddx * ddx + ddz * ddz; if (d2 > 1.0) continue; // coupure à 1 m (force < 0,04 m/s² au-delà) ; estimé
           const d = Math.sqrt(d2) || 1e-3, rj = this.kind[j] ? (this.stewards.length && this._stPosted(j) ? 0.5 : 0.3) : R;
           if (d < 1.0 && this.kind[j] === 0) crowd++;
-          const nx = ddx / d, nz = ddz / d, cs = -(nx * dxn + nz * dzn), wgt = 0.3 + 0.7 * (1 + cs) / 2, f = 25 * Math.exp((R + rj - d) / 0.08) * wgt;
+          const nx = ddx / d, nz = ddz / d, cs = -(nx * dxn + nz * dzn), wgt = 0.3 + 0.7 * (1 + cs) / 2, f = 25 * Math.exp((R + rj - d) / 0.08) * wgt + (d < R + rj ? 1500 * (R + rj - d) : 0); // + force de contact (corps) : estimé
           ax += f * nx; az += f * nz;
         }
       }
@@ -989,7 +1008,8 @@ export class Sim {
       if (!this._blk(l, nxp, zi)) x[i] = nxp; else vx[i] *= -0.1;
       if (!this._blk(l, x[i], nzp)) z[i] = nzp; else vz[i] *= -0.1;
     }
-    // correction des chevauchements
+    // correction des chevauchements (3 passes : les goulots d'étranglement ne se résolvent pas en une)
+    for (let pass = 0; pass < 3; pass++)
     for (let a = 0; a < na; a++) {
       const i = act[a]; if (this.kind[i] === 1 && this._stPosted(i)) continue;
       const h = hid[i];
@@ -998,7 +1018,7 @@ export class Sim {
         for (let q = cnt[hh]; q < e; q++) {
           const j = hOrder[q]; if (j <= i && !(this.kind[j] === 1 && this._stPosted(j))) continue;
           const jp = this.kind[j] === 1 && this._stPosted(j);
-          const ddx = x[i] - x[j], ddz = z[i] - z[j], rs = jp ? (R + 0.5) * 0.92 : 2 * R * 0.92, d2 = ddx * ddx + ddz * ddz;
+          const ddx = x[i] - x[j], ddz = z[i] - z[j], rs = jp ? (R + 0.5) * 0.92 : 2 * R * 0.975, d2 = ddx * ddx + ddz * ddz;
           if (d2 >= rs * rs || d2 < 1e-8) continue;
           const d = Math.sqrt(d2);
           const p = jp ? (rs - d) : (rs - d) / 2, px = ddx / d * p, pz = ddz / d * p, l = lv[i];
@@ -1110,7 +1130,7 @@ export class Sim {
     for (let i = 0; i < this.NP; i++) {
       const s = this.st[i]; if (s === S_GONE) continue;
       const l = this.lv[i];
-      people.push({ x: +this.x[i].toFixed(2), z: +this.z[i].toFixed(2), level: l, y: s === S_SEATED || (l > 0 && this.eng.spd[cellIdx(l, this.x[i], this.z[i])] < 1) ? +this.sy[i].toFixed(1) : ALT[l], state: STATE_NAME[s] });
+      const P = this.world.drawPose(this, i); people.push({ x: +P.x.toFixed(2), z: +P.z.toFixed(2), level: l, y: +P.y.toFixed(2), state: STATE_NAME[s] });
     }
     const stewards = this.stewards.map(s => ({ id: s.id, team: s.team, x: +this.x[s.i].toFixed(2), z: +this.z[s.i].toFixed(2), level: this.lv[s.i], mode: s.mode, guide: s.guide ? { target: TARGETS[s.guide.target], radius: s.guide.radius } : null }));
     const alerts = this.pendingAlerts; this.pendingAlerts = [];

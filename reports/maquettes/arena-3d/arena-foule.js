@@ -3,7 +3,6 @@
 // actionné dans le menu (événement 'levier' émis par ../commun/regie-ui.js) est appliqué au moteur par sim.apply.
 import { buildWorld, Sim, DT } from './sim/arena-sim.js';
 
-const ALT = [0, 4, 8];
 const COL = {clothes: [0x26324d, 0x8c1f1f, 0x2f2f2f, 0xd8d1c0, 0x1f5a40, 0x9a7040, 0x55578f, 0x6b2d5c, 0x3b6e8f, 0xb85c2a], skins: [0xf1c9a5, 0xd9a37a, 0xa86f4a, 0x6e4430, 0xe8b896]};
 const HES = new THREE.Color(0xF2A900), QUEUE = new THREE.Color(0xE0461F), STAFF = new THREE.Color(0xFFD100);
 let world = null, sim = null, playing = false, speed = 4, acc = 0, body = null, head = null, stew = null;
@@ -18,23 +17,23 @@ function silhouettes(n) {
   body.frustumCulled = head.frustumCulled = false; G.foule = new THREE.Group(); G.foule.add(body, head); scene.add(G.foule);
   stew = new THREE.InstancedMesh(new THREE.CylinderGeometry(.3, .3, 2, 8).translate(0, 1, 0), new THREE.MeshStandardMaterial({color: 0xFFD100, emissive: 0x6b5a00}), 200); stew.count = 0; G.foule.add(stew);
 }
-const M4 = new THREE.Matrix4(), HID = new THREE.Matrix4().makeTranslation(0, -9999, 0), C2 = new THREE.Color();
+const P = {x: 0, y: 0, z: 0}, M4 = new THREE.Matrix4(), HID = new THREE.Matrix4().makeTranslation(0, -9999, 0), C2 = new THREE.Color();
 function draw() {
   const v = sim.view(), n = v.n;
   for (let i = 0; i < n; i++) {
     const s = v.state[i];
     if (s === 5) { body.setMatrixAt(i, HID); head.setMatrixAt(i, HID); continue; }
-    const l = v.level[i], y = (s === 0 || l > 0) && v.y[i] ? v.y[i] : ALT[l] || 0;
-    M4.makeTranslation(v.x[i], y, v.z[i]); body.setMatrixAt(i, M4); head.setMatrixAt(i, M4);
+    world.drawPose(sim, i, P);
+    M4.makeTranslation(P.x, P.y, P.z); body.setMatrixAt(i, M4); head.setMatrixAt(i, M4);
     if (s === 2) body.setColorAt(i, HES); else if (s === 3) body.setColorAt(i, QUEUE); else body.setColorAt(i, C2.set(COL.clothes[i % 10]));
   }
   body.instanceMatrix.needsUpdate = head.instanceMatrix.needsUpdate = true; if (body.instanceColor) body.instanceColor.needsUpdate = true;
-  stew.count = sim.stewards.length; sim.stewards.forEach((s, k) => { M4.makeTranslation(v.x[s.i], ALT[v.level[s.i]] || 0, v.z[s.i]); stew.setMatrixAt(k, M4); }); stew.instanceMatrix.needsUpdate = true;
+  stew.count = sim.stewards.length; sim.stewards.forEach((s, k) => { world.drawPose(sim, s.i, P); M4.makeTranslation(P.x, P.y, P.z); stew.setMatrixAt(k, M4); }); stew.instanceMatrix.needsUpdate = true;
 }
 
 // ---------- Tableau de bord minimal ----------
 const hud = document.createElement('div');
-hud.style.cssText = 'position:fixed;left:50%;bottom:96px;transform:translateX(-50%);display:flex;gap:14px;align-items:center;background:rgba(250,248,243,.95);border:1px solid #d6d1c6;border-radius:6px;padding:8px 12px;font:500 13px system-ui,sans-serif;color:#1D1F1E;z-index:6';
+hud.id = 'fHud'; hud.style.cssText = 'position:fixed;left:50%;bottom:96px;transform:translateX(-50%);display:flex;gap:14px;align-items:center;background:rgba(250,248,243,.95);border:1px solid #d6d1c6;border-radius:6px;padding:8px 12px;font:500 13px system-ui,sans-serif;color:#1D1F1E;z-index:6';
 hud.innerHTML = `<button id="fPlay" style="all:unset;cursor:pointer;background:#1D1F1E;color:#fff;padding:6px 12px;border-radius:4px;font-weight:700">▶ Coup de sifflet</button>
  <span>Vitesse <select id="fSpd"><option value="1">×1</option><option value="4" selected>×4</option><option value="16">×16</option></select></span>
  <button id="fRst" style="all:unset;cursor:pointer;padding:6px 8px;border:1px solid #d6d1c6;border-radius:4px">Recommencer</button>
@@ -42,6 +41,7 @@ hud.innerHTML = `<button id="fPlay" style="all:unset;cursor:pointer;background:#
  <span>Dans l'Arena <b id="fIn">–</b></span><span>Sortis <b id="fOut">–</b></span><span>Densité max <b id="fDen">–</b> pers./m²</span><span id="fAl" style="color:#E0461F"></span>`;
 document.body.appendChild(hud);
 const $ = id => document.getElementById(id);
+window.ARENA = {get sim() { return sim; }, get world() { return world; }, get playing() { return playing; }, get speed() { return speed; }, toggle() { $('fPlay').click(); }, setSpeed(v) { speed = +v; $('fSpd').value = String(v); }, reset() { $('fRst').click(); }};
 const clock = T => { const s = Math.round(22 * 3600 + 12 * 60 + T), h = s / 3600 | 0, m = (s % 3600) / 60 | 0; return [h, m, s % 60].map(v => String(v).padStart(2, '0')).join(':'); };
 function counters() { const s = sim.stats || {}; $('fClock').textContent = clock(sim.T); $('fIn').textContent = s.inside ?? '–'; $('fOut').textContent = s.outside ?? '–'; $('fDen').textContent = (sim.curDens || 0).toFixed(1); }
 $('fPlay').onclick = () => { playing = !playing; $('fPlay').textContent = playing ? '⏸ Pause' : '▶ Reprendre'; };
@@ -59,14 +59,14 @@ addEventListener('levier', e => {
   $('fAl').textContent = r && r.applied === false ? 'Sans effet sur la géométrie du moteur : ' + (r.reason || '') : `${L.code} ${L.nom} : ${L.etat}`;
 });
 
-function reset() { sim = new Sim(world, {seed: 22102026, fill: .85}); (SCN.leviers || []).forEach(L => { if (closed(L)) sim.apply(L, true); }); draw(); counters(); }
+function reset() { sim = new Sim(world, {seed: 22102026, fill: 1}); (SCN.leviers || []).forEach(L => { if (closed(L)) sim.apply(L, true); }); draw(); counters(); window.dispatchEvent(new CustomEvent('arena-reset')); }
 function loop(now) {
   if (sim && playing) { acc += Math.min(.1, (now - (loop.t || now)) / 1000) * speed; let k = 0; while (acc >= DT && k < 24) { sim.step(); acc -= DT; k++; } draw(); if (Math.round(sim.T * 10) % 5 === 0) counters(); }
   loop.t = now; requestAnimationFrame(loop);
 }
 (async function wait() { // attend la vue chargée par index.html ; le moteur lit sa propre copie intacte de scene.json
   if (typeof SCN === 'undefined' || !SCN || !SCN.batiments) return setTimeout(wait, 200);
-  const sc = await (await fetch('scene.json')).json(); world = buildWorld(sc); silhouettes(world.seats ? world.seats.length + 400 : 9000);
-  reset(); const base = rebuild; rebuild = function () { base(); if (G.population) G.population.visible = false; }; if (G.population) G.population.visible = false;
+  const sc = await (await fetch('scene.json')).json(); world = buildWorld(sc); silhouettes(world.seats ? world.seats.length + 400 : 9000); sols();
+  reset(); window.dispatchEvent(new CustomEvent('arena-pret')); const base = rebuild; rebuild = function () { base(); if (G.population) G.population.visible = false; }; if (G.population) G.population.visible = false;
   requestAnimationFrame(loop);
 })();

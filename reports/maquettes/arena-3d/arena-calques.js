@@ -19,7 +19,7 @@
     toit: cv(128, 128, (x, w, h) => { x.fillStyle = '#7fa05a'; x.fillRect(0, 0, w, h); noisy(x, w, h, 0, 30); }),
     parking: cv(128, 128, (x, w, h) => { x.fillStyle = '#8d8a84'; x.fillRect(0, 0, w, h); noisy(x, w, h, 0, 14); x.fillStyle = '#f1efe9'; for (let i = 0; i < w; i += 32) x.fillRect(i, 0, 2, h * .45); }),
   };
-  const CLIP = new THREE.Plane(new THREE.Vector3(0, -1, 0), 1e4); rnd.localClippingEnabled = true;
+  const CLIP = new THREE.Plane(new THREE.Vector3(0, -1, 0), 1e4); rnd.localClippingEnabled = true; window.ARENA_CLIP = CLIP;
   const mat = o => new THREE.MeshStandardMaterial(Object.assign({roughness: .9, metalness: 0, side: THREE.DoubleSide, clippingPlanes: [CLIP]}, o));
   const q2 = q => [[q[0], q[1]], [q[2], q[3]], [q[4], q[5]], [q[6], q[7]]];
 
@@ -113,7 +113,7 @@
 
   // ---------- Barre des niveaux ----------
   const LV = [['Toit', 1e4], ['Terrasse 11,5 m', 13.5], ['Balcons', 11], ['Rez-de-chaussée', 5.4], ['Parking −1', -.4]];
-  const bar = document.createElement('div');
+  const bar = document.createElement('div'); bar.id = 'lvBar';
   bar.style.cssText = 'position:fixed;left:50%;bottom:52px;transform:translateX(-50%);display:flex;background:#1D1F1E;border-radius:4px;overflow:hidden;font:600 14px system-ui,sans-serif;z-index:5';
   LV.forEach(([n], i) => { const b = document.createElement('button'); b.textContent = n; b.style.cssText = 'all:unset;cursor:pointer;padding:9px 14px;color:#EDEBE6'; b.onclick = () => setLevel(i); b.dataset.lv = i; bar.appendChild(b); });
   document.body.appendChild(bar);

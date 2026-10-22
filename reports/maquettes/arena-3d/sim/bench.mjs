@@ -11,7 +11,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const scenePath = path.join(here, '..', 'scene.json');
 if (!fs.existsSync(scenePath)) { console.error('scene.json introuvable : lancer `sh recuperer-osm.sh` dans reports/maquettes/arena-3d/'); process.exit(1); }
 const scene = JSON.parse(fs.readFileSync(scenePath, 'utf8'));
-const LEV_STATION = { code: 'C1', id: 'C1-station-12', nom: 'Station Porte de la Chapelle (ligne 12, toute la station)', type: 'station', x: -110, z: 205, niveau: 0, etat: 'ouvert' };
+const LEV_STATION = scene.leviers.find(l => l.id === 'C1-station-12');
 const SEED = 22102026, T_END = 1800, T_CLOSE = 120, T_REACT = 150;
 let failures = 0;
 const check = (ok, msg) => { console.log((ok ? 'OK    ' : 'ECHEC ') + msg); if (!ok) failures++; };
@@ -21,7 +21,7 @@ const wallHits = sim => { // personnes dont le centre est dans une cellule mur
   for (let i = 0; i < sim.N; i++) {
     const st = sim.st[i]; if (st === 0 || st === 4 || st === 5) continue;
     const cx = Math.floor(sim.x[i] + 200), cz = Math.floor(sim.z[i] + 130);
-    if (cx < 0 || cz < 0 || cx >= 460 || cz >= 400 || sim.eng.solid[sim.lv[i] * 184000 + cz * 460 + cx]) n++;
+    if (cx < 0 || cz < 0 || cx >= 460 || cz >= 480 || sim.eng.solid[sim.lv[i] * world.bounds.GW * world.bounds.GH + cz * 460 + cx]) n++;
   }
   return n;
 };
@@ -39,7 +39,7 @@ console.log('\n== Recalcul des champs touchés (mesure) ==');
   const sim = new Sim(world, { seed: SEED });
   const ref = sim.eng.f.map(a => a.slice());
   const recs = [
-    sim.setGate('Porte Parvis Centre', false), sim.setGate('Porte Parvis Centre', true),
+    sim.setGate('Issue de secours 5', false), sim.setGate('Issue de secours 5', true),
     sim.setVomitoire(3, false), sim.setBarrage('bd Ney est', true), sim.setMetroEntrance(0, false), sim.setMetroStation(false),
     (sim.addDangerZone({ level: 0, x: 0, z: 90, r: 12 }), sim.lastRecalc),
   ];
@@ -53,7 +53,7 @@ console.log('\n== Recalcul des champs touchés (mesure) ==');
   });
   check(worst < 1e-6, `recalcul incrémental identique au recalcul complet après 7 changements (écart max ${worst})`);
   // retour à l'état initial : tout rouvrir doit redonner les champs d'origine
-  sim.setGate('Porte Parvis Centre', true); sim.setVomitoire(3, true); sim.setBarrage('bd Ney est', false); sim.setMetroStation(true); sim.removeDangerZone(1);
+  sim.setGate('Issue de secours 5', true); sim.setVomitoire(3, true); sim.setBarrage('bd Ney est', false); sim.setMetroStation(true); sim.removeDangerZone(1);
   const back = Math.max(...TARGETS.map((_, t) => maxDiff(sim.eng.f[t], ref[t])));
   check(back < 1e-6, `tout rouvrir redonne les cartes d'origine (écart max ${back})`);
 }
@@ -150,11 +150,11 @@ console.log('\n== API temps réel (essais courts) ==');
 {
   // agent qui ferme une porte
   const sim = new Sim(world, { seed: SEED });
-  const id = sim.addSteward({ x: -5, z: 70, level: 0, team: 'T' });
-  sim.orderSteward(id, { type: 'close', element: 'Porte Parvis Centre' });
-  let tClose = null; const gate = sim.gates.find(g => g.name === 'Porte Parvis Centre'); let hits = 0;
+  const id = sim.addSteward({ x: 0, z: 70, level: 0, team: 'T' });
+  sim.orderSteward(id, { type: 'close', element: 'Issue de secours 5' });
+  let tClose = null; const gate = sim.gates.find(g => g.name === 'Issue de secours 5'); let hits = 0;
   for (let s = 0; s < 1500 && tClose === null; s++) { sim.step(); hits += wallHits(sim); if (!gate.open) tClose = sim.T; }
-  console.log(`  agent -> close(Porte Parvis Centre) : porte fermée à T=${tClose === null ? 'jamais' : f1(tClose)} s (radio 5-15 s + marche), recalcul ${sim.lastRecalc ? sim.lastRecalc.ms : '-'} ms`);
+  console.log(`  agent -> close(Issue de secours 5) : porte fermée à T=${tClose === null ? 'jamais' : f1(tClose)} s (radio 5-15 s + marche), recalcul ${sim.lastRecalc ? sim.lastRecalc.ms : '-'} ms`);
   check(tClose !== null && tClose < 100, 'un agent envoyé fermer une porte la ferme après marche réelle');
   check(hits === 0, 'fermeture pendant la marche : 0 personne dans un mur');
 }
@@ -187,7 +187,7 @@ console.log('\n== API temps réel (essais courts) ==');
   console.log(`  zone de danger : pose ${sim.recalcLog[0].ms} ms, retrait ${rz.ms} ms, coût dans la zone ${rise ? 'augmenté' : 'inchangé'}`);
   check(rise && back < 1e-6, 'zone de danger : le coût monte dans la zone et le retrait redonne les cartes d\'origine');
   for (let s = 0; s < 2200; s++) {
-    if (s === 1500) for (const g of ['Porte Parvis Ouest', 'Porte Parvis Centre', 'Porte Parvis Est']) sim.setGate(g, false);
+    if (s === 1500) for (const g of ['Entrée publique', 'Issue de secours 4', 'Issue de secours 5']) sim.setGate(g, false);
     sim.step();
   }
   const kinds = new Set(sim.alertLog.map(a => a.type));
@@ -195,22 +195,57 @@ console.log('\n== API temps réel (essais courts) ==');
   check(kinds.has('porte_fermee_file') || kinds.has('lien_sature'), 'portes fermées avec file : une alerte est levée');
 }
 
-console.log('\n== apply(levier) : un levier de chaque code ==');
+console.log('\n== apply(levier) : tous les leviers du catalogue (identifiants exacts) ==');
 {
   const sim = new Sim(world, { seed: SEED }); const f0 = sim.eng.f.map(a => a.slice());
-  const levs = [
-    { code: 'C1', id: 'C1-tram-1', type: 'tram', x: -165.4, z: 146.9 }, { code: 'C1', id: 'C1-metro-2', type: 'metro', x: -95.8, z: 228.3 },
-    { code: 'B1', id: 'B1-entree', type: 'issue', x: -4, z: 54, largeur: 20 }, { code: 'B1', id: 'B1-vomitoire-1', type: 'vomitoire', x: -16, z: -33 },
-    { code: 'B3', id: 'B3-escalator-1', type: 'escalator', x: -5, z: 46 }, { code: 'B5', id: 'B5-ascenseur-1', type: 'ascenseur', x: 0, z: 0 },
-    { code: 'D1', id: 'D1-zone-1', type: 'zone', x: 5, z: 86, poly: [-60, 58, 70, 58, 70, 115, -60, 115] }, { code: 'D5', id: 'D5-colis', type: 'point', x: 100, z: 100, rayon: 50, duree_min: 1 },
-    { code: 'F1', id: 'F1-annonce', type: 'parametre', retard_min: 2 },
-  ];
-  for (const l of levs) { const r = sim.apply(l); console.log(`  ${l.code} ${l.id.padEnd(16)} appliqué=${r.applied} ${r.recalcMs ? r.recalcMs + ' ms ' : ''}${r.detail}`); }
+  const levs = scene.leviers.map(l => l.code === 'D5' ? { ...l, duree_min: 1 } : l.code === 'F1' ? { ...l, retard_min: 2 } : l);
+  const pasAppliques = [];
+  for (const l of levs) { const r = sim.apply(l); if (!r.applied) pasAppliques.push(l.id); if (/^(C1|B1)/.test(l.code) || l.code === 'F1') console.log(`  ${l.code} ${l.id.padEnd(18)} appliqué=${r.applied} ${r.recalcMs ? r.recalcMs + ' ms ' : ''}${r.detail}`); }
+  check(pasAppliques.length === 0, `apply : ${levs.length} leviers appliqués, 0 renvoie applied:false (${pasAppliques.join(', ') || 'aucun'})`);
+  const exits = levs.filter(l => l.code === 'B1' || l.code === 'C1');
+  const sansMoteur = exits.filter(l => !(sim.gates.some(g => g.lev === l.id) || sim.vomitoires.some(v => v.lev === l.id) || sim.sinks.some(k => k.lev === l.id) || l.type === 'station'));
+  check(sansMoteur.length === 0, `chaque levier B1/C1 correspond à une sortie du moteur par identifiant exact (${exits.length} leviers ; sans correspondance : ${sansMoteur.map(l => l.id).join(', ') || 'aucun'})`);
   for (let s = 0; s < 650; s++) sim.step();
-  check(sim.zones.length === 1, 'D5 : la zone fermée est levée automatiquement après duree_min (1 min)');
+  check(sim.zones.length === 8, 'D5 : la zone fermée est levée automatiquement après duree_min (1 min) ; restent les 8 zones D1/D2');
   for (const l of [...levs].reverse()) sim.apply(l, false);
   const back = Math.max(...TARGETS.map((_, t) => maxDiff(sim.eng.f[t], f0[t])));
   check(back < 1e-6 && sim.infoDelay === 0, `lever tous les leviers redonne les cartes d'origine (écart ${back})`);
+}
+
+// ---------- Réaction à la fermeture d'une sortie en pleine évacuation ----------
+console.log('\n== Réaction : fermer une sortie à T=120 s, passages comptés avant et après T=125 s ==');
+{
+  const exits = scene.leviers.filter(l => l.code === 'B1');
+  const rows = [];
+  for (const lev of exits) {
+    const sim = new Sim(world, { seed: SEED });
+    const gate = sim.gates.find(g => g.lev === lev.id), vom = sim.vomitoires.find(v => v.lev === lev.id);
+    const linkIdx = vom ? sim.links.findIndex(l => l.name === 'Sortie ' + vom.name) : -1;
+    const prev = new Map(); let before = 0, after = 0, tClose = null, rec = null, ejected = 0;
+    const side = (i) => { // côté de la ligne de façade (>0 : dehors) et décalage latéral
+      const dx = sim.x[i] - gate.facade[0], dz = sim.z[i] - gate.facade[1];
+      return [dx * gate.dir[0] + dz * gate.dir[1], Math.abs(-dx * gate.dir[1] + dz * gate.dir[0])];
+    };
+    let linkN = linkIdx >= 0 ? sim.linkNext[linkIdx] : 0;
+    for (let s = 0; s < 2450; s++) {
+      if (s === 1200) { rec = sim.apply(lev, true); tClose = sim.T; ejected = rec.recalc ? rec.recalc.ejected : 0; }
+      sim.step();
+      let n = 0;
+      if (gate) {
+        for (let i = 0; i < sim.NP; i++) {
+          if (sim.st[i] === 5 || sim.st[i] === 0 || sim.lv[i] !== 0 || Math.abs(sim.x[i] - gate.facade[0]) > 6 || Math.abs(sim.z[i] - gate.facade[1]) > 6) { prev.delete(i); continue; }
+          const [d, lat] = side(i), p = prev.get(i); prev.set(i, d);
+          if (p !== undefined && p <= 0 && d > 0 && lat < gate.w / 2 + 0.6) n++;
+        }
+      } else if (sim.linkNext[linkIdx] !== linkN) { n = 1; linkN = sim.linkNext[linkIdx]; } // un départ de plus sur le lien du vomitoire
+      if (tClose === null) { if (sim.T > 60) before += n; } else if (sim.T > tClose + 5) after += n;
+    }
+    rows.push({ id: lev.id, before, after, ejected, ms: rec && rec.recalc ? rec.recalc.ms : 0, applied: rec.applied });
+  }
+  console.log('sortie'.padEnd(20) + 'passages 60-120 s'.padStart(19) + 'passages après +5 s'.padStart(21) + 'éjectés'.padStart(9) + 'recalcul ms'.padStart(13));
+  for (const r of rows) console.log(r.id.padEnd(20) + String(r.before).padStart(19) + String(r.after).padStart(21) + String(r.ejected).padStart(9) + String(r.ms).padStart(13));
+  check(rows.every(r => r.applied), `fermeture : les ${rows.length} leviers B1 sont appliqués (aucun applied:false)`);
+  check(rows.every(r => r.after === 0), `fermeture : 0 passage après la fermeture + 5 s, pour les ${rows.length} sorties`);
 }
 
 console.log('\n== Contrôles automatiques ==');
