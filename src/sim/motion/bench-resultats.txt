@@ -1,0 +1,5 @@
+Bench 5000 personnes, 2 niveaux, 600 pas de 0.1 s (v24.18.1)
+  moyenne 21.65 ms/pas ; 100 premiers pas (tous présents) 24.23 ms ; p95 45.89 ms ; max 121.82 ms
+  état : 3036 à pied, 85 sur escalator/escalier, 1879 sortis ; densité max 5.22 pers./m2, pression max 0.686
+  personnes hors cellule praticable : 0
+  budget 8 ms/pas : NON ATTEINT (pas moyen avec les 5 000 présents)
