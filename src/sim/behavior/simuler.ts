@@ -5,8 +5,8 @@
 // Chaque personne a ses propres flux aléatoires (voir rng.ts) : deux plans joués avec la même graine voient les mêmes
 // personnes, les mêmes délais et les mêmes tirages. Modèle simplifié, non certifié.
 import { calculerGrille, NIVEAU_DANGER, SEJOUR_DEHORS_MIN, SEUIL_ALERTE, SEUIL_ROUGE, type Mesures } from '../metrics/grille.ts';
-import { multiplicateurDelai, tirerDelaiLogLogistique } from './depart.ts';
-import { creerMouvementSimple } from './mouvement-simple.ts';
+import { medianePreset, multiplicateurDelai, nePartPas, PRESET_PLANCHER, tirerDelaiLogLogistique, type PreregageDepart } from './depart.ts';
+import { creerMouvementSimple, DEBIT_PAR_METRE, distanceVers } from './mouvement-simple.ts';
 import { CANAL, creerRngPersonne, type Rng } from './rng.ts';
 import { SCENE_UGC, ECHEANCES_UGC } from './scene-ugc.ts';
 import {
@@ -43,6 +43,11 @@ export interface OptionsSimulation {
   changement?: Partial<ParamsChangement>;
   /** Durée de l'hésitation devant une issue fermée, tirée entre ces bornes (s). HYPOTHÈSE BALAYÉE, aucune mesure (maths-3 §3). */
   hesitation_s?: [number, number];
+  /**
+   * Préréglage du temps de départ (depart.ts) : PRESET_PLANCHER par défaut (exercice incendie, Forssberg 2019 [lu]) ;
+   * PRESET_CENTRAL ou PRESET_LENT pour le couvre-feu sans menace visible (hypothèses encadrées, maths-2).
+   */
+  depart?: PreregageDepart;
 }
 
 /** Les six salles du cinéma, nommées comme au glossaire : salle_<kk> sur deux chiffres. */
@@ -83,6 +88,7 @@ export function creerPopulation(graine: number, opts: OptionsSimulation = {}): P
   const lambda = lambdaGroupes(opts.part_groupes ?? 0.7);
   const partPmr = opts.part_mobilite_reduite ?? 0.04;
   const choix = completerChoix(opts.choix);
+  const preset = opts.depart ?? PRESET_PLANCHER;
   const gens: Personne[] = [];
   let prochainGroupe = 1;
   for (const salle of SALLES) {
@@ -97,7 +103,10 @@ export function creerPopulation(graine: number, opts: OptionsSimulation = {}): P
         const r = creerRngPersonne(graine, id, CANAL.traits);
         const uPmr = r.next();
         const vitesse = r.normal(1.2, 0.2);
-        const delai = tirerDelaiLogLogistique(r);
+        // « reste ? » sur son propre flux : le plancher (p_reste = 0) garde exactement les mêmes tirages qu'avant
+        const reste = nePartPas(creerRngPersonne(graine, id, CANAL.reste).next(), preset.p_reste);
+        const tire = tirerDelaiLogLogistique(r, medianePreset(preset), preset.forme);
+        const delai = reste ? Infinity : tire;
         const suivisme = tirerSuivisme(r, choix);
         const uSecours = r.next();
         const uConfiance = r.next();
@@ -149,7 +158,7 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
   mouvement.init(scene, personnes);
 
   const issuesId = scene.issues.map((i) => i.id);
-  const debit = new Map(scene.issues.map((i) => [i.id, 1.3 * i.largeur_m])); // SFPE, 1,3 pers/s par mètre [lu]
+  const debit = new Map(scene.issues.map((i) => [i.id, DEBIT_PAR_METRE * i.largeur_m])); // même débit que le mouvement (SFPE [lu])
   const issue = new Map(scene.issues.map((i) => [i.id, i]));
   const nbSalles = SALLES.length;
 
@@ -190,6 +199,7 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
   const departT: number[] = personnes.map(() => Infinity);
   const debutMarche: number[] = personnes.map(() => 0);
   const resteInitial: number[] = personnes.map(() => 0); // distance estimée à parcourir au début de la marche (m)
+  const aQuitteSalle: boolean[] = personnes.map(() => false);
   const prochaineRevision: number[] = personnes.map((p) => (chgP.periode_s - (p.id % chgP.periode_s)) % chgP.periode_s);
   const ciblant = new Map(issuesId.map((id) => [id, 0]));
   const derniereSortie = new Map(issuesId.map((id) => [id, -Infinity]));
@@ -268,7 +278,13 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
     cible[i] = id;
     ciblant.set(id, (ciblant.get(id) ?? 0) + 1);
     debutMarche[i] = tt;
-    resteInitial[i] = issue.get(id)!.distance_m;
+    // même distance que le mouvement : toute la distance au premier départ, détour ensuite
+    resteInitial[i] = distanceVers(issue.get(id)!, !aQuitteSalle[i]);
+    if (!aQuitteSalle[i]) {
+      aQuitteSalle[i] = true;
+      const s = personnes[i].salle;
+      restantParSalle.set(s, (restantParSalle.get(s) ?? 1) - 1); // a quitté sa salle : compté désormais dans la zone de son issue
+    }
   };
 
   const candidats = (i: number, tt: number, ouv: Record<string, boolean>, exclure?: string | null): CandidatSortie[] => {
@@ -383,7 +399,6 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
       mes.t_sortie_s[s.id] = t + h;
       derniereSortie.set(s.issue_id, t + h);
       sortiesT.get(s.issue_id)!.push(t + h);
-      restantParSalle.set(personnes[s.id].salle, (restantParSalle.get(personnes[s.id].salle) ?? 1) - 1);
       dehors++;
       const is = issue.get(s.issue_id)!;
       const derriere = is.devient_cul_de_sac_a_s !== undefined && t >= is.devient_cul_de_sac_a_s ? 'cul_de_sac' : is.derriere;
@@ -403,9 +418,10 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
       densMaxRun = Math.max(densMaxRun, rho);
     }
     t += h;
-    if (t >= prochaineMinute - 1e-9) {
+    const fin = dehors === n && t < prochaineMinute - 1e-9; // tout le monde est sorti avant la fin de la minute : on écrit l'état final
+    if (t >= prochaineMinute - 1e-9 || fin) {
       minutes.push({
-        t_s: prochaineMinute,
+        t_s: fin ? t : prochaineMinute,
         personnes_dehors: dehors,
         personnes_restantes: n - dehors,
         densite_max_par_zone: densMax,

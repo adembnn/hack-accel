@@ -51,7 +51,7 @@ export function melanger(...entiers: number[]): number {
  * Canaux d'une personne : un flux par usage, pour que deux plans joués avec la même graine tirent les mêmes valeurs
  * pour la même personne, même quand leurs décisions divergent (le choix d'une personne ne décale pas les tirages d'une autre).
  */
-export const CANAL = { traits: 0, guidage: 1, choix: 2, hesitation: 3, changement: 4, groupes: 5 } as const;
+export const CANAL = { traits: 0, guidage: 1, choix: 2, hesitation: 3, changement: 4, groupes: 5, reste: 6 } as const;
 
 /** Flux aléatoire d'une personne (id) pour un usage (canal), dérivé de la graine. */
 export function creerRngPersonne(graine: number, id: number, canal: number): Rng {

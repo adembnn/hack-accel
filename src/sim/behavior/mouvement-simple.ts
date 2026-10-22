@@ -5,6 +5,11 @@ import type { Intention, Issue, Mouvement, Personne, RetourMouvement, Scene } fr
 
 export const DEBIT_PAR_METRE = 1.3; // pers/s par mètre de largeur utile (SFPE, rapport criteres-jugement-crise §1)
 
+/** Distance à parcourir vers une issue : toute la distance au premier départ ; après un changement de cible, détour latéral de 20 m + 30 % de la distance (hypothèse). */
+export function distanceVers(issue: Issue, premiere: boolean): number {
+  return premiere ? issue.distance_m : 20 + 0.3 * issue.distance_m;
+}
+
 interface Etat {
   cible: string | null;
   reste_m: number;
@@ -49,9 +54,8 @@ export function creerMouvementSimple(): Mouvement {
           const premiere = !e.parti;
           e.cible = it.sortie_cible;
           e.en_file = false;
-          // première cible : distance de l'issue ; changement de cible : détour latéral de 20 m + 30 % de la distance
           e.parti = nouvelle !== undefined;
-          e.reste_m = nouvelle ? (premiere ? nouvelle.distance_m : 20 + 0.3 * nouvelle.distance_m) : 0;
+          e.reste_m = nouvelle ? distanceVers(nouvelle, premiere) : 0;
         }
         e.vitesse = it.vitesse_voulue_m_s;
       }

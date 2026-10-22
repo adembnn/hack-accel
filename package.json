@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Prototype du lot foule-decision : décision humaine, grille de critères, benchmark avant/après. Modèle simplifié, non certifié.",
   "scripts": {
-    "test": "node --test \"src/sim/**/*.test.ts\"",
+    "test": "node --test \"src/sim/**/*.test.ts\" \"bench/**/*.test.ts\"",
     "test:behavior": "node --test \"src/sim/**/*.test.ts\"",
     "bench:avant-apres": "node bench/avant-apres.ts"
   }

@@ -120,9 +120,8 @@ test('etat() a toutes les clés de l’EtatResume de #10, minute du jour, une en
   assert.equal(e.dans_le_centre + e.sortis, 3000);
   assert.deepEqual(Object.keys(e.debit_portes).sort(), [...PORTES].sort());
   for (const z of Object.values(e.par_zone)) assert.deepEqual(Object.keys(z).sort(), ['densite', 'personnes']);
-  // le débit d'une issue est partagé entre les portes qui y mènent : berger + rambuteau -> ferronnerie
-  assert.equal(PORTE_VERS_ISSUE.berger, PORTE_VERS_ISSUE.rambuteau);
-  assert.equal(e.debit_portes.berger, e.debit_portes.rambuteau);
+  // berger et rambuteau mènent à des issues distinctes : fermer l'une ne ferme pas l'autre
+  assert.notEqual(PORTE_VERS_ISSUE.berger, PORTE_VERS_ISSUE.rambuteau);
 });
 
 test('noms de zones conformes au glossaire (niveau_<n>, salle_<kk>) dans la grille, la scène et l’état', () => {
@@ -131,7 +130,7 @@ test('noms de zones conformes au glossaire (niveau_<n>, salle_<kk>) dans la gril
   assert.deepEqual(g.niveaux, [...NIVEAUX]);
   assert.deepEqual(g.portes, [...PORTES]);
   assert.equal(g.seuil_densite, 5);
-  assert.ok(g.zones.length > SALLES.length);
+  assert.deepEqual(g.zones, [...SALLES], 'la grille n’annonce que les zones que le plan peut viser');
   for (const z of g.zones) assert.match(z, MOTIF_ZONE);
   for (const i of SCENE_UGC.issues) assert.match(i.zone, MOTIF_ZONE);
   s.initialiser(SCENARIO);

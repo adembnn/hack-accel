@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { creerMouvementSimple } from './mouvement-simple.ts';
-import { multiplicateurDelai, quantileLogLogistique, tirerDelaiLogLogistique } from './depart.ts';
+import { multiplicateurDelai, PRESET_CENTRAL, PRESET_LENT, PRESET_PLANCHER, quantileLogLogistique, tirerDelaiLogLogistique } from './depart.ts';
 import { creerRng, creerRngPersonne } from './rng.ts';
 import { creerPopulation, creerSimulation, lambdaGroupes, simuler, tirerTailleGroupe } from './simuler.ts';
 import { SCENE_UGC } from './scene-ugc.ts';
@@ -226,7 +226,8 @@ test('état résumé : temps, dedans, sortis, zones, débit des portes, pression
   const e = sim.etatResume();
   assert.ok(e.sortis > 0 && e.dans_le_centre < 3000 && e.t_s === 180);
   assert.deepEqual(Object.keys(e).sort(), ['dans_le_centre', 'debit_portes', 'densite_max', 'densite_max_depuis_debut', 'par_zone', 'pression_max', 'pression_max_depuis_debut', 'sortis', 'sortis_vers_zone_danger', 't_s']);
-  assert.ok(e.par_zone['salle_01'].personnes > 0 && e.par_zone['niveau_-1'] !== undefined);
+  assert.ok(e0.par_zone['salle_01'].personnes > 0, 'à 30 s, la salle n’est pas encore vide');
+  assert.ok(e.par_zone['niveau_-1'] !== undefined);
   assert.equal(Object.keys(e.debit_portes).length, 5);
   assert.ok(Object.values(e.debit_portes).some((d) => d > 0));
   assert.ok(e.densite_max_depuis_debut >= e.densite_max);
@@ -262,4 +263,30 @@ test('options exposées : θ, part en groupe, constante du changement d’avis, 
   assert.notEqual(simuler(PLAN_AVANT, 2, 7200, { choix: { suivisme_moyen: SUIVISME_SURPRIS } }).grille.total, base.grille.total);
   // déclencheur de vitesse (Liao 2017) : moins de personnes reconsidèrent que la révision de tous ceux qui marchent
   assert.ok(simuler(PLAN_AVANT, 2, 7200, { changement: { declencheur_vitesse: true } }).stats.part_ayant_change <= base.stats.part_ayant_change);
+});
+
+test('revue : préréglages de départ branchés (central plus lent que plancher, lent laisse des gens dedans)', () => {
+  const med = (o: Parameters<typeof creerPopulation>[1]) => {
+    const d = creerPopulation(3, o).map((p) => p.delai_s).filter(Number.isFinite).sort((a, b) => a - b);
+    return d[Math.floor(d.length / 2)];
+  };
+  assert.ok(med({ depart: PRESET_CENTRAL }) > med({}) * 1.3, 'central : médiane plus longue que le plancher');
+  const plancher = creerPopulation(3, {}).map((p) => p.delai_s);
+  const avecDefaut = creerPopulation(3, { depart: PRESET_PLANCHER }).map((p) => p.delai_s);
+  assert.deepEqual(avecDefaut, plancher, 'le plancher garde exactement les mêmes tirages');
+  const restent = creerPopulation(3, { depart: PRESET_LENT }).filter((p) => !Number.isFinite(p.delai_s)).length;
+  assert.ok(restent > 0, 'lent : certaines personnes (et leur groupe) ne partent pas');
+});
+
+test('revue : par_zone ne compte pas deux fois, et la dernière minute partielle est écrite', () => {
+  const sim = creerSimulation(SCENE_UGC, 4, {});
+  for (let k = 0; k < 4; k++) {
+    sim.pas(60, PLAN_APRES);
+    const e = sim.etatResume();
+    const somme = Object.values(e.par_zone).reduce((a, z) => a + z.personnes, 0);
+    assert.ok(somme <= e.dans_le_centre, `somme des zones ${somme} > dans le centre ${e.dans_le_centre}`);
+  }
+  const j = simuler(PLAN_AVANT, 4, 3600);
+  const derniere = j.minutes[j.minutes.length - 1];
+  assert.equal(derniere.personnes_restantes, 0, 'le journal se termine sur l’état final');
 });

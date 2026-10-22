@@ -17,7 +17,7 @@ import type { JournalRun, Plan as PlanInterne, Scene, Simulation } from './types
 export const PORTE_VERS_ISSUE: Record<string, string> = {
   lescot: 'principale', // hypothèse, à remplacer par scene.json de #7 : porte d'entrée du cinéma = hall principal
   berger: 'ferronnerie', // hypothèse, à remplacer par scene.json de #7 : PORTES_VERS_PERIMETRE, seule issue de la scène qui débouche en périmètre
-  rambuteau: 'ferronnerie', // hypothèse, à remplacer par scene.json de #7 : PORTES_VERS_PERIMETRE, même issue que berger
+  rambuteau: 'secours', // hypothèse, à remplacer par scene.json de #7 : la scène appelle « secours » la sortie rue Rambuteau (issue distincte de berger)
   pont_neuf: 'metro', // hypothèse, à remplacer par scene.json de #7 : côté Châtelet, accès métro et RER
   canopee: 'escalators', // hypothèse, à remplacer par scene.json de #7 : Canopée = niveau 0, escalators vers la Place Carrée
 };
@@ -125,8 +125,8 @@ export class SimulateurFouleDecision implements Simulateur {
   }
 
   grille(): Grille {
-    const zonesScene = this.#scene.issues.map((i) => i.zone);
-    return { niveaux: [...NIVEAUX], portes: [...PORTES], zones: [...new Set([...SALLES, ...zonesScene])], seuil_densite: SEUIL_ROUGE };
+    // seules les salles reçoivent consignes, phasage et confinement : on n'annonce que les zones que le plan peut viser
+    return { niveaux: [...NIVEAUX], portes: [...PORTES], zones: [...SALLES], seuil_densite: SEUIL_ROUGE };
   }
 
   initialiser(scenario: Scenario): void {
@@ -153,12 +153,13 @@ export class SimulateurFouleDecision implements Simulateur {
     const sim = this.#simulation();
     const cle = JSON.stringify(plan);
     if (cle !== this.#planVu) {
-      // une consigne dont le contenu change est datée de maintenant ; une consigne inchangée garde sa date d'arrivée
+      // une consigne garde la date de la PREMIÈRE consigne reçue par sa zone, même si son contenu change ensuite : le départ
+      // se compte depuis la première alerte, une mise à jour de porte ne remet pas l'horloge de départ à zéro
       const vues = new Map<string, { cle: string; depuis_s: number }>();
       for (const [zone, c] of Object.entries(plan.consignes_par_zone ?? {})) {
         const k = `${c.porte}|${c.clarte}`;
         const avant = this.#consignes.get(zone);
-        vues.set(zone, avant?.cle === k ? avant : { cle: k, depuis_s: sim.t_s });
+        vues.set(zone, { cle: k, depuis_s: avant ? avant.depuis_s : sim.t_s });
       }
       this.#consignes = vues;
       const conv = convertirPlan(plan, this.#scenario!, Object.fromEntries([...vues].map(([z, v]) => [z, v.depuis_s])));
