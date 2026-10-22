@@ -1,0 +1,264 @@
+{
+ "source": "reports/experience-reactions-llm.md : 10 modèles OpenRouter, 200 cas, 22 oct. 2026 ; fréquences des réponses valides seulement",
+ "avertissement": "modèles de langage, pas des humains : différences entre modèles, pas une vérité",
+ "par_situation": {
+  "annonce_sans_menace": {
+   "s_informer": 0.2632,
+   "suivre_consigne": 0.6842,
+   "suivre_la_foule": 0.0526
+  },
+  "issue_bloquee": {
+   "choisir_seul": 0.1,
+   "s_informer": 0.9
+  },
+  "manifestation_berger": {
+   "choisir_seul": 0.1176,
+   "rester_a_l_abri": 0.1176,
+   "revenir_chercher_quelqu_un": 0.0588,
+   "s_informer": 0.3529,
+   "se_figer": 0.0588,
+   "suivre_la_foule": 0.2941
+  },
+  "escalator_arrete": {
+   "aider": 0.0667,
+   "choisir_seul": 0.2,
+   "rester_a_l_abri": 0.0667,
+   "revenir_chercher_quelqu_un": 0.0667,
+   "s_informer": 0.4667,
+   "suivre_la_foule": 0.1333
+  },
+  "fumee": {
+   "aider": 0.1176,
+   "fuite_precipitee": 0.0588,
+   "rester_a_l_abri": 0.0588,
+   "revenir_chercher_quelqu_un": 0.0588,
+   "s_informer": 0.4118,
+   "suivre_consigne": 0.0588,
+   "suivre_la_foule": 0.2353
+  },
+  "file_longue": {
+   "aider": 0.0556,
+   "choisir_seul": 0.3333,
+   "rester_a_l_abri": 0.0556,
+   "s_informer": 0.3889,
+   "suivre_consigne": 0.0556,
+   "suivre_la_foule": 0.1111
+  },
+  "message_clair": {
+   "suivre_consigne": 1.0
+  },
+  "agent_qui_guide": {
+   "s_informer": 0.0556,
+   "suivre_consigne": 0.9444
+  },
+  "voisin_qui_tombe": {
+   "aider": 0.8125,
+   "s_informer": 0.1875
+  },
+  "rumeur": {
+   "s_informer": 1.0
+  }
+ },
+ "par_famille_situation": {
+  "chinois": {
+   "annonce_sans_menace": {
+    "s_informer": 0.25,
+    "suivre_consigne": 0.75
+   },
+   "issue_bloquee": {
+    "choisir_seul": 0.125,
+    "s_informer": 0.875
+   },
+   "manifestation_berger": {
+    "choisir_seul": 0.125,
+    "rester_a_l_abri": 0.125,
+    "revenir_chercher_quelqu_un": 0.125,
+    "s_informer": 0.375,
+    "se_figer": 0.125,
+    "suivre_la_foule": 0.125
+   },
+   "escalator_arrete": {
+    "choisir_seul": 0.2857,
+    "rester_a_l_abri": 0.1429,
+    "revenir_chercher_quelqu_un": 0.1429,
+    "s_informer": 0.2857,
+    "suivre_la_foule": 0.1429
+   },
+   "fumee": {
+    "aider": 0.125,
+    "rester_a_l_abri": 0.125,
+    "revenir_chercher_quelqu_un": 0.125,
+    "s_informer": 0.5,
+    "suivre_la_foule": 0.125
+   },
+   "file_longue": {
+    "aider": 0.125,
+    "choisir_seul": 0.375,
+    "rester_a_l_abri": 0.125,
+    "s_informer": 0.125,
+    "suivre_consigne": 0.125,
+    "suivre_la_foule": 0.125
+   },
+   "message_clair": {
+    "suivre_consigne": 1.0
+   },
+   "agent_qui_guide": {
+    "s_informer": 0.125,
+    "suivre_consigne": 0.875
+   },
+   "voisin_qui_tombe": {
+    "aider": 0.625,
+    "s_informer": 0.375
+   },
+   "rumeur": {
+    "s_informer": 1.0
+   }
+  },
+  "americain": {
+   "annonce_sans_menace": {
+    "s_informer": 0.1429,
+    "suivre_consigne": 0.7143,
+    "suivre_la_foule": 0.1429
+   },
+   "issue_bloquee": {
+    "choisir_seul": 0.125,
+    "s_informer": 0.875
+   },
+   "manifestation_berger": {
+    "choisir_seul": 0.1429,
+    "s_informer": 0.2857,
+    "suivre_la_foule": 0.5714
+   },
+   "escalator_arrete": {
+    "aider": 0.1667,
+    "choisir_seul": 0.1667,
+    "s_informer": 0.5,
+    "suivre_la_foule": 0.1667
+   },
+   "fumee": {
+    "aider": 0.1429,
+    "fuite_precipitee": 0.1429,
+    "s_informer": 0.4286,
+    "suivre_consigne": 0.1429,
+    "suivre_la_foule": 0.1429
+   },
+   "file_longue": {
+    "choisir_seul": 0.25,
+    "s_informer": 0.625,
+    "suivre_la_foule": 0.125
+   },
+   "message_clair": {
+    "suivre_consigne": 1.0
+   },
+   "agent_qui_guide": {
+    "suivre_consigne": 1.0
+   },
+   "voisin_qui_tombe": {
+    "aider": 1.0
+   },
+   "rumeur": {
+    "s_informer": 1.0
+   }
+  },
+  "europeen": {
+   "annonce_sans_menace": {
+    "s_informer": 0.5,
+    "suivre_consigne": 0.5
+   },
+   "issue_bloquee": {
+    "s_informer": 1.0
+   },
+   "manifestation_berger": {
+    "rester_a_l_abri": 0.5,
+    "s_informer": 0.5
+   },
+   "escalator_arrete": {
+    "s_informer": 1.0
+   },
+   "fumee": {
+    "suivre_la_foule": 1.0
+   },
+   "file_longue": {
+    "choisir_seul": 0.5,
+    "s_informer": 0.5
+   },
+   "message_clair": {
+    "suivre_consigne": 1.0
+   },
+   "agent_qui_guide": {
+    "suivre_consigne": 1.0
+   },
+   "voisin_qui_tombe": {
+    "aider": 1.0
+   },
+   "rumeur": {
+    "s_informer": 1.0
+   }
+  }
+ },
+ "par_modele": {
+  "qwen/qwen3-235b-a22b-2507": {
+   "aider": 0.05,
+   "revenir_chercher_quelqu_un": 0.1,
+   "s_informer": 0.45,
+   "se_figer": 0.05,
+   "suivre_consigne": 0.35
+  },
+  "deepseek/deepseek-chat-v3.1": {
+   "aider": 0.1,
+   "choisir_seul": 0.2,
+   "rester_a_l_abri": 0.2,
+   "s_informer": 0.25,
+   "suivre_consigne": 0.25
+  },
+  "moonshotai/kimi-k2-0905": {
+   "aider": 0.2105,
+   "choisir_seul": 0.0526,
+   "revenir_chercher_quelqu_un": 0.0526,
+   "s_informer": 0.4737,
+   "suivre_consigne": 0.2105
+  },
+  "z-ai/glm-4.5-air": {
+   "choisir_seul": 0.1,
+   "s_informer": 0.4,
+   "suivre_consigne": 0.3,
+   "suivre_la_foule": 0.2
+  },
+  "meta-llama/llama-3.3-70b-instruct": {
+   "aider": 0.1,
+   "s_informer": 0.4,
+   "suivre_consigne": 0.35,
+   "suivre_la_foule": 0.15
+  },
+  "anthropic/claude-haiku-5.5": {
+   "aider": 0.2,
+   "choisir_seul": 0.2,
+   "s_informer": 0.2,
+   "suivre_consigne": 0.3,
+   "suivre_la_foule": 0.1
+  },
+  "openai/gpt-4o-mini": {
+   "aider": 0.1,
+   "choisir_seul": 0.05,
+   "fuite_precipitee": 0.05,
+   "s_informer": 0.45,
+   "suivre_consigne": 0.2,
+   "suivre_la_foule": 0.15
+  },
+  "google/gemini-2.5-flash-lite": {
+   "s_informer": 0.6364,
+   "suivre_consigne": 0.3636
+  },
+  "mistralai/mistral-large-2512": {
+   "s_informer": 1.0
+  },
+  "mistralai/mistral-small-3.2-24b-instruct": {
+   "aider": 0.1,
+   "choisir_seul": 0.05,
+   "rester_a_l_abri": 0.05,
+   "s_informer": 0.4,
+   "suivre_consigne": 0.3,
+   "suivre_la_foule": 0.1
+  }
+ }
+}

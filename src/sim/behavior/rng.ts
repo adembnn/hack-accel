@@ -52,6 +52,7 @@ export function melanger(...entiers: number[]): number {
  * pour la même personne, même quand leurs décisions divergent (le choix d'une personne ne décale pas les tirages d'une autre).
  */
 export const CANAL = { traits: 0, guidage: 1, choix: 2, hesitation: 3, changement: 4, groupes: 5, reste: 6 } as const;
+// Canaux 7 et 8 : pmr.ts (profil, aide). Canaux 20 et plus : réactions de la foule (reactions/foule.ts).
 
 /** Flux aléatoire d'une personne (id) pour un usage (canal), dérivé de la graine. */
 export function creerRngPersonne(graine: number, id: number, canal: number): Rng {

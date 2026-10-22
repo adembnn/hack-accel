@@ -1,0 +1,2635 @@
+{
+ "meta": {
+  "name": "Forum des Halles + RER Châtelet–Les Halles (brouillon)",
+  "source": "OpenStreetMap © contributeurs, ODbL ; extrait Overpass du 22 oct. 2026 (osm-forum.json)",
+  "origin": {
+   "lat": 48.862,
+   "lon": 2.346,
+   "note": "x vers l'est, y vers le sud, en mètres"
+  },
+  "perimetre": "Forum (portes 1 à 9) et RER (quais 1-4, salle d'échange) ; Châtelet sud (M1/7/11/14) hors périmètre, à brancher par la Rue de l'Orient Express (-4)",
+  "hypotheses": [
+   "Escalator : 1.4 pers/s (≈ 5 000 pers/h en pratique pour 1 m), à vérifier (TCQSM / NF EN 115). Arrêté = escalier.",
+   "Escalier : 0,9 pers/m/s sur 2,5 m par défaut ; OSM n'a presque aucune largeur (1 sur 208).",
+   "Couloir : 1,3 pers/m/s sur 5 m par défaut.",
+   "Marche à 1,3 m/s ; 12 s par niveau franchi.",
+   "Couloirs « déduits » : deux nœuds du même niveau à moins de 70 m sont supposés reliés. À contrôler sur plan.",
+   "Paliers P* créés quand un escalier n'a aucun nœud à moins de 85 m sur son niveau.",
+   "Ascenseurs exclus (hors service en évacuation)."
+  ],
+  "a_verifier": [
+   "Quai -2 attribué à M4 Les Halles par sa position",
+   "Largeur réelle des portes et escaliers",
+   "Sens et nombre d'escalators par trémie",
+   "Liaison RER -4/-5 vers le Forum (fragmentée dans OSM)",
+   "Débit des portes du Forum vers la rue"
+  ]
+ },
+ "nodes": [
+  {
+   "id": "S_Porte_Saint-Eustache",
+   "kind": "sortie",
+   "name": "Porte Saint-Eustache",
+   "level": 0.0,
+   "lat": 48.862694,
+   "lon": 2.345636,
+   "x": -26.6,
+   "y": -76.8,
+   "osm": [
+    "node/663713699",
+    "node/9554596026"
+   ]
+  },
+  {
+   "id": "S_Porte_Rambuteau",
+   "kind": "sortie",
+   "name": "Porte Rambuteau",
+   "level": 0.0,
+   "lat": 48.862621,
+   "lon": 2.346956,
+   "x": 70.0,
+   "y": -68.7,
+   "osm": [
+    "node/1272604556",
+    "node/9547125104",
+    "node/11549274675"
+   ]
+  },
+  {
+   "id": "S_Porte_Lescot",
+   "kind": "sortie",
+   "name": "Porte Lescot",
+   "level": 0.0,
+   "lat": 48.861765,
+   "lon": 2.347731,
+   "x": 126.8,
+   "y": 25.9,
+   "osm": [
+    "node/1713195678",
+    "node/9554596027",
+    "node/9554596028"
+   ]
+  },
+  {
+   "id": "S_Porte_Berger",
+   "kind": "sortie",
+   "name": "Porte Berger",
+   "level": 0.0,
+   "lat": 48.861366,
+   "lon": 2.346448,
+   "x": 32.8,
+   "y": 70.2,
+   "osm": [
+    "node/3753296381",
+    "node/9554596030"
+   ]
+  },
+  {
+   "id": "S_Rue_Montorgueil",
+   "kind": "sortie",
+   "name": "Rue Montorgueil",
+   "level": 0.0,
+   "lat": 48.862845,
+   "lon": 2.346587,
+   "x": 43.0,
+   "y": -93.4,
+   "osm": [
+    "node/5321652780"
+   ]
+  },
+  {
+   "id": "S_Porte_du_Jour",
+   "kind": "sortie",
+   "name": "Porte du Jour",
+   "level": 0.0,
+   "lat": 48.863175,
+   "lon": 2.343882,
+   "x": -155.1,
+   "y": -130.0,
+   "osm": [
+    "node/5913737144"
+   ]
+  },
+  {
+   "id": "S_Issues_de_secours_ouest",
+   "kind": "sortie",
+   "name": "Issues de secours ouest (-1)",
+   "level": -1.0,
+   "lat": 48.86234,
+   "lon": 2.343689,
+   "x": -169.2,
+   "y": -37.6,
+   "osm": [
+    "node/5914443920",
+    "node/5914443923",
+    "node/5914443924",
+    "node/5914443970",
+    "node/5957319697"
+   ]
+  },
+  {
+   "id": "S_Porte_du_Pont_Neuf",
+   "kind": "sortie",
+   "name": "Porte du Pont Neuf",
+   "level": 0.0,
+   "lat": 48.86164,
+   "lon": 2.345234,
+   "x": -56.1,
+   "y": 39.8,
+   "osm": [
+    "node/5954227359"
+   ]
+  },
+  {
+   "id": "S_Porte_du_Louvre",
+   "kind": "sortie",
+   "name": "Porte du Louvre",
+   "level": 0.0,
+   "lat": 48.86242,
+   "lon": 2.343939,
+   "x": -150.9,
+   "y": -46.4,
+   "osm": [
+    "node/9545578222"
+   ]
+  },
+  {
+   "id": "S_Porte_Marguerite_de_Navarre",
+   "kind": "sortie",
+   "name": "Porte Marguerite de Navarre",
+   "level": 0.0,
+   "lat": 48.860594,
+   "lon": 2.346513,
+   "x": 37.6,
+   "y": 155.5,
+   "osm": [
+    "node/9554596034",
+    "node/9554596035"
+   ]
+  },
+  {
+   "id": "Q0",
+   "kind": "quai",
+   "name": "RER Quai 1",
+   "level": -5.0,
+   "lat": 48.861557,
+   "lon": 2.347457,
+   "x": 106.7,
+   "y": 49.0,
+   "osm": [
+    "relation/13878510"
+   ]
+  },
+  {
+   "id": "Q1",
+   "kind": "quai",
+   "name": "RER Quai 2",
+   "level": -5.0,
+   "lat": 48.861539,
+   "lon": 2.346736,
+   "x": 53.9,
+   "y": 51.0,
+   "osm": [
+    "relation/13878507"
+   ]
+  },
+  {
+   "id": "Q2",
+   "kind": "quai",
+   "name": "RER Quai 3",
+   "level": -5.0,
+   "lat": 48.861492,
+   "lon": 2.347198,
+   "x": 87.7,
+   "y": 56.2,
+   "osm": [
+    "relation/13878509"
+   ]
+  },
+  {
+   "id": "Q3",
+   "kind": "quai",
+   "name": "RER Quai 4",
+   "level": -5.0,
+   "lat": 48.861568,
+   "lon": 2.347001,
+   "x": 73.3,
+   "y": 47.8,
+   "osm": [
+    "relation/13878508"
+   ]
+  },
+  {
+   "id": "Z4",
+   "kind": "zone",
+   "name": "Rue de l'Orient Express",
+   "level": -4.0,
+   "lat": 48.861787,
+   "lon": 2.347774,
+   "x": 129.9,
+   "y": 23.6,
+   "osm": [
+    "way/630238001"
+   ]
+  },
+  {
+   "id": "Z5",
+   "kind": "zone",
+   "name": "Salle d'échange RER",
+   "level": -4.0,
+   "lat": 48.861597,
+   "lon": 2.347075,
+   "x": 78.8,
+   "y": 44.6,
+   "osm": [
+    "relation/13878511"
+   ]
+  },
+  {
+   "id": "Z6",
+   "kind": "zone",
+   "name": "Forum des Images",
+   "level": -3.0,
+   "lat": 48.862409,
+   "lon": 2.345235,
+   "x": -56.0,
+   "y": -45.3,
+   "osm": [
+    "way/311101603"
+   ]
+  },
+  {
+   "id": "Z7",
+   "kind": "zone",
+   "name": "Passage des Verrières",
+   "level": -3.0,
+   "lat": 48.861586,
+   "lon": 2.346698,
+   "x": 51.1,
+   "y": 45.7,
+   "osm": [
+    "way/1036510637"
+   ]
+  },
+  {
+   "id": "Z8",
+   "kind": "zone",
+   "name": "Patio-place Pina Bausch",
+   "level": -3.0,
+   "lat": 48.861787,
+   "lon": 2.346792,
+   "x": 58.0,
+   "y": 23.6,
+   "osm": [
+    "relation/13881593"
+   ]
+  },
+  {
+   "id": "Z9",
+   "kind": "zone",
+   "name": "Place Carrée",
+   "level": -3.0,
+   "lat": 48.862223,
+   "lon": 2.345533,
+   "x": -34.2,
+   "y": -24.7,
+   "osm": [
+    "way/508183386"
+   ]
+  },
+  {
+   "id": "Z10",
+   "kind": "zone",
+   "name": "Porte du Louvre",
+   "level": -3.0,
+   "lat": 48.862315,
+   "lon": 2.343552,
+   "x": -179.3,
+   "y": -34.8,
+   "osm": [
+    "way/630980818"
+   ]
+  },
+  {
+   "id": "Z11",
+   "kind": "zone",
+   "name": "Rue Brève",
+   "level": -3.0,
+   "lat": 48.862008,
+   "lon": 2.347549,
+   "x": 113.5,
+   "y": -0.9,
+   "osm": [
+    "way/1037972067"
+   ]
+  },
+  {
+   "id": "Z12",
+   "kind": "zone",
+   "name": "Rue Martha Graham",
+   "level": -3.0,
+   "lat": 48.861878,
+   "lon": 2.346765,
+   "x": 56.0,
+   "y": 13.5,
+   "osm": [
+    "way/630634902",
+    "relation/13881592"
+   ]
+  },
+  {
+   "id": "Z13",
+   "kind": "zone",
+   "name": "Rue de l'Arc-en-ciel",
+   "level": -3.0,
+   "lat": 48.861822,
+   "lon": 2.34612,
+   "x": 8.8,
+   "y": 19.7,
+   "osm": [
+    "way/1037972065"
+   ]
+  },
+  {
+   "id": "Z14",
+   "kind": "zone",
+   "name": "Rue de l'Équerre d'Argent",
+   "level": -3.0,
+   "lat": 48.862248,
+   "lon": 2.346566,
+   "x": 41.5,
+   "y": -27.4,
+   "osm": [
+    "way/1037972070"
+   ]
+  },
+  {
+   "id": "Z15",
+   "kind": "zone",
+   "name": "Rue de la Boucle",
+   "level": -3.0,
+   "lat": 48.862215,
+   "lon": 2.344576,
+   "x": -104.3,
+   "y": -23.8,
+   "osm": [
+    "way/614831200"
+   ]
+  },
+  {
+   "id": "Z16",
+   "kind": "zone",
+   "name": "Rue des Bons Vivants",
+   "level": -3.0,
+   "lat": 48.862162,
+   "lon": 2.346763,
+   "x": 55.9,
+   "y": -17.9,
+   "osm": [
+    "way/1037972069"
+   ]
+  },
+  {
+   "id": "Z17",
+   "kind": "zone",
+   "name": "Rue des Négociants",
+   "level": -3.0,
+   "lat": 48.861222,
+   "lon": 2.346252,
+   "x": 18.4,
+   "y": 86.0,
+   "osm": [
+    "way/1037972066"
+   ]
+  },
+  {
+   "id": "Z18",
+   "kind": "zone",
+   "name": "Rue des Piliers",
+   "level": -3.0,
+   "lat": 48.862221,
+   "lon": 2.347313,
+   "x": 96.1,
+   "y": -24.4,
+   "osm": [
+    "way/1037972068"
+   ]
+  },
+  {
+   "id": "Z19",
+   "kind": "zone",
+   "name": "Rue du Cinéma",
+   "level": -3.0,
+   "lat": 48.862407,
+   "lon": 2.344555,
+   "x": -105.8,
+   "y": -45.0,
+   "osm": [
+    "way/616325808"
+   ]
+  },
+  {
+   "id": "Z20",
+   "kind": "zone",
+   "name": "Balcon Saint-Eustache Est",
+   "level": -2.0,
+   "lat": 48.861736,
+   "lon": 2.347145,
+   "x": 83.9,
+   "y": 29.2,
+   "osm": [
+    "way/1037972082"
+   ]
+  },
+  {
+   "id": "Z21",
+   "kind": "zone",
+   "name": "Balcon Saint-Eustache Ouest",
+   "level": -2.0,
+   "lat": 48.861883,
+   "lon": 2.346553,
+   "x": 40.5,
+   "y": 13.0,
+   "osm": [
+    "way/539862209"
+   ]
+  },
+  {
+   "id": "Z22",
+   "kind": "zone",
+   "name": "Balcon Saint-Eustache Sud",
+   "level": -2.0,
+   "lat": 48.861629,
+   "lon": 2.346702,
+   "x": 51.4,
+   "y": 41.0,
+   "osm": [
+    "way/1037972081"
+   ]
+  },
+  {
+   "id": "Z23",
+   "kind": "zone",
+   "name": "Passage de la Réale",
+   "level": -2.0,
+   "lat": 48.862116,
+   "lon": 2.346987,
+   "x": 72.3,
+   "y": -12.8,
+   "osm": [
+    "way/1037972083"
+   ]
+  },
+  {
+   "id": "Q24",
+   "kind": "quai",
+   "name": "Quai M4 Les Halles [?]",
+   "level": -2.0,
+   "lat": 48.863239,
+   "lon": 2.34792,
+   "x": 140.6,
+   "y": -137.0,
+   "osm": [
+    "way/331602720",
+    "way/331602721",
+    "way/629807463",
+    "way/629807464"
+   ]
+  },
+  {
+   "id": "Z25",
+   "kind": "zone",
+   "name": "Rue Pirouette",
+   "level": -2.0,
+   "lat": 48.861725,
+   "lon": 2.347452,
+   "x": 106.4,
+   "y": 30.4,
+   "osm": [
+    "way/1036510636"
+   ]
+  },
+  {
+   "id": "Z26",
+   "kind": "zone",
+   "name": "Rue du Cinéma",
+   "level": -2.0,
+   "lat": 48.862681,
+   "lon": 2.343824,
+   "x": -159.4,
+   "y": -75.3,
+   "osm": [
+    "way/615000513"
+   ]
+  },
+  {
+   "id": "Z27",
+   "kind": "zone",
+   "name": "Accès Porte du Jour",
+   "level": -1.0,
+   "lat": 48.863065,
+   "lon": 2.343619,
+   "x": -174.4,
+   "y": -117.7,
+   "osm": [
+    "way/1036049981"
+   ]
+  },
+  {
+   "id": "Z28",
+   "kind": "zone",
+   "name": "Grand Balcon Est",
+   "level": -1.0,
+   "lat": 48.861768,
+   "lon": 2.347091,
+   "x": 79.9,
+   "y": 25.6,
+   "osm": [
+    "way/1036542820",
+    "way/1037972086"
+   ]
+  },
+  {
+   "id": "Z29",
+   "kind": "zone",
+   "name": "Grand Balcon Nord",
+   "level": -1.0,
+   "lat": 48.862229,
+   "lon": 2.34701,
+   "x": 74.0,
+   "y": -25.3,
+   "osm": [
+    "way/1037972087"
+   ]
+  },
+  {
+   "id": "Z30",
+   "kind": "zone",
+   "name": "Grand Balcon Ouest",
+   "level": -1.0,
+   "lat": 48.861968,
+   "lon": 2.346529,
+   "x": 38.7,
+   "y": 3.5,
+   "osm": [
+    "way/409122546"
+   ]
+  },
+  {
+   "id": "Z31",
+   "kind": "zone",
+   "name": "Grand Balcon Sud",
+   "level": -1.0,
+   "lat": 48.861603,
+   "lon": 2.346674,
+   "x": 49.4,
+   "y": 43.9,
+   "osm": [
+    "way/1036542822"
+   ]
+  },
+  {
+   "id": "Z32",
+   "kind": "zone",
+   "name": "Grande Terrasse",
+   "level": -1.0,
+   "lat": 48.86208,
+   "lon": 2.346954,
+   "x": 69.9,
+   "y": -8.9,
+   "osm": [
+    "way/409122545"
+   ]
+  },
+  {
+   "id": "Z33",
+   "kind": "zone",
+   "name": "Rue Poquelin",
+   "level": -1.0,
+   "lat": 48.861744,
+   "lon": 2.34737,
+   "x": 100.4,
+   "y": 28.3,
+   "osm": [
+    "way/1037972084",
+    "relation/13900763"
+   ]
+  },
+  {
+   "id": "Z34",
+   "kind": "zone",
+   "name": "Rue des Bons Vivants",
+   "level": -1.0,
+   "lat": 48.862496,
+   "lon": 2.346961,
+   "x": 70.4,
+   "y": -54.9,
+   "osm": [
+    "relation/13882488"
+   ]
+  },
+  {
+   "id": "Z35",
+   "kind": "zone",
+   "name": "Rue du Cinéma",
+   "level": -1.0,
+   "lat": 48.862921,
+   "lon": 2.343677,
+   "x": -170.1,
+   "y": -101.8,
+   "osm": [
+    "way/1036049980"
+   ]
+  },
+  {
+   "id": "P1",
+   "kind": "palier",
+   "name": "Palier niveau -1",
+   "level": -1.0,
+   "lat": 48.863714,
+   "lon": 2.348951,
+   "x": 216.1,
+   "y": -189.6,
+   "osm": []
+  },
+  {
+   "id": "P2",
+   "kind": "palier",
+   "name": "Palier niveau 0",
+   "level": 0.0,
+   "lat": 48.863714,
+   "lon": 2.348951,
+   "x": 216.1,
+   "y": -189.6,
+   "osm": []
+  },
+  {
+   "id": "P3",
+   "kind": "palier",
+   "name": "Palier niveau -1",
+   "level": -1.0,
+   "lat": 48.861676,
+   "lon": 2.345279,
+   "x": -52.8,
+   "y": 35.8,
+   "osm": []
+  },
+  {
+   "id": "P4",
+   "kind": "palier",
+   "name": "Palier niveau -4",
+   "level": -4.0,
+   "lat": 48.860803,
+   "lon": 2.346347,
+   "x": 25.4,
+   "y": 132.3,
+   "osm": []
+  },
+  {
+   "id": "P5",
+   "kind": "palier",
+   "name": "Palier niveau -2",
+   "level": -2.0,
+   "lat": 48.863863,
+   "lon": 2.349195,
+   "x": 234.0,
+   "y": -206.0,
+   "osm": []
+  },
+  {
+   "id": "P6",
+   "kind": "palier",
+   "name": "Palier niveau 1",
+   "level": 1.0,
+   "lat": 48.862884,
+   "lon": 2.347924,
+   "x": 140.9,
+   "y": -97.8,
+   "osm": []
+  },
+  {
+   "id": "P7",
+   "kind": "palier",
+   "name": "Palier niveau 0",
+   "level": 0.0,
+   "lat": 48.863451,
+   "lon": 2.347546,
+   "x": 113.2,
+   "y": -160.5,
+   "osm": []
+  },
+  {
+   "id": "P8",
+   "kind": "palier",
+   "name": "Palier niveau -2",
+   "level": -2.0,
+   "lat": 48.862823,
+   "lon": 2.345214,
+   "x": -57.5,
+   "y": -91.0,
+   "osm": []
+  },
+  {
+   "id": "P9",
+   "kind": "palier",
+   "name": "Palier niveau -2",
+   "level": -2.0,
+   "lat": 48.861742,
+   "lon": 2.345242,
+   "x": -55.5,
+   "y": 28.6,
+   "osm": []
+  },
+  {
+   "id": "P10",
+   "kind": "palier",
+   "name": "Palier niveau 0",
+   "level": 0.0,
+   "lat": 48.862299,
+   "lon": 2.342751,
+   "x": -238.0,
+   "y": -33.1,
+   "osm": []
+  },
+  {
+   "id": "P11",
+   "kind": "palier",
+   "name": "Palier niveau -0.5",
+   "level": -0.5,
+   "lat": 48.862911,
+   "lon": 2.345647,
+   "x": -25.9,
+   "y": -100.8,
+   "osm": []
+  },
+  {
+   "id": "P12",
+   "kind": "palier",
+   "name": "Palier niveau -1",
+   "level": -1.0,
+   "lat": 48.862762,
+   "lon": 2.345671,
+   "x": -24.1,
+   "y": -84.3,
+   "osm": []
+  },
+  {
+   "id": "P13",
+   "kind": "palier",
+   "name": "Palier niveau -4",
+   "level": -4.0,
+   "lat": 48.86223,
+   "lon": 2.346157,
+   "x": 11.5,
+   "y": -25.5,
+   "osm": []
+  },
+  {
+   "id": "P14",
+   "kind": "palier",
+   "name": "Palier niveau -5",
+   "level": -5.0,
+   "lat": 48.862301,
+   "lon": 2.346407,
+   "x": 29.8,
+   "y": -33.3,
+   "osm": []
+  },
+  {
+   "id": "P15",
+   "kind": "palier",
+   "name": "Palier niveau -4",
+   "level": -4.0,
+   "lat": 48.860932,
+   "lon": 2.34773,
+   "x": 126.7,
+   "y": 118.1,
+   "osm": []
+  }
+ ],
+ "edges": [
+  {
+   "a": "P1",
+   "b": "P2",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 1,
+   "osm": [
+    "way/54036467"
+   ],
+   "source": "OSM",
+   "length_m": 0.0,
+   "time_s": 12.0,
+   "capacity_ps": 2.25
+  },
+  {
+   "a": "P3",
+   "b": "S_Porte_du_Pont_Neuf",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 4,
+   "osm": [
+    "way/159224724",
+    "way/630886109",
+    "way/630886112",
+    "way/630913587"
+   ],
+   "source": "OSM",
+   "length_m": 5.2,
+   "time_s": 16.0,
+   "capacity_ps": 9.0
+  },
+  {
+   "a": "S_Porte_Rambuteau",
+   "b": "Z34",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 1,
+   "osm": [
+    "way/371782834",
+    "way/1036261833",
+    "way/1036261834"
+   ],
+   "source": "OSM",
+   "length_m": 13.8,
+   "time_s": 22.6,
+   "capacity_ps": 5.05
+  },
+  {
+   "a": "S_Porte_Berger",
+   "b": "Z31",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 1,
+   "osm": [
+    "way/371782835",
+    "way/1036261837",
+    "way/1036261838"
+   ],
+   "source": "OSM",
+   "length_m": 31.1,
+   "time_s": 35.9,
+   "capacity_ps": 5.05
+  },
+  {
+   "a": "Z5",
+   "b": "Z7",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 1,
+   "osm": [
+    "way/511038678",
+    "way/1037972076",
+    "way/1037972077"
+   ],
+   "source": "OSM",
+   "length_m": 27.7,
+   "time_s": 33.3,
+   "capacity_ps": 5.05
+  },
+  {
+   "a": "Z11",
+   "b": "Z4",
+   "kind": "vertical",
+   "n_escalators": 5,
+   "n_stairs": 1,
+   "osm": [
+    "way/512295058",
+    "way/630223882",
+    "way/630223883",
+    "way/630223884",
+    "way/630223885",
+    "way/1036510639"
+   ],
+   "source": "OSM",
+   "length_m": 29.5,
+   "time_s": 34.7,
+   "capacity_ps": 9.25
+  },
+  {
+   "a": "S_Porte_du_Louvre",
+   "b": "Z10",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 1,
+   "osm": [
+    "way/569285574",
+    "way/626482711",
+    "way/626482712"
+   ],
+   "source": "OSM",
+   "length_m": 30.7,
+   "time_s": 59.6,
+   "capacity_ps": 5.05
+  },
+  {
+   "a": "P4",
+   "b": "Z17",
+   "kind": "vertical",
+   "n_escalators": 4,
+   "n_stairs": 2,
+   "osm": [
+    "way/609927840",
+    "way/609927841",
+    "way/609927842",
+    "way/609927843",
+    "way/609927844",
+    "way/609927845"
+   ],
+   "source": "OSM",
+   "length_m": 46.8,
+   "time_s": 48.0,
+   "capacity_ps": 10.1
+  },
+  {
+   "a": "S_Porte_Marguerite_de_Navarre",
+   "b": "Z17",
+   "kind": "vertical",
+   "n_escalators": 4,
+   "n_stairs": 2,
+   "osm": [
+    "way/609935062",
+    "way/609935063",
+    "way/609935064",
+    "way/609935065",
+    "way/609935066",
+    "way/609935067"
+   ],
+   "source": "OSM",
+   "length_m": 72.1,
+   "time_s": 91.5,
+   "capacity_ps": 10.1
+  },
+  {
+   "a": "P1",
+   "b": "P5",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 2,
+   "osm": [
+    "way/626354439",
+    "way/626354440"
+   ],
+   "source": "OSM",
+   "length_m": 24.3,
+   "time_s": 30.7,
+   "capacity_ps": 4.5
+  },
+  {
+   "a": "P6",
+   "b": "S_Porte_Rambuteau",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 1,
+   "osm": [
+    "way/626367767"
+   ],
+   "source": "OSM",
+   "length_m": 76.6,
+   "time_s": 71.0,
+   "capacity_ps": 2.25
+  },
+  {
+   "a": "P6",
+   "b": "P7",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 1,
+   "osm": [
+    "way/626371932"
+   ],
+   "source": "OSM",
+   "length_m": 68.5,
+   "time_s": 64.7,
+   "capacity_ps": 2.25
+  },
+  {
+   "a": "S_Porte_du_Jour",
+   "b": "Z27",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 1,
+   "osm": [
+    "way/626406815",
+    "way/626406816",
+    "way/626406817"
+   ],
+   "source": "OSM",
+   "length_m": 22.9,
+   "time_s": 29.6,
+   "capacity_ps": 5.05
+  },
+  {
+   "a": "S_Porte_du_Jour",
+   "b": "Z26",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 1,
+   "osm": [
+    "way/626410276"
+   ],
+   "source": "OSM",
+   "length_m": 54.9,
+   "time_s": 66.2,
+   "capacity_ps": 2.25
+  },
+  {
+   "a": "S_Porte_du_Louvre",
+   "b": "Z26",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 1,
+   "osm": [
+    "way/626410277"
+   ],
+   "source": "OSM",
+   "length_m": 30.1,
+   "time_s": 47.2,
+   "capacity_ps": 2.25
+  },
+  {
+   "a": "P8",
+   "b": "S_Porte_Saint-Eustache",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 1,
+   "osm": [
+    "way/626478398"
+   ],
+   "source": "OSM",
+   "length_m": 34.0,
+   "time_s": 50.2,
+   "capacity_ps": 2.25
+  },
+  {
+   "a": "S_Issues_de_secours_ouest",
+   "b": "S_Porte_du_Louvre",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 5,
+   "osm": [
+    "way/626482698",
+    "way/626482699",
+    "way/626482700",
+    "way/626482705",
+    "way/630886110"
+   ],
+   "source": "OSM",
+   "length_m": 20.3,
+   "time_s": 27.6,
+   "capacity_ps": 11.25
+  },
+  {
+   "a": "Z11",
+   "b": "Z25",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 0,
+   "osm": [
+    "way/630222402",
+    "way/630222403"
+   ],
+   "source": "OSM",
+   "length_m": 32.1,
+   "time_s": 36.7,
+   "capacity_ps": 2.8
+  },
+  {
+   "a": "Z20",
+   "b": "Z8",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 0,
+   "osm": [
+    "way/630222404",
+    "way/630222405"
+   ],
+   "source": "OSM",
+   "length_m": 26.5,
+   "time_s": 32.4,
+   "capacity_ps": 2.8
+  },
+  {
+   "a": "Z25",
+   "b": "Z33",
+   "kind": "vertical",
+   "n_escalators": 4,
+   "n_stairs": 0,
+   "osm": [
+    "way/630222406",
+    "way/630222407",
+    "way/630222408",
+    "way/630222409"
+   ],
+   "source": "OSM",
+   "length_m": 6.4,
+   "time_s": 16.9,
+   "capacity_ps": 5.6
+  },
+  {
+   "a": "S_Porte_Lescot",
+   "b": "Z33",
+   "kind": "vertical",
+   "n_escalators": 4,
+   "n_stairs": 0,
+   "osm": [
+    "way/630222412",
+    "way/630222413",
+    "way/630222414",
+    "way/630222415"
+   ],
+   "source": "OSM",
+   "length_m": 26.5,
+   "time_s": 32.4,
+   "capacity_ps": 5.6
+  },
+  {
+   "a": "Z12",
+   "b": "Z30",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 0,
+   "osm": [
+    "way/630545576",
+    "way/630545578"
+   ],
+   "source": "OSM",
+   "length_m": 20.0,
+   "time_s": 39.4,
+   "capacity_ps": 2.8
+  },
+  {
+   "a": "S_Porte_Berger",
+   "b": "Z30",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 1,
+   "osm": [
+    "way/630545581",
+    "way/630545585",
+    "way/1036542819"
+   ],
+   "source": "OSM",
+   "length_m": 67.0,
+   "time_s": 63.5,
+   "capacity_ps": 5.05
+  },
+  {
+   "a": "S_Porte_Rambuteau",
+   "b": "Z30",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 1,
+   "osm": [
+    "way/630545588",
+    "way/630545589",
+    "way/1036542818"
+   ],
+   "source": "OSM",
+   "length_m": 78.7,
+   "time_s": 72.5,
+   "capacity_ps": 5.05
+  },
+  {
+   "a": "Z21",
+   "b": "Z9",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 1,
+   "osm": [
+    "way/630629459",
+    "way/630629460",
+    "way/630629461"
+   ],
+   "source": "OSM",
+   "length_m": 83.7,
+   "time_s": 76.4,
+   "capacity_ps": 5.05
+  },
+  {
+   "a": "P9",
+   "b": "S_Porte_du_Pont_Neuf",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 0,
+   "osm": [
+    "way/630629462",
+    "way/630629463"
+   ],
+   "source": "OSM",
+   "length_m": 11.2,
+   "time_s": 32.6,
+   "capacity_ps": 2.8
+  },
+  {
+   "a": "P3",
+   "b": "P9",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 2,
+   "osm": [
+    "way/630886108",
+    "way/1036049957"
+   ],
+   "source": "OSM",
+   "length_m": 7.7,
+   "time_s": 17.9,
+   "capacity_ps": 4.5
+  },
+  {
+   "a": "P10",
+   "b": "S_Issues_de_secours_ouest",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 1,
+   "osm": [
+    "way/630955181"
+   ],
+   "source": "OSM",
+   "length_m": 68.9,
+   "time_s": 65.0,
+   "capacity_ps": 2.25
+  },
+  {
+   "a": "P8",
+   "b": "S_Porte_du_Jour",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 1,
+   "osm": [
+    "way/673310178"
+   ],
+   "source": "OSM",
+   "length_m": 105.1,
+   "time_s": 104.8,
+   "capacity_ps": 2.25
+  },
+  {
+   "a": "P11",
+   "b": "S_Porte_Saint-Eustache",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 1,
+   "osm": [
+    "way/942406042"
+   ],
+   "source": "OSM",
+   "length_m": 24.0,
+   "time_s": 24.5,
+   "capacity_ps": 2.25
+  },
+  {
+   "a": "P8",
+   "b": "Z9",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 1,
+   "osm": [
+    "way/1036049963",
+    "way/1036049964",
+    "way/1036049965"
+   ],
+   "source": "OSM",
+   "length_m": 70.3,
+   "time_s": 66.1,
+   "capacity_ps": 5.05
+  },
+  {
+   "a": "P12",
+   "b": "P8",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 1,
+   "osm": [
+    "way/1036049968"
+   ],
+   "source": "OSM",
+   "length_m": 34.1,
+   "time_s": 38.2,
+   "capacity_ps": 2.25
+  },
+  {
+   "a": "Z10",
+   "b": "Z26",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 1,
+   "osm": [
+    "way/1036049973",
+    "way/1036049974",
+    "way/1036049975"
+   ],
+   "source": "OSM",
+   "length_m": 45.1,
+   "time_s": 46.7,
+   "capacity_ps": 5.05
+  },
+  {
+   "a": "Z26",
+   "b": "Z35",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 1,
+   "osm": [
+    "way/1036049976",
+    "way/1036049977",
+    "way/1036049978"
+   ],
+   "source": "OSM",
+   "length_m": 28.6,
+   "time_s": 34.0,
+   "capacity_ps": 5.05
+  },
+  {
+   "a": "P13",
+   "b": "Z14",
+   "kind": "vertical",
+   "n_escalators": 3,
+   "n_stairs": 2,
+   "osm": [
+    "way/1036252146",
+    "way/1036252147",
+    "way/1036252148",
+    "way/1036252149",
+    "way/1036323755"
+   ],
+   "source": "OSM",
+   "length_m": 30.1,
+   "time_s": 35.1,
+   "capacity_ps": 8.7
+  },
+  {
+   "a": "P13",
+   "b": "Z13",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 1,
+   "osm": [
+    "way/1036252150"
+   ],
+   "source": "OSM",
+   "length_m": 45.3,
+   "time_s": 46.8,
+   "capacity_ps": 2.25
+  },
+  {
+   "a": "P13",
+   "b": "Z16",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 0,
+   "osm": [
+    "way/1036261828",
+    "way/1036323756"
+   ],
+   "source": "OSM",
+   "length_m": 45.0,
+   "time_s": 46.7,
+   "capacity_ps": 2.8
+  },
+  {
+   "a": "Z22",
+   "b": "Z7",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 1,
+   "osm": [
+    "way/1036261829",
+    "way/1037972078",
+    "way/1037972079"
+   ],
+   "source": "OSM",
+   "length_m": 4.7,
+   "time_s": 15.6,
+   "capacity_ps": 5.05
+  },
+  {
+   "a": "Q1",
+   "b": "Z5",
+   "kind": "vertical",
+   "n_escalators": 6,
+   "n_stairs": 1,
+   "osm": [
+    "way/1036274005",
+    "way/1036274006",
+    "way/1036274022",
+    "way/1036274023",
+    "way/1036274024",
+    "way/1036323807",
+    "way/1036323808"
+   ],
+   "source": "OSM",
+   "length_m": 25.7,
+   "time_s": 31.8,
+   "capacity_ps": 10.65
+  },
+  {
+   "a": "P4",
+   "b": "Q2",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 0,
+   "osm": [
+    "way/1036274008",
+    "way/1036274009"
+   ],
+   "source": "OSM",
+   "length_m": 98.3,
+   "time_s": 87.7,
+   "capacity_ps": 2.8
+  },
+  {
+   "a": "P13",
+   "b": "P14",
+   "kind": "vertical",
+   "n_escalators": 4,
+   "n_stairs": 6,
+   "osm": [
+    "way/1036274010",
+    "way/1036274011",
+    "way/1036274015",
+    "way/1036323757",
+    "way/1036323782",
+    "way/1036323784",
+    "way/1036323800",
+    "way/1036323806",
+    "way/1036335039",
+    "way/1036335040"
+   ],
+   "source": "OSM",
+   "length_m": 19.9,
+   "time_s": 27.3,
+   "capacity_ps": 19.1
+  },
+  {
+   "a": "P15",
+   "b": "Q0",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 2,
+   "osm": [
+    "way/1036323736",
+    "way/1036323737",
+    "way/1036323738",
+    "way/1036323739"
+   ],
+   "source": "OSM",
+   "length_m": 71.9,
+   "time_s": 67.3,
+   "capacity_ps": 7.3
+  },
+  {
+   "a": "Q0",
+   "b": "Z5",
+   "kind": "vertical",
+   "n_escalators": 3,
+   "n_stairs": 0,
+   "osm": [
+    "way/1036323740",
+    "way/1036323741",
+    "way/1036323743"
+   ],
+   "source": "OSM",
+   "length_m": 28.2,
+   "time_s": 33.7,
+   "capacity_ps": 4.2
+  },
+  {
+   "a": "Q0",
+   "b": "Z4",
+   "kind": "vertical",
+   "n_escalators": 1,
+   "n_stairs": 1,
+   "osm": [
+    "way/1036323744",
+    "way/1036323745"
+   ],
+   "source": "OSM",
+   "length_m": 34.4,
+   "time_s": 38.5,
+   "capacity_ps": 3.65
+  },
+  {
+   "a": "P14",
+   "b": "Z4",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 0,
+   "osm": [
+    "way/1036323748",
+    "way/1036323749"
+   ],
+   "source": "OSM",
+   "length_m": 115.1,
+   "time_s": 100.6,
+   "capacity_ps": 2.8
+  },
+  {
+   "a": "Q3",
+   "b": "Z5",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 4,
+   "osm": [
+    "way/1036323760",
+    "way/1036323765",
+    "way/1036323767",
+    "way/1036323791",
+    "way/1036323795",
+    "way/1036323797"
+   ],
+   "source": "OSM",
+   "length_m": 6.4,
+   "time_s": 16.9,
+   "capacity_ps": 11.8
+  },
+  {
+   "a": "Q2",
+   "b": "Z5",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 4,
+   "osm": [
+    "way/1036323769",
+    "way/1036323773",
+    "way/1036323804",
+    "way/1036323805"
+   ],
+   "source": "OSM",
+   "length_m": 14.6,
+   "time_s": 23.2,
+   "capacity_ps": 9.0
+  },
+  {
+   "a": "P15",
+   "b": "Q2",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 1,
+   "osm": [
+    "way/1036323780",
+    "way/1036323781",
+    "way/1036323788"
+   ],
+   "source": "OSM",
+   "length_m": 73.2,
+   "time_s": 68.3,
+   "capacity_ps": 5.05
+  },
+  {
+   "a": "Z21",
+   "b": "Z30",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 1,
+   "osm": [
+    "way/1036542821"
+   ],
+   "source": "OSM",
+   "length_m": 9.7,
+   "time_s": 19.4,
+   "capacity_ps": 2.25
+  },
+  {
+   "a": "Z18",
+   "b": "Z23",
+   "kind": "vertical",
+   "n_escalators": 1,
+   "n_stairs": 0,
+   "osm": [
+    "way/1036561654"
+   ],
+   "source": "OSM",
+   "length_m": 26.5,
+   "time_s": 32.4,
+   "capacity_ps": 1.4
+  },
+  {
+   "a": "Z16",
+   "b": "Z23",
+   "kind": "vertical",
+   "n_escalators": 1,
+   "n_stairs": 1,
+   "osm": [
+    "way/1036561655",
+    "way/1036561656"
+   ],
+   "source": "OSM",
+   "length_m": 17.2,
+   "time_s": 25.2,
+   "capacity_ps": 3.65
+  },
+  {
+   "a": "Z23",
+   "b": "Z34",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 1,
+   "osm": [
+    "way/1036561659",
+    "way/1036561660",
+    "way/1036561661"
+   ],
+   "source": "OSM",
+   "length_m": 42.1,
+   "time_s": 44.4,
+   "capacity_ps": 5.05
+  },
+  {
+   "a": "Z12",
+   "b": "Z21",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 1,
+   "osm": [
+    "way/1037972060"
+   ],
+   "source": "OSM",
+   "length_m": 15.5,
+   "time_s": 23.9,
+   "capacity_ps": 2.25
+  },
+  {
+   "a": "Z23",
+   "b": "Z32",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 1,
+   "osm": [
+    "way/1037972061"
+   ],
+   "source": "OSM",
+   "length_m": 4.6,
+   "time_s": 15.5,
+   "capacity_ps": 2.25
+  },
+  {
+   "a": "Z12",
+   "b": "Z23",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 1,
+   "osm": [
+    "way/1037972062"
+   ],
+   "source": "OSM",
+   "length_m": 30.9,
+   "time_s": 35.8,
+   "capacity_ps": 2.25
+  },
+  {
+   "a": "Z22",
+   "b": "Z31",
+   "kind": "vertical",
+   "n_escalators": 2,
+   "n_stairs": 1,
+   "osm": [
+    "way/1037972073",
+    "way/1037972074",
+    "way/1037972075"
+   ],
+   "source": "OSM",
+   "length_m": 3.5,
+   "time_s": 14.7,
+   "capacity_ps": 5.05
+  },
+  {
+   "a": "P11",
+   "b": "P12",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 1,
+   "osm": [
+    "way/1200675634"
+   ],
+   "source": "OSM",
+   "length_m": 16.6,
+   "time_s": 18.8,
+   "capacity_ps": 2.25
+  },
+  {
+   "a": "Q0",
+   "b": "Q1",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 52.8,
+   "time_s": 40.6,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Q0",
+   "b": "Q2",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 20.3,
+   "time_s": 15.6,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Q0",
+   "b": "Q3",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 33.4,
+   "time_s": 25.7,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Q1",
+   "b": "Q2",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 34.2,
+   "time_s": 26.3,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Q1",
+   "b": "Q3",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 19.7,
+   "time_s": 15.1,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Q2",
+   "b": "Q3",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 16.7,
+   "time_s": 12.8,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z4",
+   "b": "Z5",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 55.2,
+   "time_s": 42.5,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z6",
+   "b": "Z9",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 30.0,
+   "time_s": 23.1,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z15",
+   "b": "Z6",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 52.9,
+   "time_s": 40.7,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z19",
+   "b": "Z6",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 49.8,
+   "time_s": 38.3,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z7",
+   "b": "Z8",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 23.2,
+   "time_s": 17.8,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z12",
+   "b": "Z7",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 32.6,
+   "time_s": 25.1,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z13",
+   "b": "Z7",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 49.7,
+   "time_s": 38.2,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z16",
+   "b": "Z7",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 63.8,
+   "time_s": 49.1,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z17",
+   "b": "Z7",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 51.9,
+   "time_s": 39.9,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z11",
+   "b": "Z8",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 60.7,
+   "time_s": 46.7,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z12",
+   "b": "Z8",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 10.3,
+   "time_s": 7.9,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z13",
+   "b": "Z8",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 49.4,
+   "time_s": 38.0,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z14",
+   "b": "Z8",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 53.6,
+   "time_s": 41.2,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z16",
+   "b": "Z8",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 41.6,
+   "time_s": 32.0,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z18",
+   "b": "Z8",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 61.3,
+   "time_s": 47.1,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z13",
+   "b": "Z9",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 61.8,
+   "time_s": 47.5,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z11",
+   "b": "Z12",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 59.3,
+   "time_s": 45.6,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z11",
+   "b": "Z16",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 60.1,
+   "time_s": 46.2,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z11",
+   "b": "Z18",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 29.2,
+   "time_s": 22.5,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z12",
+   "b": "Z13",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 47.6,
+   "time_s": 36.6,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z12",
+   "b": "Z14",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 43.4,
+   "time_s": 33.4,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z12",
+   "b": "Z16",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 31.4,
+   "time_s": 24.2,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z12",
+   "b": "Z18",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 55.2,
+   "time_s": 42.4,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z13",
+   "b": "Z14",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 57.3,
+   "time_s": 44.1,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z13",
+   "b": "Z16",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 60.3,
+   "time_s": 46.4,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z13",
+   "b": "Z17",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 67.0,
+   "time_s": 51.5,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z14",
+   "b": "Z16",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 17.3,
+   "time_s": 13.3,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z14",
+   "b": "Z18",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 54.7,
+   "time_s": 42.1,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z15",
+   "b": "Z19",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 21.3,
+   "time_s": 16.3,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z16",
+   "b": "Z18",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 40.7,
+   "time_s": 31.3,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z20",
+   "b": "Z21",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 46.3,
+   "time_s": 35.6,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z20",
+   "b": "Z22",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 34.6,
+   "time_s": 26.6,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z20",
+   "b": "Z23",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 43.6,
+   "time_s": 33.5,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z20",
+   "b": "Z25",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 22.5,
+   "time_s": 17.3,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z21",
+   "b": "Z22",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 30.0,
+   "time_s": 23.1,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z21",
+   "b": "Z23",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 40.9,
+   "time_s": 31.5,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z21",
+   "b": "Z25",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 68.2,
+   "time_s": 52.4,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z22",
+   "b": "Z23",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 57.7,
+   "time_s": 44.4,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z22",
+   "b": "Z25",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 56.0,
+   "time_s": 43.1,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z23",
+   "b": "Z25",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 55.0,
+   "time_s": 42.3,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z27",
+   "b": "Z35",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 16.5,
+   "time_s": 12.7,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z28",
+   "b": "Z29",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 51.2,
+   "time_s": 39.4,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z28",
+   "b": "Z30",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 46.8,
+   "time_s": 36.0,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z28",
+   "b": "Z31",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 35.6,
+   "time_s": 27.4,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z28",
+   "b": "Z32",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 35.9,
+   "time_s": 27.6,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z28",
+   "b": "Z33",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 20.7,
+   "time_s": 15.9,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z29",
+   "b": "Z30",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 45.6,
+   "time_s": 35.0,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z29",
+   "b": "Z32",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 16.9,
+   "time_s": 13.0,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z29",
+   "b": "Z33",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 59.7,
+   "time_s": 46.0,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z29",
+   "b": "Z34",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 29.8,
+   "time_s": 22.9,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z30",
+   "b": "Z31",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 41.8,
+   "time_s": 32.1,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z30",
+   "b": "Z32",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 33.6,
+   "time_s": 25.8,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z30",
+   "b": "Z33",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 66.5,
+   "time_s": 51.2,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z30",
+   "b": "Z34",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 66.4,
+   "time_s": 51.1,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z31",
+   "b": "Z32",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 56.6,
+   "time_s": 43.6,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z31",
+   "b": "Z33",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 53.3,
+   "time_s": 41.0,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z32",
+   "b": "Z33",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 48.1,
+   "time_s": 37.0,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z32",
+   "b": "Z34",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 46.0,
+   "time_s": 35.4,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "Z10",
+   "b": "Z19",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 74.2,
+   "time_s": 57.1,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "P5",
+   "b": "Q24",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 116.1,
+   "time_s": 89.3,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "P8",
+   "b": "Z26",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 103.1,
+   "time_s": 79.3,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "P1",
+   "b": "Z34",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 198.4,
+   "time_s": 152.6,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "P2",
+   "b": "P7",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 106.9,
+   "time_s": 82.3,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "P3",
+   "b": "Z30",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 97.0,
+   "time_s": 74.6,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "P15",
+   "b": "P4",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 102.3,
+   "time_s": 78.7,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "P9",
+   "b": "Z21",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 97.3,
+   "time_s": 74.8,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "P10",
+   "b": "P7",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 373.6,
+   "time_s": 287.4,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "P12",
+   "b": "Z34",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 99.0,
+   "time_s": 76.1,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "P13",
+   "b": "Z5",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 97.2,
+   "time_s": 74.8,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "P14",
+   "b": "Q1",
+   "kind": "couloir",
+   "n_escalators": 0,
+   "n_stairs": 0,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 87.7,
+   "time_s": 67.4,
+   "capacity_ps": 6.5
+  },
+  {
+   "a": "S_Rue_Montorgueil",
+   "b": "Z34",
+   "kind": "vertical",
+   "n_escalators": 0,
+   "n_stairs": 1,
+   "osm": [],
+   "source": "déduit",
+   "length_m": 47.3,
+   "time_s": 48.3,
+   "capacity_ps": 2.25
+  }
+ ]
+}

@@ -17,6 +17,8 @@ interface Etat {
   sorti: boolean;
   parti: boolean;
   vitesse: number;
+  /** Multiplicateur de débit de la porte pour cette personne (1 = normal) : elle « coûte » 1/m passages. */
+  debit: number;
 }
 
 export function creerMouvementSimple(): Mouvement {
@@ -29,7 +31,7 @@ export function creerMouvementSimple(): Mouvement {
   return {
     init(s: Scene, personnes: Personne[]) {
       issues = new Map(s.issues.map((i) => [i.id, i]));
-      etats = personnes.map((p) => ({ cible: null, reste_m: 0, en_file: false, sorti: false, parti: false, vitesse: p.vitesse_m_s }));
+      etats = personnes.map((p) => ({ cible: null, reste_m: 0, en_file: false, sorti: false, parti: false, vitesse: p.vitesse_m_s, debit: 1 }));
       files = new Map(s.issues.map((i) => [i.id, []]));
       credit = new Map(s.issues.map((i) => [i.id, 0]));
       restantes = personnes.length;
@@ -58,6 +60,7 @@ export function creerMouvementSimple(): Mouvement {
           e.reste_m = nouvelle ? distanceVers(nouvelle, premiere) : 0;
         }
         e.vitesse = it.vitesse_voulue_m_s;
+        e.debit = it.mult_debit_porte ?? 1;
       }
 
       // 2. marche (seulement les personnes à l'état 'marche')
@@ -99,13 +102,13 @@ export function creerMouvementSimple(): Mouvement {
         // effet « faster-is-slower » (hypothèse de réglage) : au-delà de 4 pers/m², le débit baisse jusqu'à -40 %
         const facteur = rho > 4 ? Math.max(0.6, 1 - 0.1 * (rho - 4)) : 1;
         let c = (credit.get(iid) ?? 0) + (ouvertes[iid] === false ? 0 : DEBIT_PAR_METRE * is.largeur_m * facteur * dt);
-        while (c >= 1 && f.length) {
+        while (f.length && c >= 1 / etats[f[0]].debit) {
           const id = f.shift()!;
           etats[id].sorti = true;
           etats[id].en_file = false;
           restantes--;
           sorties.push({ id, issue_id: iid });
-          c -= 1;
+          c -= 1 / etats[id].debit;
         }
         credit.set(iid, f.length ? c : 0);
         const rho2 = f.length / is.surface_approche_m2;

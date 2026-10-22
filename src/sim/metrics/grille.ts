@@ -30,6 +30,12 @@ export interface Mesures {
   /** Instant de sortie de chaque personne (Infinity si jamais sortie). */
   t_sortie_s: number[];
   mobilite_reduite: boolean[];
+  /**
+   * Pour chaque personne : instant d'entrée au refuge (espace d'attente sécurisé) et de sortie du refuge (Infinity = jamais entrée /
+   * toujours dedans). Facultatif : absent, personne n'est jamais à l'abri.
+   */
+  pmr_abri_debut_s?: number[];
+  pmr_abri_fin_s?: number[];
   /** Σ niveau de danger x minutes passées derrière l'issue. */
   danger_personnes_minutes: number;
   /** Personnes arrivées dans une station fermée ou une rue barrée. */
@@ -68,6 +74,17 @@ export function calculerGrille(m: Mesures): Grille {
   const ns23 = nonSortis(m.echeances.couvre_feu_s);
   const nsPmr = nonSortis(m.echeances.metro_s, m.mobilite_reduite);
 
+  // PMR sortis OU à l'abri en espace d'attente sécurisé à 22 h : l'évacuation différée est prévue par la règle (arrêté du 25 juin 1980,
+  // CO 57 et GN 8) pour qui ne peut pas sortir seul ; la personne attend alors l'aide en sécurité, elle n'est pas « perdue ». Compte comme
+  // non sécurisée toute PMR ni sortie ni au refuge à 22 h. Sans refuge, ce critère est égal à non_sortis_22h_mobilite_reduite. Il ne
+  // remplace pas ce dernier et n'entre pas dans le total : décision de pondération laissée à Adem (une PMR au refuge n'est pas dehors).
+  const exposeesPmr = m.t_sortie_s.reduce((s, t, i) => {
+    if (!m.mobilite_reduite[i] || t <= m.echeances.metro_s) return s;
+    const abri = (m.pmr_abri_debut_s?.[i] ?? Infinity) <= m.echeances.metro_s && m.echeances.metro_s < (m.pmr_abri_fin_s?.[i] ?? Infinity);
+    return s + (abri ? 0 : 1);
+  }, 0);
+  const pmr_sortis_ou_abri_22h = note(exposeesPmr, nPmr ? 100 * (1 - exposeesPmr / nPmr) : 100);
+
   const non_sortis_22h = note(ns22, 100 * (1 - ns22 / n));
   const non_sortis_23h = note(ns23, 100 * (1 - ns23 / n));
   const non_sortis_22h_mobilite_reduite = note(nsPmr, nPmr ? 100 * (1 - nsPmr / nPmr) : 100);
@@ -91,6 +108,7 @@ export function calculerGrille(m: Mesures): Grille {
     non_sortis_22h,
     non_sortis_23h,
     non_sortis_22h_mobilite_reduite,
+    pmr_sortis_ou_abri_22h,
     zone_danger,
     ecrasement,
     pression_helbing_max: m.pression_max,

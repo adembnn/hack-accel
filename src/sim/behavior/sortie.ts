@@ -67,6 +67,8 @@ export interface CandidatSortie {
   attente_min: number;
   /** Nombre équivalent de portes voisines, elle comprise (1 = isolée) ; utilisé seulement si `correction_iia`. */
   n_voisines?: number;
+  /** Bonus d'utilité ajouté par une réaction (même unité que POIDS) : ordre d'un voisin, retour par la porte connue... Omis = 0. */
+  bonus?: number;
 }
 
 /** Coût en temps (minutes) d'une issue : la même fonction pour choisir et pour reconsidérer. */
@@ -86,6 +88,7 @@ export function utilite(c: CandidatSortie, suivisme: number, params: ParamsChoix
     (c.fermee_connue ? POIDS.fermee_connue : 0) +
     suivisme * 10 * c.part_foule + // NP = nombre de personnes sur l'échelle 0-10 du préprint
     POIDS.personnel * c.consigne +
+    (c.bonus ?? 0) +
     (params.correction_iia ? Math.log(1 / (c.n_voisines ?? 1)) : 0)
   );
 }
