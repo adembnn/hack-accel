@@ -6,6 +6,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as db from './db.mjs';
+import { masquer } from './valider.mjs';
 
 const RACINE = fileURLToPath(new URL('../../', import.meta.url));
 export const CHEMIN_PAR_DEFAUT = [`${RACINE}recherche/09-rex-seed.json`, `${RACINE}../recherche/09-rex-seed.json`]
@@ -50,8 +51,13 @@ export async function chargerRex(pool, chemin = CHEMIN_PAR_DEFAUT) {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
-  const pool = db.ouvrir();
-  await db.migrer(pool);
-  console.log(await chargerRex(pool, process.argv[2]));
-  await pool.end();
+  try {
+    const pool = db.ouvrir();
+    await db.migrer(pool);
+    console.log(await chargerRex(pool, process.argv[2]));
+    await pool.end();
+  } catch (e) {
+    console.error('chargement impossible :', masquer(e.message));
+    process.exit(1);
+  }
 }
