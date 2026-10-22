@@ -123,7 +123,7 @@
      <div class="num" id="rc-n-ex"><strong>–</strong><em>issues en tension</em></div>
      <div class="num"><strong id="rc-n-out">–</strong><em>sorties</em></div>
     </div>
-    <div class="tools"><button class="tb" id="rc-go">Évacuer</button><button class="tb" id="rc-reset">Remettre</button><button class="tb" id="rc-vue">Vue ▾</button><button class="tb" id="rc-old">Ancienne vue</button></div>`, 'rc-top');
+    <div class="tools"><button class="tb" id="rc-go">Évacuer</button><button class="tb" id="rc-reset">Remettre</button><button class="tb" id="rc-full" title="Tout remettre à zéro : foule, perturbations, décisions, vue">Tout réinitialiser</button><button class="tb" id="rc-vue">Vue ▾</button><button class="tb" id="rc-old">Ancienne vue</button></div>`, 'rc-top');
   const rack = mk(`<section class="bay decide" id="rc-b1"></section><section class="bay" id="rc-b2"></section><section class="bay" id="rc-b3"></section>`, 'rc-rack');
   const eff = mk('', 'rc-eff');
   const bot = mk(`<div id="rc-tl"></div><div id="rc-sub">
@@ -463,6 +463,12 @@
   }, 150);
   $('rc-go').onclick = () => { const b = $('evacGo'); if (b) b.click(); };
   $('rc-reset').onclick = () => { const b = $('evacReset'); if (b) b.click(); };
+  // Remise à zéro complète : on oublie les préférences enregistrées par la page (onglet, vue…) sauf le choix de la
+  // régie strips, et on recharge sans cache : foule, perturbations, décisions et alertes repartent de zéro.
+  $('rc-full').onclick = () => {
+    try { const garde = localStorage.getItem('regieC'); localStorage.clear(); if (garde !== null) localStorage.setItem('regieC', garde); sessionStorage.clear(); } catch (x) { /* stockage indisponible */ }
+    const u = new URL(location.href); u.searchParams.set('r', Date.now()); location.replace(u.toString());
+  };
   $('rc-old').onclick = () => afficher(false);
   btnNew.onclick = () => afficher(true);
 
