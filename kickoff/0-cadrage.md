@@ -24,3 +24,17 @@
 9. **Réalisable demain sans rien installer** : la donnée existe déjà et s'obtient par API ou fichier à 9h. Pas de caméra à poser, pas de capteur, pas de tournage par l'équipe, pas de flotte jouée par nous.
 10. **Effet wow réel** : un moment de la démo que le jury raconte le soir même (échelle, vitesse, ou une pièce qu'un humain met des semaines à produire, faite devant lui).
 11. **Commercialisable à l'échelle d'un fonds** : Accel investit. Il faut un client qui paie déjà ce travail (un salaire, un prestataire, une ligne de budget), un prix, un nombre de clients en Europe, et une donnée qui s'accumule et rend la copie difficile.
+
+## Critères officiels du jury Paris (donnés par Adem, 22 oct., remplacent le proxy Amsterdam)
+1. **Problème client et valeur produit** : vrai problème pour un utilisateur clair ; l'adopterait-il ?
+2. **Capacité de l'agent** : comportement avancé (raisonnement en plusieurs étapes, autonomie, travail d'équipe, apprentissage), au-delà d'un simple appel.
+3. **La donnée au cœur** : le produit dépend-il de la donnée bien utilisée (fraîcheur, échelle, ancrage dans des sources, mémoire), ou n'est-elle qu'un décor ?
+4. **Preuve que ça marche** : un résultat mesurable (précision, coût, latence, taux de succès, temps gagné).
+5. **Exécution et pitch** : démo soignée et compréhensible, différence nette, route crédible vers les premiers utilisateurs.
+
+## Livrables à rendre
+- Nom du projet et pitch en une ligne ; URL hébergée.
+- Démo de 3 minutes en MP4.
+- La couche de données en action : fichier TXT.
+- Comparatifs avant / après (benchmarks) : fichiers.
+- Une slide de pitch : lien.
