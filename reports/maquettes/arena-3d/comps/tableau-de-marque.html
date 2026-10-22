@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Régie Arena · tableau de marque</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;800&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:'DSEG7';src:url(https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2) format('woff2')}
+:root{--maple:#D9A869;--dark:#1B1D21;--led:#FFB21E;--paint:#F4F1EA;--blue:#2B5BA8}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--maple);font-family:'Barlow Semi Condensed',sans-serif;overflow:hidden;color:var(--dark)}
+::selection{background:var(--led)}
+iframe{position:fixed;inset:0;width:100%;height:100%;border:0}
+.seg{font-family:'DSEG7';color:var(--led);font-variant-numeric:tabular-nums;position:relative}
+.seg .ghost{position:absolute;left:0;top:0;color:rgba(255,178,30,.09)}
+.cube{position:fixed;left:50%;top:14px;transform:translateX(-50%);width:760px;background:var(--dark);color:var(--paint);padding:12px 18px 14px;box-shadow:0 18px 30px rgba(40,25,5,.35);display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:center}
+.cube .side{text-align:center}.cube .side .t{font:800 17px 'Barlow Semi Condensed';letter-spacing:.08em}
+.cube .side .seg{font-size:46px;line-height:1.15}
+.cube .mid{text-align:center;border-left:2px solid #2c2f35;border-right:2px solid #2c2f35;padding:0 22px}
+.cube .mid .seg{font-size:62px;line-height:1}
+.cube .mid .per{font:600 15px 'Barlow Semi Condensed';color:var(--paint);letter-spacing:.06em;margin-top:4px}
+.cube .shot{grid-column:1/-1;display:flex;gap:10px;justify-content:center}
+.shotc{background:#111;border:2px solid #2c2f35;padding:4px 12px;display:flex;align-items:center;gap:10px;font:600 15px 'Barlow Semi Condensed'}
+.shotc .seg{font-size:26px}.shotc.red .seg{color:#FF4B3E}
+.face{position:fixed;left:16px;top:24px;width:280px;background:var(--dark);color:var(--paint);padding:0 0 10px}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr)}.tabs b{font:800 14px 'Barlow Semi Condensed';text-align:center;padding:8px 0;color:#8b8f97;border-bottom:3px solid #2c2f35}.tabs b.on{color:var(--led);border-color:var(--led)}
+.row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid #2c2f35;font:600 18px 'Barlow Semi Condensed'}
+.row .seg{font-size:20px;margin-left:auto}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--led);box-shadow:0 0 0 3px rgba(255,178,30,.18)}.dot.off{background:#3a3d44;box-shadow:none}
+.row.closed{color:#8b8f97}.row.closed .dot{background:#FF4B3E}
+.prop{position:fixed;right:16px;top:24px;width:320px;display:flex;flex-direction:column;gap:10px}
+.card{background:var(--paint);border:3px solid var(--dark);padding:10px 12px}
+.card .h{display:flex;align-items:center;gap:8px;font:800 15px 'Barlow Semi Condensed';letter-spacing:.06em}
+.card .code{background:var(--blue);color:var(--paint);padding:1px 8px}
+.card p{margin:6px 0 8px;font:500 19px/1.25 'Barlow Semi Condensed'}
+.card .a{display:flex;gap:8px}.card .a b{font:800 15px 'Barlow Semi Condensed';background:var(--dark);color:var(--led);padding:6px 12px}.card .a b.n{background:transparent;color:var(--dark);border:2px solid var(--dark)}
+.card .gain{margin-left:auto;font:600 15px 'Barlow Semi Condensed'}
+.clockbar{position:fixed;left:16px;right:16px;bottom:16px;height:74px;background:var(--dark);color:var(--paint);display:grid;grid-template-columns:150px 1fr;align-items:center}
+.clockbar .l{padding-left:16px;font:800 15px 'Barlow Semi Condensed';letter-spacing:.06em}
+.track{position:relative;height:74px;margin-right:16px}
+.track .court{position:absolute;left:0;right:0;top:36px;height:4px;background:#2c2f35}
+.track .done{position:absolute;left:0;width:11%;top:36px;height:4px;background:var(--led)}
+.mk{position:absolute;top:10px;font:600 14px 'Barlow Semi Condensed';white-space:nowrap}.mk::after{content:'';position:absolute;left:0;top:22px;width:3px;height:22px;background:var(--led)}
+.mk.red::after{background:#FF4B3E}
+.tag3d{position:fixed;font:800 16px 'Barlow Semi Condensed';background:var(--dark);color:var(--led);padding:4px 10px;letter-spacing:.04em}
+.fake{position:fixed;left:310px;bottom:98px;font:500 12px 'Barlow Semi Condensed';background:var(--paint);padding:2px 6px}
+</style></head><body>
+<iframe src="../index.html?embed=1&sty=K&cam=95,120,215,-5,4,20"></iframe>
+<div class="cube">
+ <div class="side"><div class="t">DEDANS</div><div class="seg"><span class="ghost">8888</span>5312</div></div>
+ <div class="mid"><div class="seg"><span class="ghost">88:88</span>02:07</div><div class="per">SORTIE · BUDGET 20:00</div></div>
+ <div class="side"><div class="t">DEHORS</div><div class="seg"><span class="ghost">8888</span>1688</div></div>
+ <div class="shot"><span class="shotc">PAR-1 EN ROUTE <span class="seg"><span class="ghost">88</span>40</span></span><span class="shotc red">V3 · PERS./M² <span class="seg"><span class="ghost">8.8</span>4.6</span></span><span class="shotc">T3B RAME <span class="seg"><span class="ghost">8:88</span>1:12</span></span></div>
+</div>
+<aside class="face">
+ <div class="tabs"><b class="on">DIRECTEUR</b><b>SÉCURITÉ</b><b>RATP</b><b>PRÉFET</b></div>
+ <div class="row"><span class="dot"></span>Porte 1 · parvis ouest<span class="seg">140</span></div>
+ <div class="row"><span class="dot"></span>Porte 2 · parvis centre<span class="seg">310</span></div>
+ <div class="row"><span class="dot"></span>Porte 3 · parvis est<span class="seg">90</span></div>
+ <div class="row closed"><span class="dot"></span>Porte 4 · Chapelle<span class="seg" style="color:#FF4B3E">00</span></div>
+ <div class="row"><span class="dot off"></span>Retenir tribune haute</div>
+ <div class="row"><span class="dot off"></span>Sono · coursives</div>
+ <div class="row"><span class="dot"></span>Mode · humain + IA</div>
+</aside>
+<span class="tag3d" style="left:600px;top:300px">V3 · 4.6 PERS./M²</span>
+<span class="tag3d" style="left:470px;top:600px">PAR-1 → T3B EST</span>
+<span class="tag3d" style="left:150px;top:700px;color:#FF4B3E">M12 FERMÉ</span>
+<aside class="prop">
+ <div class="card"><div class="h"><span class="code">TH</span>TEMPS MORT PROPOSÉ<span class="gain">−2:00</span></div><p>Sono tribune haute : « restez à vos places trois minutes ».</p><div class="a"><b>ENVOYER</b><b class="n">ÉCARTER</b></div></div>
+ <div class="card"><div class="h"><span class="code">CN</span>CHANGEMENT PROPOSÉ<span class="gain">−1:30</span></div><p>Ouvrir l'issue de secours nord, 4 agents de la coursive nord.</p><div class="a"><b>ENVOYER</b><b class="n">ÉCARTER</b></div></div>
+</aside>
+<div class="clockbar"><div class="l">22:12 → 22:32</div><div class="track"><div class="court"></div><div class="done"></div>
+ <span class="mk" style="left:0">22:12 sifflet</span><span class="mk red" style="left:10%">22:14 M12 fermé</span><span class="mk" style="left:22%">PAR-1 → tram</span><span class="mk" style="left:70%">objectif 95 % dehors</span></div></div>
+<span class="fake">Maquette : chiffres factices, 3D réelle (OSM)</span>
+</body></html>

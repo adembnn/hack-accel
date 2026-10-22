@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Régie Arena · signalétique</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;700;800&family=Fira+Sans+Condensed:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--y:#FFD100;--k:#111111;--w:#FFFFFF;--c:#D9D9D4}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--c);font-family:'Fira Sans',sans-serif;color:var(--k);overflow:hidden}
+::selection{background:var(--y);color:var(--k)}
+iframe{position:fixed;inset:0;width:100%;height:100%;border:0}
+.band{background:var(--y);color:var(--k);display:flex;align-items:center;gap:14px;padding:0 16px;height:52px;font-weight:700;font-size:22px;white-space:nowrap}
+.band.k{background:var(--k);color:var(--w)}
+.ico{width:36px;height:36px;flex:none}
+.sq{background:var(--k);color:var(--y);width:44px;height:44px;display:grid;place-items:center;font:800 24px 'Fira Sans Condensed';flex:none}
+.band .sq{margin-left:-10px}
+.min{margin-left:auto;font:500 18px 'Fira Sans'}
+/* barre du haut */
+.top{position:fixed;left:0;right:0;top:0;height:64px;background:var(--k);color:var(--w);display:flex;align-items:center;padding:0 22px;gap:28px}
+.top .site{font:700 22px 'Fira Sans'}.top .site span{color:var(--y)}
+.top .clock{margin-left:auto;font:800 40px 'Fira Sans Condensed';letter-spacing:.02em;color:var(--y);font-variant-numeric:tabular-nums}
+.mode{display:flex;border:2px solid var(--w)}.mode b{padding:6px 14px;font:500 17px 'Fira Sans'}.mode b.on{background:var(--w);color:var(--k)}
+/* colonne leviers */
+.lev{position:fixed;left:18px;top:84px;width:300px;display:flex;flex-direction:column;gap:6px}
+.lev h2,.ord h2{margin:10px 0 4px;font:700 15px 'Fira Sans';color:var(--k);background:var(--w);display:inline-block;padding:3px 8px;align-self:flex-start}
+.gate{display:flex;align-items:center;gap:12px;background:var(--y);height:56px;padding-right:12px}
+.gate .n{background:var(--k);color:var(--y);width:56px;height:56px;display:grid;place-items:center;font:800 32px 'Fira Sans Condensed'}
+.gate .t{font:700 18px 'Fira Sans';line-height:1.1}.gate .t small{display:block;font:400 14px 'Fira Sans'}
+.gate.off{background:var(--k);color:var(--w)}.gate.off .n{background:var(--w);color:var(--k);text-decoration:line-through}
+.sw{margin-left:auto;width:46px;height:26px;border:3px solid currentColor;position:relative}.sw::after{content:'';position:absolute;top:3px;right:3px;width:14px;height:14px;background:currentColor}.gate.off .sw::after{right:auto;left:3px}
+/* panneaux suspendus sur la scène */
+.hang{position:fixed;display:flex;flex-direction:column;filter:drop-shadow(0 6px 10px rgba(0,0,0,.25))}
+.hang::before{content:'';position:absolute;left:24px;top:-26px;width:3px;height:26px;background:var(--k)}
+.hang::after{content:'';position:absolute;right:24px;top:-26px;width:3px;height:26px;background:var(--k)}
+/* colonne ordres */
+.ord{position:fixed;right:18px;top:84px;width:420px;display:flex;flex-direction:column;gap:8px}
+.o{background:var(--w);border-top:6px solid var(--k)}
+.o .head{display:flex;align-items:center;gap:10px;padding:10px 12px 4px}
+.o .who{font:800 22px 'Fira Sans Condensed';background:var(--k);color:var(--y);padding:2px 8px}
+.o .eta{margin-left:auto;font:700 18px 'Fira Sans';font-variant-numeric:tabular-nums}
+.o p{margin:4px 12px 12px;font:500 19px/1.3 'Fira Sans'}
+.o.ia{border-top-color:var(--y)}
+.o .act{display:flex;gap:8px;padding:0 12px 12px}.o .act b{font:700 16px 'Fira Sans';padding:8px 14px;background:var(--k);color:var(--y)}.o .act b.no{background:transparent;color:var(--k);border:2px solid var(--k)}
+/* bas */
+.bot{position:fixed;left:0;right:0;bottom:0;height:96px;background:var(--k);color:var(--w);display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:40px;padding:0 22px}
+.big{font:800 54px 'Fira Sans Condensed';color:var(--y);line-height:1;font-variant-numeric:tabular-nums}.lbl{font:500 15px 'Fira Sans'}
+.budget{position:relative;height:40px}
+.budget .bar{position:absolute;left:0;right:0;top:16px;height:8px;background:#333}
+.budget .fill{position:absolute;left:0;width:11%;top:16px;height:8px;background:var(--y)}
+.budget .ev{position:absolute;top:-2px;font:500 13px 'Fira Sans';color:var(--w);white-space:nowrap}
+.budget .ev::after{content:'';position:absolute;left:0;top:18px;width:3px;height:16px;background:var(--y)}
+.budget .end{right:0;left:auto}
+.fake{position:fixed;left:340px;bottom:104px;font:400 12px 'Fira Sans';background:var(--w);padding:2px 6px}
+</style></head><body>
+<iframe src="../index.html?embed=1&sty=W&cam=95,120,215,-5,4,20"></iframe>
+<svg width="0" height="0" style="position:absolute"><defs>
+ <symbol id="arr" viewBox="0 0 36 36"><path d="M30 18H8M16 9l-9 9 9 9" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="square"/></symbol>
+ <symbol id="arrR" viewBox="0 0 36 36"><path d="M6 18h22M20 9l9 9-9 9" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="square"/></symbol>
+ <symbol id="tram" viewBox="0 0 36 36"><rect x="9" y="7" width="18" height="20" rx="3" fill="currentColor"/><rect x="12" y="10" width="12" height="7" fill="#FFD100"/><path d="M11 31l3-4M25 31l-3-4M14 4h8" stroke="currentColor" stroke-width="2.5"/></symbol>
+ <symbol id="metro" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" stroke-width="3.5"/><path d="M10 25V11l8 9 8-9v14" fill="none" stroke="currentColor" stroke-width="3.5"/></symbol>
+ <symbol id="walk" viewBox="0 0 36 36"><circle cx="19" cy="6" r="3.2" fill="currentColor"/><path d="M18 11l-4 9 5 4-2 8M18 11l6 6 5-1M15 19l-6 2" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+ <symbol id="stop" viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="none" stroke="currentColor" stroke-width="3.5"/><path d="M8 28L28 8" stroke="currentColor" stroke-width="3.5"/></symbol>
+</defs></svg>
+
+<header class="top"><span class="site">Adidas Arena · <span>PC sécurité</span></span><span>Paris Basketball – Monaco · fin de match</span>
+ <div class="mode"><b>Humain</b><b class="on">Les deux</b><b>IA</b></div><span class="clock">22:14:07</span></header>
+
+<aside class="lev">
+ <h2>Portes publiques</h2>
+ <div class="gate"><span class="n">1</span><span class="t">Parvis ouest<small>6 m · file 140</small></span><span class="sw"></span></div>
+ <div class="gate"><span class="n">2</span><span class="t">Parvis centre<small>8 m · file 310</small></span><span class="sw"></span></div>
+ <div class="gate"><span class="n">3</span><span class="t">Parvis est<small>6 m · file 90</small></span><span class="sw"></span></div>
+ <div class="gate off"><span class="n">4</span><span class="t">Porte Chapelle<small>fermée par vous · 22:13</small></span><span class="sw"></span></div>
+ <h2>Transports</h2>
+ <div class="gate off"><span class="n" style="text-decoration:none"><svg class="ico" style="color:#111"><use href="#metro"/></svg></span><span class="t">Ligne 12 fermée<small>police · 22:14</small></span></div>
+ <div class="gate"><span class="n" style="text-decoration:none"><svg class="ico" style="color:#FFD100"><use href="#tram"/></svg></span><span class="t">T3b · 1 rame / 3 min<small>demandé à la RATP</small></span></div>
+</aside>
+
+<div class="hang" style="left:470px;top:560px"><div class="band"><span class="sq">2</span><svg class="ico"><use href="#arr"/></svg>Sortie parvis<span class="min">&nbsp;1 min</span></div><div class="band k"><svg class="ico" style="color:#fff"><use href="#tram"/></svg>T3b Colette Besson →<span class="min">&nbsp;6 min</span></div></div>
+<div class="hang" style="left:610px;top:250px"><div class="band"><span class="sq">V3</span><svg class="ico"><use href="#arrR"/></svg>Coursive nord<span class="min">&nbsp;4,6 pers./m²</span></div></div>
+<div class="hang" style="left:150px;top:700px"><div class="band k"><svg class="ico" style="color:#FFD100"><use href="#stop"/></svg>M 12 Porte de la Chapelle · fermé</div></div>
+
+<aside class="ord">
+ <h2>Ordres en cours</h2>
+ <div class="o"><div class="head"><span class="who">PAR</span>Équipe Parvis · 12<span class="eta">en poste dans 40 s</span></div><p>Orienter le public vers le tram T3b, arrêt Colette Besson, côté est.</p></div>
+ <div class="o"><div class="head"><span class="who">MET</span>Bouches métro · 6<span class="eta">en poste</span></div><p>Tenir les grilles de la ligne 12 fermées, renvoyer vers le parvis.</p></div>
+ <h2>Proposé par l'IA</h2>
+ <div class="o ia"><div class="head"><span class="who">TH</span>Tribune haute<span class="eta">gain estimé : −2 min</span></div><p>Annonce sono : « restez à vos places trois minutes ». Le vomitoire 3 se vide d'abord.</p><div class="act"><b>Envoyer</b><b class="no">Écarter</b></div></div>
+ <div class="o ia"><div class="head"><span class="who">CN</span>Coursive nord · 8<span class="eta">gain estimé : −90 s</span></div><p>Ouvrir l'issue de secours nord et y poster 4 agents.</p><div class="act"><b>Envoyer</b><b class="no">Écarter</b></div></div>
+</aside>
+
+<footer class="bot">
+ <div><div class="big">5 312</div><div class="lbl">encore dans l'Arena</div></div>
+ <div><div class="big">4,6</div><div class="lbl">pers./m² au vomitoire 3</div></div>
+ <div class="budget"><div class="bar"></div><div class="fill"></div>
+  <span class="ev" style="left:0">22:12 coup de sifflet</span><span class="ev" style="left:15%">22:14 ligne 12 fermée</span><span class="ev" style="left:36%">objectif 95 % dehors</span><span class="ev end">22:32 fin du budget</span></div>
+</footer>
+<span class="fake">Maquette : chiffres factices, 3D réelle (OSM)</span>
+</body></html>

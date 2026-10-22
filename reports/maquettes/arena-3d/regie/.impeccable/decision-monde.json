@@ -1,0 +1,125 @@
+{
+  "title": "Régie de l'Adidas Arena : choisir le monde visuel",
+  "question": "Le tirage a désigné « Le tableau de marque ». Garde-le, prends une alternative, ou relance.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Le tableau de marque",
+      "kicker": "THE ROLL",
+      "lineage": "le cube d'affichage suspendu au-dessus du parquet, horloge des 24 secondes, tracés du terrain",
+      "thesis": "La régie se lit comme le tableau de marque de la salle : chaque ordre a son chrono, la foule est le score.",
+      "palette": ["#D9A869", "#1B1D21", "#FFB21E", "#F4F1EA", "#2B5BA8"],
+      "materials": ["parquet d'érable verni", "afficheurs à segments", "peinture de traçage"],
+      "viewport": "Le parquet vu de dessus sert de sol à la 3D ; au-dessus, un cube à quatre faces (directeur, sécurité, RATP, préfecture) ; en bas, la frise des ordres comptée comme une horloge des 24 secondes.",
+      "risk": "Devient un déguisement sportif si les afficheurs décorent au lieu de compter.",
+      "raised": [
+        {"from": "challenger-jcard", "raise": "Budget de temps strict : la sortie doit tenir en 20 min, chaque ordre affiche sa durée et la frise déborde visiblement quand on dépasse."},
+        {"from": "challenger-streaming", "raise": "Sélectionner une équipe éteint le reste de la scène : seule sa zone et ses personnes restent pleines."},
+        {"from": "challenger-saville", "raise": "Chaque équipe porte un indicatif radio codé (PAR-1, CN-2…), décodé en clair au survol, jamais écrit deux fois."},
+        {"from": "challenger-ikeda", "raise": "Deux encres par afficheur et aucun gris pour dire un état : allumé ou éteint."}
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "Le tableau SSI du PC",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "le tableau de mise en sécurité incendie (CMSI) que le PC a déjà sous les yeux",
+      "thesis": "La régie reprend la façade du tableau incendie : une zone = un voyant, un levier = une touche à bascule gravée.",
+      "palette": ["#C7CCC9", "#141414", "#C8102E", "#F2A900", "#00843D"],
+      "materials": ["tôle peinte", "voyants à LED", "plaques gravées"],
+      "viewport": "La 3D au centre, encadrée par une façade de touches gravées par zone (portes, vomitoires, bouches, rues) ; les voyants clignotent quand une zone sature.",
+      "risk": "Lisible d'emblée pour le PC mais proche du skeuomorphisme industriel ; c'est aussi la direction la plus prévisible pour un poste de sécurité."
+    },
+    {
+      "id": "challenger-wayfinding",
+      "label": "Signalétique de terminal",
+      "verdict": "wins",
+      "lineage": "bandeaux jaunes suspendus d'un grand aéroport, pictogrammes blancs sur carré noir",
+      "thesis": "Rediriger une foule, c'est réécrire des panneaux : chaque porte, vomitoire et quai devient un bandeau jaune que la régie réécrit.",
+      "palette": ["#FFD100", "#111111", "#FFFFFF"],
+      "materials": ["bandeaux suspendus", "pictogrammes", "flèches à règle d'arête"],
+      "viewport": "La 3D de l'Arena avec, à chaque point de décision de la foule, un bandeau jaune ; à droite la pile des ordres en bandeaux ; numéros de portes en très grand.",
+      "case": "Fusionne très bien : le PC et le jury lisent la consigne sans légende, et une route fermée disparaît du bandeau.",
+      "risk": "Le jaune doit rester réservé à l'orientation, sinon il devient décor.",
+      "hero": "https://impeccable.style/worlds/cards/wayfinding-cartography-signage-terminal-yellow-wayfinding-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/wayfinding-cartography-signage-terminal-yellow-wayfinding.webp"
+    },
+    {
+      "id": "challenger-orienteering",
+      "label": "Carte de course d'orientation",
+      "verdict": "competitive",
+      "lineage": "cartes normalisées ISOM : terrain en encres fixes, parcours en violet",
+      "thesis": "Le quartier en encres fixes, les ordres tracés en violet par-dessus comme des postes à rejoindre.",
+      "palette": ["#FFFFFF", "#FFC845", "#B36A2E", "#00A3E0", "#B5179E"],
+      "materials": ["encres d'imprimerie", "courbes", "cercles de poste"],
+      "viewport": "Vue de dessus à l'échelle, chaque équipe = un parcours violet numéroté de son poste à sa cible.",
+      "case": "Très clair pour lire les ordres ; perd sur l'identification : le PC ne pratique pas l'orientation.",
+      "risk": "Plat et cartographique : perd la 3D et la foule en volume.",
+      "hero": "https://impeccable.style/worlds/cards/notation-diagram-systems-orienteering-map-hero.webp"
+    },
+    {
+      "id": "challenger-jcard",
+      "label": "Jaquette de cassette",
+      "verdict": "declined",
+      "lineage": "jaquette de cassette écrite au stylo bille",
+      "thesis": "Faces A et B minutées.",
+      "palette": ["#1E3A8A", "#FFFFFF", "#C8102E"],
+      "materials": ["stylo bille", "papier ligné"],
+      "viewport": "Deux faces de 20 min.",
+      "case": "Le PC ne s'y reconnaît pas et la 3D y perd.",
+      "kept": "Budget de temps strict : rien ne déborde sans se voir.",
+      "risk": "Nostalgie hors sujet."
+    },
+    {
+      "id": "challenger-streaming",
+      "label": "Mur de vignettes",
+      "verdict": "declined",
+      "lineage": "catalogue de streaming",
+      "thesis": "Rangées de vignettes, celle qui a le focus grandit.",
+      "palette": ["#141414", "#E50914"],
+      "materials": ["affiches", "rangées"],
+      "viewport": "Rangées d'équipes.",
+      "case": "Hors du monde du PC, perd la carte.",
+      "kept": "Le focus éteint tout le reste.",
+      "risk": "Catalogue de divertissement."
+    },
+    {
+      "id": "challenger-saville",
+      "label": "Pochette codée",
+      "verdict": "declined",
+      "lineage": "catalogue d'un label, codes couleur à la place des mots",
+      "thesis": "Tout est codé, rien n'est écrit deux fois.",
+      "palette": ["#0A0A0A", "#FFFFFF"],
+      "materials": ["noir mat", "filets blancs"],
+      "viewport": "Un index numéroté.",
+      "case": "Trop crypté pour une urgence.",
+      "kept": "Indicatifs codés, décodés au survol.",
+      "risk": "Illisible sous stress."
+    },
+    {
+      "id": "challenger-ikeda",
+      "label": "Champ de données",
+      "verdict": "declined",
+      "lineage": "installations noir et blanc en codes-barres",
+      "thesis": "Noir et blanc purs, densité de chiffres.",
+      "palette": ["#000000", "#FFFFFF"],
+      "materials": ["barres", "chiffres"],
+      "viewport": "Un mur de barres.",
+      "case": "Spectaculaire mais ne montre ni la foule ni les ordres.",
+      "kept": "Deux encres, aucun gris pour un état.",
+      "risk": "Stroboscope en salle de crise."
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "buildPath": {"value": "code"},
+  "canon": true,
+  "canonCard": {
+    "label": "Le standard du secteur",
+    "thesis": "La salle de crise que tout le monde attend : fond sombre, carte au centre, panneaux latéraux.",
+    "palette": ["#0F172A", "#E2E8F0", "#3B82F6"],
+    "materials": ["grille nette", "carte 3D"],
+    "viewport": "Carte au centre, leviers à gauche, propositions à droite, frise en bas.",
+    "risk": "Indistinguable de n'importe quel outil de supervision."
+  },
+  "steer": true
+}

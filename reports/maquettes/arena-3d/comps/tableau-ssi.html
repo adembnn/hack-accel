@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Régie Arena · tableau SSI</title>
+<link href="https://fonts.googleapis.com/css2?family=B612:wght@400;700&family=B612+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{--steel:#C7CCC9;--steel2:#B4BAB6;--ink:#141414;--red:#C8102E;--amb:#F2A900;--grn:#00843D}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--steel);font-family:'B612',sans-serif;color:var(--ink);overflow:hidden}
+::selection{background:var(--amb)}
+.win{position:fixed;left:330px;right:350px;top:70px;bottom:120px;border:6px solid var(--ink);box-shadow:inset 0 0 0 2px #fff4,0 2px 0 #fff8}
+.win iframe{width:100%;height:100%;border:0;display:block}
+.plate{position:fixed;left:16px;right:16px;top:12px;height:46px;background:var(--steel2);border:2px solid #8E9490;display:flex;align-items:center;padding:0 18px;gap:18px;box-shadow:inset 0 1px 0 #fff7,inset 0 -1px 0 #0002}
+.plate .eng{font:700 17px 'B612';letter-spacing:.14em;color:#2a2c2b;text-shadow:0 1px 0 #fff8}
+.screw{width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#eee,#8e9490);position:relative}.screw::after{content:'';position:absolute;left:2px;right:2px;top:5px;height:2px;background:#555;transform:rotate(35deg)}
+.plate .clock{margin-left:auto;font:700 26px 'B612 Mono';background:#1d2a1f;color:#9BE29B;padding:2px 12px;border:2px solid #0d0d0d}
+.col{position:fixed;top:70px;bottom:120px;width:300px;background:var(--steel2);border:2px solid #8E9490;padding:10px 12px;box-shadow:inset 0 1px 0 #fff7}
+.col.l{left:16px}.col.r{right:16px;width:320px}
+.col h2{margin:4px 0 8px;font:700 13px 'B612';letter-spacing:.14em;border-bottom:2px solid var(--ink);padding-bottom:4px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.key{background:#2a2c2b;border-radius:3px;padding:6px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 2px 0 #0006,inset 0 1px 0 #fff2}
+.key .led{width:12px;height:12px;border-radius:50%;background:var(--grn);box-shadow:0 0 6px 1px #00843Daa}
+.key .led.r{background:var(--red);box-shadow:0 0 6px 1px #C8102Eaa}.key .led.a{background:var(--amb);box-shadow:0 0 6px 1px #F2A900aa}.key .led.o{background:#555;box-shadow:none}
+.key b{font:700 12px 'B612';color:#E8ECEA;letter-spacing:.04em;text-align:center}
+.key.wide{grid-column:span 2}
+.alarm{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #8E9490}
+.alarm .led{flex:none;margin-top:4px;width:12px;height:12px;border-radius:50%;background:var(--amb);box-shadow:0 0 6px 1px #F2A900aa}.alarm .led.r{background:var(--red)}
+.alarm p{margin:0;font:400 15px/1.3 'B612'}.alarm small{display:block;font:700 12px 'B612 Mono';color:#444}
+.btns{display:flex;gap:6px;margin-top:6px}.btns b{font:700 12px 'B612';padding:6px 10px;background:#2a2c2b;color:#E8ECEA;border-radius:2px;box-shadow:0 2px 0 #0006}.btns b.g{background:var(--grn)}
+.bot{position:fixed;left:16px;right:16px;bottom:12px;height:96px;background:var(--steel2);border:2px solid #8E9490;display:grid;grid-template-columns:repeat(4,auto) 1fr;gap:16px;align-items:center;padding:0 16px}
+.lcd{background:#1d2a1f;border:3px solid #0d0d0d;padding:4px 12px;min-width:150px}
+.lcd .v{font:700 34px 'B612 Mono';color:#9BE29B;line-height:1.1}.lcd .k{font:700 11px 'B612';color:#6fa36f;letter-spacing:.1em}
+.lcd.warn .v{color:#F2C14E}
+.radio{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.radio span{font:700 12px 'B612 Mono';background:#2a2c2b;color:#E8ECEA;padding:5px 8px;display:flex;gap:6px;align-items:center}
+.radio i{width:9px;height:9px;border-radius:50%;background:var(--grn)}.radio i.a{background:var(--amb)}
+.fake{position:fixed;left:340px;top:76px;font:400 12px 'B612';background:#fffc;padding:2px 6px}
+</style></head><body>
+<div class="plate"><span class="screw"></span><span class="eng">ADIDAS ARENA · POSTE DE COMMANDE SÉCURITÉ · TABLEAU DE SORTIE</span><span class="clock">22:14:07</span><span class="screw"></span></div>
+<aside class="col l">
+ <h2>PORTES PUBLIQUES</h2>
+ <div class="grid"><div class="key"><span class="led"></span><b>P1</b></div><div class="key"><span class="led"></span><b>P2</b></div><div class="key"><span class="led"></span><b>P3</b></div><div class="key"><span class="led r"></span><b>P4</b></div></div>
+ <h2>VOMITOIRES</h2>
+ <div class="grid"><div class="key"><span class="led"></span><b>V1</b></div><div class="key"><span class="led"></span><b>V2</b></div><div class="key"><span class="led a"></span><b>V3</b></div><div class="key"><span class="led"></span><b>V4</b></div><div class="key"><span class="led"></span><b>V5</b></div><div class="key"><span class="led"></span><b>V6</b></div><div class="key"><span class="led"></span><b>V7</b></div><div class="key"><span class="led"></span><b>V8</b></div></div>
+ <h2>TRANSPORTS</h2>
+ <div class="grid"><div class="key wide"><span class="led r"></span><b>MÉTRO 12</b></div><div class="key wide"><span class="led"></span><b>TRAM T3B</b></div></div>
+ <h2>TRIBUNES · SONO</h2>
+ <div class="grid"><div class="key wide"><span class="led o"></span><b>RETENIR HAUTE</b></div><div class="key wide"><span class="led o"></span><b>RETENIR BASSE</b></div><div class="key wide"><span class="led o"></span><b>SONO COURSIVES</b></div><div class="key wide"><span class="led"></span><b>HUMAIN + IA</b></div></div>
+</aside>
+<div class="win"><iframe src="../index.html?embed=1&sty=P&cam=95,120,215,-5,4,20"></iframe></div>
+<span class="fake">Maquette : chiffres factices, 3D réelle (OSM)</span>
+<aside class="col r">
+ <h2>ALARMES</h2>
+ <div class="alarm"><span class="led r"></span><p><small>22:14:02 · RATP</small>Ligne 12 Porte de la Chapelle fermée par la police.</p></div>
+ <div class="alarm"><span class="led"></span><p><small>22:14:30 · V3</small>Vomitoire 3 : 4,6 pers./m², au-dessus du seuil d'alerte.</p></div>
+ <h2 style="margin-top:14px">PROPOSITIONS IA</h2>
+ <div class="alarm"><span class="led" style="background:#555;box-shadow:none"></span><p><small>TH · GAIN −2:00</small>Sono tribune haute : rester à sa place trois minutes.<span class="btns"><b class="g">APPLIQUER</b><b>ACQUITTER</b></span></p></div>
+ <div class="alarm"><span class="led" style="background:#555;box-shadow:none"></span><p><small>CN · GAIN −1:30</small>Ouvrir l'issue de secours nord, 4 agents.<span class="btns"><b class="g">APPLIQUER</b><b>ACQUITTER</b></span></p></div>
+</aside>
+<div class="bot">
+ <div class="lcd"><div class="k">DANS L'ARENA</div><div class="v">5312</div></div>
+ <div class="lcd warn"><div class="k">DENSITÉ MAX</div><div class="v">4.6</div></div>
+ <div class="lcd"><div class="k">TEMPS ÉCOULÉ</div><div class="v">02:07</div></div>
+ <div class="lcd"><div class="k">BUDGET</div><div class="v">20:00</div></div>
+ <div class="radio"><span><i class="a"></i>PAR-1 EN ROUTE 40S</span><span><i></i>MET-1 EN POSTE</span><span><i></i>CN-1 LIBRE</span><span><i></i>TH-1 LIBRE</span><span><i></i>CO-1 EN POSTE</span></div>
+</div>
+</body></html>
