@@ -123,6 +123,12 @@ from interieur_estime import build as interieur_estime
 scene['gradins'] = []
 for k, v in interieur_estime().items():
     scene[k] += v
+# Vrai plan de RDC (NP2F) décalqué, si le PDF est téléchargeable ; sinon la scène garde l'intérieur estimé seul
+try:
+    from plan_reel import build as plan_reel
+    scene['reel'] = plan_reel()
+except Exception as ex:  # réseau absent ou PDF déplacé
+    print('plan réel indisponible :', ex)
 
 for e in load('abords.json'):
     t = e.get('tags', {})

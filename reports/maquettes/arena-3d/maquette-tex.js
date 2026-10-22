@@ -92,6 +92,7 @@
     SCN.batiments.forEach((b, bi) => {
       const pts = pairs(b.p); if (pts.length < 3) return;
       const arena = /Adidas Arena/i.test(b.n || ''), o = B[arena ? 1 : 0], h = b.h, y0 = b.b; let acc = 0;
+      if (arena && SCN.reel) return; // l'Arena est construite par buildReel d'après le vrai plan
       for (let i = 0; i < pts.length; i++) {
         const [a, c] = [pts[i], pts[(i + 1) % pts.length]], L = Math.hypot(c[0] - a[0], c[1] - a[1]);
         const u0 = acc / (arena ? 16 : 6), u1 = (acc + L) / (arena ? 16 : 6); acc += L;
@@ -120,9 +121,135 @@
   sun.intensity = .75; sun.position.set(-260, 420, 180); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096);
   Object.assign(sun.shadow.camera, {left: -450, right: 450, top: 450, bottom: -450, near: 10, far: 1400}); sun.shadow.bias = -.0006; sun.shadow.camera.updateProjectionMatrix();
   hemi.color.set(0xffffff); hemi.groundColor.set(0xb9b4a8);
+  // ---------- L'Arena d'après le vrai plan (scene.reel, plan_reel.py) ----------
+  const T2 = {
+    plaster: tex(128, 128, (x, w, h) => grain(x, w, h, '#ebe7df', .05, 1500)),
+    terrazzo: tex(256, 256, (x, w, h) => { grain(x, w, h, '#dedad2', .04, 2000); for (let i = 0; i < 900; i++) { x.fillStyle = ['#b9b2a6', '#8f8a80', '#cfc6b5', '#a59b8a'][i % 4]; x.fillRect(Math.random() * w, Math.random() * h, 2 + Math.random() * 3, 2 + Math.random() * 3); } }),
+    parquet: tex(256, 256, (x, w, h) => { for (let r = 0; r < h; r += 16) for (let c = -(r % 64); c < w; c += 64) { const k = 200 + Math.random() * 30; x.fillStyle = `rgb(${k},${k * .78 | 0},${k * .52 | 0})`; x.fillRect(c, r, 63, 15); } x.strokeStyle = 'rgba(90,60,30,.25)'; for (let r = 0; r < h; r += 16) { x.beginPath(); x.moveTo(0, r); x.lineTo(w, r); x.stroke(); } }),
+    concrete: tex(256, 256, (x, w, h) => grain(x, w, h, '#a9a69f', .1, 8000)),
+    deck: tex(256, 256, (x, w, h) => { for (let r = 0; r < h; r += 12) { const k = 150 + Math.random() * 40; x.fillStyle = `rgb(${k},${k * .72 | 0},${k * .48 | 0})`; x.fillRect(0, r, w, 11); } }),
+    alu: tex(256, 256, (x, w, h) => { x.fillStyle = '#d3d6d8'; x.fillRect(0, 0, w, h); for (let i = 0; i < w; i += 64) { x.fillStyle = 'rgba(70,75,80,.4)'; x.fillRect(i, 0, 2, h); } for (let j = 0; j < h; j += 128) { x.fillStyle = 'rgba(70,75,80,.3)'; x.fillRect(0, j, w, 2); } }),
+    glass: tex(256, 256, (x, w, h) => { x.fillStyle = 'rgba(160,190,200,.55)'; x.fillRect(0, 0, w, h); x.fillStyle = '#8a6440'; for (let i = 0; i < w; i += 32) x.fillRect(i, 0, 5, h); x.fillStyle = 'rgba(50,55,60,.8)'; x.fillRect(0, h / 2 - 2, w, 4); }),
+    parking: tex(256, 256, (x, w, h) => { grain(x, w, h, '#8f8d88', .1, 6000); x.fillStyle = '#f2f0ea'; for (let i = 0; i < w; i += 64) x.fillRect(i, 0, 3, h * .45); }),
+  };
+  const CLIP = new THREE.Plane(new THREE.Vector3(0, -1, 0), 1e4); rnd.localClippingEnabled = true;
+  const cm = (o) => new THREE.MeshLambertMaterial(Object.assign({side: THREE.DoubleSide, clippingPlanes: [CLIP]}, o));
+  const q2 = (q) => [[q[0], q[1]], [q[2], q[3]], [q[4], q[5]], [q[6], q[7]]];
+  function slab(pts, y, mat, scale, holes) {
+    const sh = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, z)));
+    (holes || []).forEach(hp => sh.holes.push(new THREE.Path(hp.map(([x, z]) => new THREE.Vector2(x, z)))));
+    const g = new THREE.ShapeGeometry(sh); g.rotateX(Math.PI / 2); g.translate(0, y, 0);
+    const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / scale, uv.getY(i) / scale);
+    const m = new THREE.Mesh(g, mat); m.receiveShadow = true; return m;
+  }
+  function walls(polys, y0, y1, matSide, matCap, uScale) { // prismes : faces latérales texturées + dessus
+    const P = [], U = [], C = [];
+    polys.forEach(pts => {
+      let acc = 0;
+      for (let i = 0; i < pts.length; i++) {
+        const a = pts[i], b = pts[(i + 1) % pts.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < .01) continue;
+        const u0 = acc / uScale, u1 = (acc + L) / uScale; acc += L;
+        P.push(a[0], y0, a[1], b[0], y0, b[1], b[0], y1, b[1], a[0], y0, a[1], b[0], y1, b[1], a[0], y1, a[1]);
+        U.push(u0, y0 / uScale, u1, y0 / uScale, u1, y1 / uScale, u0, y0 / uScale, u1, y1 / uScale, u0, y1 / uScale);
+      }
+      if (matCap && pts.length === 4) C.push(pts[0][0], y1, pts[0][1], pts[1][0], y1, pts[1][1], pts[2][0], y1, pts[2][1], pts[0][0], y1, pts[0][1], pts[2][0], y1, pts[2][1], pts[3][0], y1, pts[3][1]);
+    });
+    const grp = new THREE.Group();
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); g.computeVertexNormals();
+    const m = new THREE.Mesh(g, matSide); m.castShadow = m.receiveShadow = true; grp.add(m);
+    if (C.length) { const gc = new THREE.BufferGeometry(); gc.setAttribute('position', new THREE.Float32BufferAttribute(C, 3)); gc.computeVertexNormals(); grp.add(new THREE.Mesh(gc, matCap)); }
+    return grp;
+  }
+  function courtTexture(kind) { // tracé de terrain dessiné : basket (28 x 15) ou hand/futsal (40 x 20)
+    return tex(1024, 548, (x, w, h) => {
+      for (let r = 0; r < h; r += 12) for (let c = -(r % 48); c < w; c += 48) { const k = 214 + Math.random() * 22; x.fillStyle = `rgb(${k},${k * .8 | 0},${k * .55 | 0})`; x.fillRect(c, r, 47, 11); }
+      x.strokeStyle = '#f7f5f0'; x.lineWidth = 5; x.strokeRect(10, 10, w - 20, h - 20); x.beginPath(); x.moveTo(w / 2, 10); x.lineTo(w / 2, h - 10); x.stroke();
+      x.beginPath(); x.arc(w / 2, h / 2, kind === 'basket' ? 66 : 60, 0, 7); x.stroke();
+      if (kind === 'basket') { x.fillStyle = 'rgba(30,60,140,.55)'; [[10, h / 2 - 90, 210, 180], [w - 220, h / 2 - 90, 210, 180]].forEach(r => { x.fillRect(...r); x.strokeRect(...r); });
+        [[10, 1], [w - 10, -1]].forEach(([bx, s]) => { x.beginPath(); x.arc(bx + s * 58, h / 2, 245, s > 0 ? -1.25 : Math.PI - 1.25 + 0, s > 0 ? 1.25 : Math.PI + 1.25); x.stroke(); }); }
+      else { x.strokeStyle = '#2b5ba8'; [[10, 1], [w - 10, -1]].forEach(([bx, s]) => { x.beginPath(); x.arc(bx, h / 2, 150, s > 0 ? -1.57 : 1.57, s > 0 ? 1.57 : 4.71); x.stroke(); }); }
+    });
+  }
+  function quadMesh(q, y, texture) { // un quadrilatère texturé, UV sur ses 4 coins
+    const p = q2(q), g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute([p[0][0], y, p[0][1], p[1][0], y, p[1][1], p[2][0], y, p[2][1], p[0][0], y, p[0][1], p[2][0], y, p[2][1], p[3][0], y, p[3][1]], 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute([0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0], 2)); g.computeVertexNormals();
+    const m = new THREE.Mesh(g, cm({map: texture})); m.receiveShadow = true; return m;
+  }
+  function stands(t) { // rangs interpolés entre la ligne côté terrain et la ligne du fond ; marche + contremarche
+    const P = [], L = [];
+    const I = [[t.inner[0], t.inner[1]], [t.inner[2], t.inner[3]]], O = [[t.outer[0], t.outer[1]], [t.outer[2], t.outer[3]]];
+    const lerp = (a, b, f) => [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+    for (let r = 0; r < t.rows; r++) {
+      const f0 = r / t.rows, f1 = (r + 1) / t.rows, h = t.y0 + r * t.rise, hb = r ? h - t.rise : (t.l >= 2 ? h - 1.2 : 0);
+      const a0 = lerp(I[0], O[0], f0), b0 = lerp(I[1], O[1], f0), a1 = lerp(I[0], O[0], f1), b1 = lerp(I[1], O[1], f1);
+      P.push(a0[0], h, a0[1], b0[0], h, b0[1], b1[0], h, b1[1], a0[0], h, a0[1], b1[0], h, b1[1], a1[0], h, a1[1]);
+      P.push(a0[0], hb, a0[1], b0[0], hb, b0[1], b0[0], h, b0[1], a0[0], hb, a0[1], b0[0], h, b0[1], a0[0], h, a0[1]);
+      const sa = lerp(a0, a1, .55), sb = lerp(b0, b1, .55); L.push(sa[0], h + .45, sa[1], sb[0], h + .45, sb[1]);
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.computeVertexNormals();
+    const grp = new THREE.Group(); const m = new THREE.Mesh(g, cm({color: 0xb7b2a8})); m.castShadow = m.receiveShadow = true;
+    m.userData.info = {type: 'Tribune', nom: t.n, places: '≈ ' + t.places, rangs: t.rows, source: t.e ? 'estimé d\'après la coupe AA (NP2F)' : 'plan NP2F calé sur OSM'}; pick.push(m); grp.add(m);
+    // rangées de sièges noirs (sièges en plastique recyclé noir)
+    const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.Float32BufferAttribute(L, 3));
+    grp.add(new THREE.LineSegments(sg, new THREE.LineBasicMaterial({color: 0x1d1d1f, linewidth: 2, clippingPlanes: [CLIP]})));
+    return grp;
+  }
+  if (!G.reel) { G.reel = new THREE.Group(); scene.add(G.reel); }
+  function buildReel() {
+    G.reel.clear(); const R = SCN.reel; if (!R) return;
+    const fp = pairs(SCN.batiments.find(b => /Adidas Arena/i.test(b.n || '')).p);
+    // parking (-1, estimé) et dalle du rez-de-chaussée
+    const park = slab(q2(R.volume_haut ? R.parking : R.parking), R.parking_y, cm({map: T2.parking}), 6); park.userData.lvl = -1; G.reel.add(park);
+    G.reel.add(slab(fp, .03, cm({map: T2.terrazzo}), 5));
+    // murs du plan, épais, enduits, coupés en noir sur le dessus comme un plan d'architecte
+    G.reel.add(walls(R.murs.map(q2), 0, R.hauteur_rdc, cm({map: T2.plaster}), cm({color: 0x2a2826}), 3));
+    // aire de jeu et terrains
+    G.reel.add(quadMesh(R.aire, .06, T2.parquet)); T2.parquet.repeat.set(4, 6);
+    G.reel.add(quadMesh(R.basket, .08, courtTexture('basket')));
+    G.reel.add(quadMesh(R.gymnase, .06, courtTexture('hand')));
+    // tribunes
+    R.tribunes.forEach(t => G.reel.add(stands(t)));
+    // socle vitré à lames de bois (0 → 11,5 m), terrasse plantée, volume aluminium (11,5 → 26 m)
+    G.reel.add(walls([fp], 0, R.terrasse_y, cm({map: T2.glass, transparent: true, opacity: .85, depthWrite: false}), null, 8));
+    const vh = q2(R.volume_haut);
+    G.reel.add(slab(fp, R.terrasse_y, cm({map: T2.deck}), 4, [vh]));
+    G.reel.add(walls([vh], R.terrasse_y, R.haut_y, cm({map: T2.alu}), null, 8));
+    const roof = slab(vh, R.haut_y, cm({map: T.grass}), 8); roof.userData.roof = 1; roof.visible = false; G.reel.add(roof);
+    // étiquettes
+    const lab = (t, x, y, z) => { // étiquette dimensionnée sur son texte, cachée quand le toit est posé
+      const c = document.createElement('canvas'), k = c.getContext('2d'); k.font = '600 44px system-ui,sans-serif'; const w = Math.ceil(k.measureText(t).width) + 28;
+      c.width = w; c.height = 64; k.font = '600 44px system-ui,sans-serif'; k.fillStyle = 'rgba(237,235,230,.88)'; k.fillRect(0, 0, w, 64); k.fillStyle = '#1D1F1E'; k.fillText(t, 14, 46);
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({map: new THREE.CanvasTexture(c), depthTest: false, transparent: true}));
+      s.scale.set(w / 64 * 3.2, 3.2, 1); s.position.set(x, y, z); s.userData.label = 1; G.reel.add(s);
+    };
+    const c = (q) => [(q[0] + q[4]) / 2, (q[1] + q[5]) / 2];
+    lab('AIRE DE JEU', ...[c(R.aire)[0], 3, c(R.aire)[1]]);
+    lab('GYMNASE AIMÉE LALLEMENT', c(R.gymnase)[0] - 10, 7, c(R.gymnase)[1]);
+    lab('ENTRÉE PUBLIQUE', R.entree.p[0] + 8, 8, R.entree.p[1] + 6);
+    R.tribunes.forEach(t => { if (/mobiles/.test(t.n)) return; lab(t.n.toUpperCase(), (t.outer[0] + t.outer[2]) / 2 - 8, t.y0 + t.rows * t.rise + 3, (t.outer[1] + t.outer[3]) / 2); });
+    R.vomitoires.forEach(v => { const g = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), cm({color: 0xC98A12})); g.position.set((v.p[0] + v.p[2]) / 2, 2.5, (v.p[1] + v.p[3]) / 2); g.scale.set(v.w, 5, v.w); g.userData.info = {type: 'Vomitoire', nom: v.n, largeur: v.w + ' m (estimé)'}; pick.push(g); G.reel.add(g); });
+  }
+  // barre des niveaux : coupe horizontale de l'Arena (le quartier n'est pas coupé)
+  const LV = [['Toit', 1e4], ['Terrasse 11,5 m', 13.5], ['Balcons', 11], ['Rez-de-chaussée', 5.4], ['Parking −1', -.4]];
+  const bar = document.createElement('div');
+  bar.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;gap:0;background:#1D1F1E;border-radius:4px;overflow:hidden;font:600 14px system-ui,sans-serif;z-index:5';
+  LV.forEach(([n, y], i) => { const b = document.createElement('button'); b.textContent = n; b.style.cssText = 'all:unset;cursor:pointer;padding:9px 14px;color:#EDEBE6'; b.onclick = () => setLevel(i); b.dataset.lv = i; bar.appendChild(b); });
+  document.body.appendChild(bar);
+  function setLevel(i) {
+    CLIP.constant = LV[i][1];
+    bar.querySelectorAll('button').forEach(b => { const on = +b.dataset.lv === i; b.style.background = on ? '#EDEBE6' : 'transparent'; b.style.color = on ? '#1D1F1E' : '#EDEBE6'; });
+    G.reel.traverse(o => { if (o.userData.roof) o.visible = i === 0; if (o.userData.label) o.visible = i === 2 || i === 3; });
+    const under = LV[i][1] < 0; G.surface.visible = G.rues.visible = !under;
+  }
+  window.setLevel = setLevel;
+
   const baseRebuild = rebuild;
   rebuild = function () {
-    baseRebuild();
+    if (SCN.reel && !SCN._reelOnly) { // le vrai plan remplace l'intérieur estimé
+      SCN._reelOnly = 1; SCN.interieur = SCN.interieur.filter(o => !o.e); SCN.portes = SCN.portes.filter(o => !o.e); SCN.escaliers = SCN.escaliers.filter(o => !o.e); SCN.gradins = [];
+    }
+    baseRebuild(); buildReel(); setLevel(+(QP.get('lv') || 2));
     hemi.intensity = .52; sun.intensity = 1.0;
     G.population.visible = false; // la foule viendra du moteur ; les points de placement brouillent la maquette
     ['arbres', 'abords', 'incendie', 'metro', 'gradins', 'portes'].forEach(k => G[k].traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }));
