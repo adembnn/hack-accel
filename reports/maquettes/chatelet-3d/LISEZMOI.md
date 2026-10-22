@@ -8,7 +8,7 @@ Quatre styles commutables (A fil de fer, B argile, C thermique, D Paris texturé
 Lancer :
 1. `./recuperer-osm.sh` (télécharge les extraits OSM dans `data/` et construit `scene.json`, non commités), puis `./recuperer-textures.sh` (9 textures CC0 de Poly Haven dans `tex/`, 5 Mo, non commitées ; sans elles, rendu procédural).
 2. `python3 build_navgrid.py` (grille praticable 1 m par niveau, liens verticaux, sorties : `navgrid.json`, non commité).
-3. `python3 -m http.server 8767` dans ce dossier, puis ouvrir http://127.0.0.1:8767/index.html
+3. `npm install` puis `node serveur.mjs` dans ce dossier (sert `reports/maquettes/` et comprend les ordres du directeur avec Claude Sonnet 5.5 si `ANTHROPIC_API_KEY` est dans le `.env` du dépôt ; sinon, compréhension par mots-clés). Vérification : `node test-ordres.mjs` (11 ordres réels, appel payant de quelques centimes). Ancienne méthode sans Claude : `python3 -m http.server 8767` dans ce dossier, puis ouvrir http://127.0.0.1:8767/index.html
 
 Évacuation (`sim.js`) : 3 200 personnes sur la vraie grille du Forum ; départ log-logistique (cinéma, médiane 40,5 s), choix de sortie logit
 (Lovreglio : familiarité, suivisme, zone évitée), changement d'avis, hésitation devant une porte fermée, forces sociales (Helbing) avec contact
