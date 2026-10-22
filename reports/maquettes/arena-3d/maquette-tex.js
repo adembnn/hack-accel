@@ -251,6 +251,41 @@
     R.tribunes.forEach(t => { if (/mobiles/.test(t.n)) return; lab(t.n.toUpperCase(), (t.outer[0] + t.outer[2]) / 2 - 8, t.y0 + t.rows * t.rise + 3, (t.outer[1] + t.outer[3]) / 2); });
     R.vomitoires.forEach(v => { const g = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), cm({color: 0xC98A12})); g.position.set((v.p[0] + v.p[2]) / 2, 2.5, (v.p[1] + v.p[3]) / 2); g.scale.set(v.w, 5, v.w); g.userData.info = {type: 'Vomitoire', nom: v.n, largeur: v.w + ' m (estimé)'}; pick.push(g); G.reel.add(g); });
   }
+  // ---------- Leviers du juré (scene.leviers, codes du catalogue des contraintes) ----------
+  // Un poteau par levier : couleur = famille, clic = fermer / rouvrir (ou activer une zone). L'état est lu par la régie et le moteur.
+  const FAM = {C1: 0x1D6FB8, B1: 0x0A8A3E, B3: 0xC98A12, B5: 0x7A4FB5, D1: 0xD8572A, D2: 0xB8322A, D5: 0x1D1F1E, F1: 0x1D1F1E};
+  if (!G.leviers) { G.leviers = new THREE.Group(); scene.add(G.leviers); }
+  window.LEVIERS = [];
+  function paintLever(o) {
+    const L = o.userData.lever, on = /ouvert|^0 min|inactive|inactif/.test(L.etat);
+    o.children.forEach(c => { if (c.material && c.userData.head) c.material.color.set(on ? FAM[L.code] : 0xE0461F); });
+    if (o.userData.zone) o.userData.zone.visible = !on;
+  }
+  function buildLevers() {
+    G.leviers.clear(); window.LEVIERS = [];
+    (SCN.leviers || []).forEach(L => {
+      if (L.type === 'parametre') return;
+      const g = new THREE.Group(), y0 = L.niveau ? 5.6 : 0;
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(.18, .18, 6, 6), new THREE.MeshLambertMaterial({color: 0x1D1F1E})); post.position.y = 3; g.add(post);
+      const head = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.6, .4), new THREE.MeshLambertMaterial({color: FAM[L.code]})); head.position.y = 6.6; head.userData.head = 1; g.add(head);
+      const c = document.createElement('canvas'); c.width = 128; c.height = 64; const k = c.getContext('2d'); k.font = '700 40px system-ui,sans-serif'; k.fillStyle = '#fff'; k.textAlign = 'center'; k.fillText(L.code, 64, 46);
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({map: new THREE.CanvasTexture(c), depthTest: false})); s.scale.set(2.4, 1.2, 1); s.position.y = 6.6; g.add(s);
+      g.position.set(L.x, y0, L.z); g.userData.lever = L;
+      if (L.poly) { const z = slab(pairs(L.poly), .35, new THREE.MeshBasicMaterial({color: FAM[L.code], transparent: true, opacity: .35, side: THREE.DoubleSide, depthWrite: false}), 10); z.position.set(-L.x, -y0, -L.z); g.add(z); g.userData.zone = z; }
+      if (L.rayon) { const z = new THREE.Mesh(new THREE.RingGeometry(0, L.rayon, 48), new THREE.MeshBasicMaterial({color: 0xE0461F, transparent: true, opacity: .25, depthWrite: false})); z.rotation.x = -Math.PI / 2; z.position.y = .4; g.add(z); g.userData.zone = z; }
+      [post, head].forEach(m => { m.userData.info = {type: 'Levier ' + L.code, nom: L.nom, état: L.etat, effet: L.effet, source: L.e ? 'estimé : ' + L.source : L.source}; m.userData.leverGroup = g; pick.push(m); });
+      paintLever(g); G.leviers.add(g); window.LEVIERS.push(g);
+    });
+  }
+  window.toggleLever = id => { const g = window.LEVIERS.find(o => o.userData.lever.id === id); if (!g) return null; const L = g.userData.lever;
+    L.etat = L.type === 'zone' ? (L.etat === 'inactive' ? 'active' : 'inactive') : L.type === 'point' ? (L.etat === 'inactif' ? 'actif' : 'inactif') : (L.etat === 'ouvert' ? 'fermé' : 'ouvert');
+    paintLever(g); window.dispatchEvent(new CustomEvent('levier', {detail: L})); return L.etat; };
+  rnd.domElement.addEventListener('dblclick', e => { // double-clic sur un poteau : bascule le levier
+    const r = rnd.domElement.getBoundingClientRect(), m = new THREE.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
+    const ray = new THREE.Raycaster(); ray.setFromCamera(m, cam); const h = ray.intersectObjects(G.leviers.children, true)[0];
+    if (h) { let o = h.object; while (o && !o.userData.lever) o = o.parent; if (o) toggleLever(o.userData.lever.id); }
+  });
+
   // barre des niveaux : coupe horizontale de l'Arena (le quartier n'est pas coupé)
   const LV = [['Toit', 1e4], ['Terrasse 11,5 m', 13.5], ['Balcons', 11], ['Rez-de-chaussée', 5.4], ['Parking −1', -.4]];
   const bar = document.createElement('div');
@@ -270,7 +305,7 @@
     if (SCN.reel && !SCN._reelOnly) { // le vrai plan remplace l'intérieur estimé
       SCN._reelOnly = 1; SCN.interieur = SCN.interieur.filter(o => !o.e); SCN.portes = SCN.portes.filter(o => !o.e); SCN.escaliers = SCN.escaliers.filter(o => !o.e); SCN.gradins = [];
     }
-    baseRebuild(); buildReel(); setLevel(+(QP.get('lv') || 2));
+    baseRebuild(); buildReel(); buildLevers(); setLevel(+(QP.get('lv') || 2));
     hemi.intensity = .52; sun.intensity = 1.0;
     G.population.visible = false; // la foule viendra du moteur ; les points de placement brouillent la maquette
     ['arbres', 'abords', 'incendie', 'metro', 'gradins', 'portes'].forEach(k => G[k].traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }));

@@ -166,6 +166,9 @@ for e in load('abords.json'):
     elif t.get('water') or t.get('natural') == 'water':
         scene['eau'].append({'n': t.get('name', ''), 'p': ring(g)})
 
+# Leviers du juré alignés sur le catalogue des contraintes (C1, B1, B3, B5, D1/D2, D5, F1)
+from leviers_arena import build as leviers_arena
+scene['leviers'] = leviers_arena(scene)
 json.dump(scene, open(os.path.join(HERE, 'scene.json'), 'w', encoding='utf-8'), separators=(',', ':'), ensure_ascii=False)
 print({k: len(v) for k, v in scene.items() if isinstance(v, list)})
 lv = {}
