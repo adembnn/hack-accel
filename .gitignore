@@ -7,3 +7,6 @@ captures/
 *.log
 .DS_Store
 .claude/settings.local.json
+
+# Données générées par le benchmark (jamais commitées, règle du dépôt)
+bench/*.csv
