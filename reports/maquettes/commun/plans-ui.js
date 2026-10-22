@@ -33,7 +33,7 @@ root.querySelector('.ouvrir').onclick = () => root.classList.add('on');
 const LIB = { 'est': 'par l’est', 'ouest': 'par l’ouest' };
 const varLib = (id, V) => { const v = V.find((x) => x.id === id); return v ? `manif ${v.taille} pers. ${LIB[v.trajet]}, ${v.avance ? '20 min plus tôt' : 'à l’heure prévue'}` : 'sans manif'; };
 // Nom affiché : celui de la vue (LEV.nom, ex. « Issue rue Berger 11 ») quand on le trouve
-const court = (n) => { const L = typeof LEV !== 'undefined' && LEV.find((l) => nomLev(l) === n); return (L && L.type === 'issue' ? L.nom : n).replace('Porte ', ''); };
+const court = (n) => { const L = typeof LEV !== 'undefined' && LEV.find((l) => nomLev(l) === n); return L && L.type === 'issue' && L.nom !== 'Issue de secours' ? L.nom : n; };
 const mmss = (s) => (s == null ? 'pas atteint' : `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, '0')}`);
 
 // Ordres du plan, en phrases de PC sécurité
@@ -51,21 +51,12 @@ export function ordres(p) {
 
 let R = null, choisi = null;
 function colonne(x, i, ref) {
-  const p = x.plan, n = x.pire, b = ref?.pire;
-  const cmp = (v, w, inv) => (w == null || v === w ? '' : (v < w) !== !!inv ? 'mieux' : 'pire');
-  const t = (n.tension || []).slice(0, 2);
+  const p = x.plan, n = x.pire;
+  const t =(n.tension || []).slice(0, 2);
   return `<div class="col ${ref ? '' : 'ref'} ${choisi === p.id ? 'choisi' : ''}" data-i="${i}">
    <h4>${ref ? `Plan ${i}` : 'Consigne réelle'} <span>· ${p.id}</span></h4>
    <ul>${ordres(p).map((s) => `<li>${s}</li>`).join('')}</ul>
-   <table>
-    <tr><td>Écrasement (ligne rouge)</td><td class="${n.rouge ? 'pire' : ''}">${n.rouge ? 'dépassée' : 'tenue'}</td></tr>
-    <tr><td>Non sortis à 10 min</td><td class="${cmp(n.non_sortis, b?.non_sortis)}">${n.non_sortis}</td></tr>
-    <tr><td>Bloqués sans chemin (stations fermées)</td><td class="${cmp(n.pieges_restants, b?.pieges_restants)}">${n.pieges_restants ?? '–'} / ${n.pieges ?? '–'}</td></tr>
-    <tr><td>Sortis côté manif</td><td class="${cmp(n.zone_danger, b?.zone_danger)}">${n.zone_danger}</td></tr>
-    <tr><td>95 % dehors</td><td class="${cmp(n.t95_s ?? 1e9, b ? b.t95_s ?? 1e9 : null)}">${mmss(n.t95_s)}</td></tr>
-    <tr><td>Agents demandés</td><td>${n.agents}</td></tr>
-   </table>
-   <small>Pire cas : ${varLib(n.variante, R.variantes)}</small>
+   <small>${n.agents} agents demandés · jugé sur son pire cas : ${varLib(n.variante, R.variantes)}. Chiffres comparés : onglet Simuler.</small>
    ${t.map((s) => `<div class="tens"><b>${court(s.sortie)} en tension</b> : ${s.file_max} en file à ${mmss(s.a_s)}${s.delestage.length ? ` ; soulager par ${s.delestage.map((d) => `${court(d.sortie)} (+${d.detour_m} m)`).join(', ')}` : ''}</div>`).join('')}
    <div class="acts"><button class="voir">Voir joué</button>${ref ? '<button class="ret">Retenir</button>' : ''}</div></div>`;
 }
@@ -94,6 +85,8 @@ async function jouerDansLaVue(x) {
   // contraintes imposées : stations fermées (toutes les bouches), sauf la bouche gardée par la RATP si le plan l'obtient
   const bouches = LEV.filter((L) => L.type === 'bouche');
   bouches.forEach((L, i) => { L.etat = p.ratp && i === 0 ? 'ouvert' : 'fermé'; });
+  // comme dans l'explorateur : seule la position du cortège dit quelles portes sont « côté manif » (pas de zone fixe)
+  SIM.groups.forEach((G) => { G.zone0 = false; });
   LEV.forEach((L) => { const n = nomLev(L); if (!n) return; L.etat = p.fermees.includes(n) ? 'fermé' : 'ouvert'; L.agent = p.agents.includes(n); L.annonce = p.annonces.includes(n); });
   // manifestation : un cortège qui avance (zone D1), et des troubles qui bloquent les portes au contact si elle est grosse (D2)
   for (let k = ZONES.length - 1; k >= 0; k--) if (ZONES[k].plan) { ZONES[k].mesh.parent?.remove(ZONES[k].mesh); ZONES.splice(k, 1); }
