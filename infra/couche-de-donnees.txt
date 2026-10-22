@@ -82,3 +82,16 @@ Les enseignes du Forum viennent s'ajouter a ce corpus par POST /rex.
 - A11 injection SQL : un nom d'enseigne "x'); DROP TABLE runs;--" est stocke tel quel, les tables restent intactes, et un test verifie qu'aucune requete n'est construite par gabarit de chaine.
 - A12 SSE : tampon de 200 evenements, doublons ignores, plafond de 100 connexions, client lent coupe au-dela de 64 Ko en attente, reprise Last-Event-ID sans trou ni doublon.
 - A17 journaux : les erreurs sont ecrites avec les URL de connexion et mots de passe masques ; jamais d'objet d'erreur brut.
+
+8. CORRECTIFS DE L'AUDIT (recherche/13-audit-code-red-team.md) - [MESURE] dans src/server/correctifs.test.mjs, 31 tests verts au total
+- Ecritures protegees : POST exige Authorization: Bearer <WRITE_TOKEN> (variable d'environnement). Sans WRITE_TOKEN : refus 401, sauf ALLOW_OPEN_WRITES=1 (dev local).
+  Provenance et auteur d'une lecon poses par le serveur ; une enseigne ne peut pas reecrire l'id d'une autre (409). Validation d'une lecon : run termine exige (409).
+- DATABASE_URL mal formee : message generique, aucune trace du mot de passe (3 scripts testes).
+- Ecoute LISTEN : connexion dediee, reconnexion a delai croissant (500 ms, x2, max 30 s) et rattrapage des lignes ecrites pendant la coupure (teste en tuant la connexion).
+- SSE : ids dans le desordre acceptes, reprise de plus de 200 evenements (450 rattrapes sans trou), duree maximale de connexion (10 min), 10 connexions par adresse.
+- REX : meme POST deux fois = une ligne ; plafond de 20 par enseigne (429) ; durees obligatoires avec le nombre de personnes ; borne unique 50 000 personnes / 1 440 min (validateur et CHECK SQL).
+- Role : les REX d'enseigne s'ecrivent sous SET LOCAL ROLE enseigne_ecriture (test : sans son droit INSERT l'ecriture echoue) ; le role ne lit que id, enseigne_id, empreinte.
+- Bug trouve par ces tests : 30 ecritures simultanees saturaient le pool de 5 connexions (relecture sur une 2e connexion) ; corrige, teste.
+NON CORRIGE : jeton unique et non par enseigne (une enseigne authentifiee peut ecrire pour une autre) ; pas de row-level security ; TLS non verifie (uselibpqcompat, pas de sslrootcert) ;
+pas de limiteur de debit general ; /api/memoire et /api/decisions sans validation de champs texte au-dela de la taille du corps (64 Ko) ; promotion d'une lecon sans lien run-lecon verifie ;
+borne 50 000 alignee sur le TypeScript des decideurs mais pas verifiee dans leur code (hors perimetre).
