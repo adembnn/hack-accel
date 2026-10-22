@@ -12,6 +12,7 @@
     "test": "vitest run",
     "build": "vite build",
     "e2e:socle": "node --test tests/e2e/socle.test.mjs",
+    "test:evenements": "node --test src/sim/evenements/*.test.mts",
     "test:db": "node tools/lot-absent.mjs db src/server",
     "test:decideurs": "node tools/lot-absent.mjs decideurs src/agents",
     "test:scene": "node tools/lot-absent.mjs scene src/scene",
