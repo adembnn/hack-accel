@@ -1,0 +1,20 @@
+# PLAN B : sert dist/ (interface + résultats de rejeu) sans base de données. Voir infra/PLAN-B.md.
+# docker build -f infra/Dockerfile.plan-b -t refuge-plan-b .
+FROM node:22-alpine AS build
+ARG NPM_STRICT_SSL=true
+ENV npm_config_strict_ssl=$NPM_STRICT_SSL
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:22-alpine
+WORKDIR /app
+ENV NODE_ENV=production PORT=8080
+COPY --from=build /app/dist ./dist
+COPY src/app/serveur.mjs ./src/app/serveur.mjs
+COPY package.json ./
+EXPOSE 8080
+USER node
+CMD ["node", "src/app/serveur.mjs"]
