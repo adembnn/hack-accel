@@ -31,6 +31,8 @@ function solsRects(l, k) { // rectangles (c0, c1, r0, r1 inclus) du type k au ni
   }
   return out;
 }
+// ouvertures de façade (portes OSM, vitrines ouvertes) d'une boutique dessinée à un niveau : o._i = indice du polygone, o._L = niveau
+function solsGapsOf(o) { return SOLS.g && SOLS.g.ouvertures ? SOLS.g.ouvertures.filter(q => q.room === o._i && q.l === o._L) : null; }
 const SOLS_TEX = {
   1: () => ph('floor_tiles_06') || tileTex('#d9d0bf', 'rgba(120,105,85,.35)', 32), 2: () => ph('marble_tiles') || tileTex('#e6dfd1', 'rgba(110,95,75,.4)', 21),
   3: () => ph('large_floor_tiles_02') || tileTex('#b9a98c', 'rgba(80,65,50,.35)', 16), 4: () => tileTex('#d8d2c6', 'rgba(110,100,85,.35)', 32), 5: () => ph('marble_tiles') || tileTex('#e6dfd1', 'rgba(110,95,75,.4)', 21)

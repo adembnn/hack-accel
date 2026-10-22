@@ -238,8 +238,12 @@ function vitrineTex(){const c=document.createElement('canvas');c.width=1024;c.he
   x.fillStyle=sg[(Math.random()*6)|0];x.fillRect(ox,0,256,22);x.fillStyle='#f4efe4';x.font='bold 14px sans-serif';x.fillText(SHOPS[(Math.random()*SHOPS.length)|0],ox+12,16);x.fillStyle='#202224';x.fillRect(ox+250,0,6,128);}
  return tex(c);}
 function stepsTex(){const c=document.createElement('canvas');c.width=32;c.height=64;const x=c.getContext('2d');x.fillStyle='#6d7075';x.fillRect(0,0,32,64);x.fillStyle='#3d3f43';for(let i=0;i<64;i+=4)x.fillRect(0,i,32,2);x.fillStyle='#e0b04a';x.fillRect(0,0,2,64);x.fillRect(30,0,2,64);return tex(c);}
-function wallsGeo(list,hOf,yOf,su){const p=[],u=[];list.forEach(o=>{const pts=pairs(o.p);if(pts.length<3)return;const y=yOf(o),h=hOf(o);let acc=0;for(let i=0;i<pts.length;i++){const[a,c]=[pts[i],pts[(i+1)%pts.length]];const L=Math.hypot(c[0]-a[0],c[1]-a[1]);if(L<.3)continue;const u0=acc/su,u1=(acc+L)/su;acc+=L;
-  p.push(a[0],y,a[1],c[0],y,c[1],c[0],y+h,c[1],a[0],y,a[1],c[0],y+h,c[1],a[0],y+h,a[1]);u.push(u0,0,u1,0,u1,1,u0,0,u1,1,u0,1);}});
+function wallsGeo(list,hOf,yOf,su,gapsOf){const p=[],u=[];list.forEach(o=>{const pts=pairs(o.p);if(pts.length<3)return;const y=yOf(o),h=hOf(o);const gaps=gapsOf?gapsOf(o):null;let acc=0;for(let i=0;i<pts.length;i++){const[a,c]=[pts[i],pts[(i+1)%pts.length]];const L=Math.hypot(c[0]-a[0],c[1]-a[1]);if(L<.3)continue;const u0=acc/su;acc+=L;
+  // ouvertures (portes OSM, vitrines ouvertes) : on retire de la façade les tronçons à moins de r d'un point d'ouverture
+  const cuts=[];if(gaps)gaps.forEach(q=>{const dx=(c[0]-a[0])/L,dz=(c[1]-a[1])/L,t=(q.x-a[0])*dx+(q.z-a[1])*dz,d=Math.abs((q.x-a[0])*dz-(q.z-a[1])*dx);if(d<q.r+.6){const w=Math.sqrt(Math.max(0,q.r*q.r-Math.min(d,q.r)*Math.min(d,q.r)))+.6;cuts.push([t-w,t+w]);}});
+  cuts.sort((m,n)=>m[0]-n[0]);const segs=[];let s0=0;cuts.forEach(([c0,c1])=>{if(c0>s0)segs.push([s0,Math.min(c0,L)]);s0=Math.max(s0,c1);});if(s0<L)segs.push([s0,L]);
+  segs.forEach(([t0,t1])=>{if(t1-t0<.05)return;const ax=a[0]+(c[0]-a[0])*t0/L,az=a[1]+(c[1]-a[1])*t0/L,bx=a[0]+(c[0]-a[0])*t1/L,bz=a[1]+(c[1]-a[1])*t1/L,v0=u0+t0/su,v1=u0+t1/su;
+   p.push(ax,y,az,bx,y,bz,bx,y+h,bz,ax,y,az,bx,y+h,bz,ax,y+h,az);u.push(v0,0,v1,0,v1,1,v0,0,v1,1,v0,1);});}});
  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(u,2));g.computeVertexNormals();return g;}
 function floorsGeo(list,yOf,su){const p=[],u=[];list.forEach(o=>{const pts=pairs(o.p);if(pts.length<3)return;let tri=[];try{tri=THREE.ShapeUtils.triangulateShape(pts.map(([x,z])=>new THREE.Vector2(x,z)),[]);}catch(e){return;}const y=yOf(o);tri.forEach(t=>t.forEach(i=>{p.push(pts[i][0],y,pts[i][1]);u.push(pts[i][0]/su,pts[i][1]/su);}));});
  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(u,2));g.computeVertexNormals();return g;}
@@ -274,7 +278,7 @@ function instancedDoors(list){const box=new THREE.BoxGeometry(1,1,1);const frame
 function buildIndoorParis(){G.interieur.clear();G.escalators.clear();G.escaliers.clear();G.ascenseurs.clear();G.portes.clear();
  // niveaux fractionnaires et polygones multi-niveaux : chaque polygone est traité à chaque niveau entier qu'il couvre (même règle que build_navgrid.py)
  const show=l=>lvSel==='all'||l.some(v=>lvm(v)===+lvSel);const yOf=o=>alt(o._L);
- const vis=[];SCN.interieur.forEach(o=>{if(!o.l.length||Math.min(...o.l)>0)return;lvlsOf(o.l).forEach(L=>{if(lvSel==='all'||L===+lvSel)vis.push(Object.assign({},o,{_L:L}));});});
+ const vis=[];SCN.interieur.forEach((o,ri)=>{if(!o.l.length||Math.min(...o.l)>0)return;lvlsOf(o.l).forEach(L=>{if(lvSel==='all'||L===+lvSel)vis.push(Object.assign({},o,{_L:L,_i:ri}));});});
  [0,-1,-2,-3,-4,-5].forEach(l=>{if(!show([l])||l===0)return;const lab=label('NIVEAU '+l,0x3a3328);lab.position.set(-150,alt(l)+3,-110);G.interieur.add(lab);});
  // Sols : dessinés par sols.js depuis la grille (une seule source de vérité) ; ici seulement les polygones OSM invisibles pour la fiche au clic
  const kinds={area:{y:0},corridor:{y:.03},room:{y:.06}};
@@ -282,7 +286,7 @@ function buildIndoorParis(){G.interieur.clear();G.escalators.clear();G.escaliers
   list.forEach(o=>{const f=polyMesh(o.p,yOf(o)+c.y+.01,new THREE.MeshBasicMaterial({visible:false,side:THREE.DoubleSide}));if(f){f.userData.info={type:{corridor:'Couloir',room:'Boutique / local',area:'Zone'}[k]||'Espace intérieur',nom:o.n,niveau:o.l.join(' ; ')};G.interieur.add(f);pick.push(f);}});});
  const fl=solsFloors(lvSel);if(fl)G.interieur.add(fl);
  const rooms=vis.filter(o=>o.k==='room'),corr=vis.filter(o=>o.k==='corridor'||o.k==='wall');
- const vt=vitrineTex();vt.repeat.set(1,1);const vtm=new THREE.MeshStandardMaterial({map:vt,roughness:.35,metalness:.15,side:THREE.DoubleSide,emissive:0xffffff,emissiveMap:vt,emissiveIntensity:night?.55:.12});NIGHT_MATS.push([vtm,.12,.55]);G.interieur.add(new THREE.Mesh(wallsGeo(rooms,()=>3.4,yOf,24),vtm));
+ const vt=vitrineTex();vt.repeat.set(1,1);const vtm=new THREE.MeshStandardMaterial({map:vt,roughness:.35,metalness:.15,side:THREE.DoubleSide,emissive:0xffffff,emissiveMap:vt,emissiveIntensity:night?.55:.12});NIGHT_MATS.push([vtm,.12,.55]);G.interieur.add(new THREE.Mesh(wallsGeo(rooms,()=>3.4,yOf,24,solsGapsOf),vtm));
  // Galeries -1 et -2 : OSM n'y décrit que les couloirs ; leurs bords deviennent des vitrines « estimées »
  const gal=o=>o.k==='corridor'&&[-1,-2].includes(o._L);
  const galW=new THREE.Mesh(wallsGeo(corr.filter(gal),()=>3.6,yOf,24),new THREE.MeshStandardMaterial({map:vitrineTex(),roughness:.35,metalness:.15,side:THREE.DoubleSide,emissive:0x2a2418,emissiveIntensity:.3}));
