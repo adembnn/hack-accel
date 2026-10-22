@@ -110,7 +110,7 @@ const NEAR=230;let night=false;const NIGHT_MATS=[];
 // ---------- RER et métro : voies, quais, rames aux couleurs des lignes (OSM) ----------
 const LINE_COL={'RER A':0xE2231A,'RER B':0x5291CE,'RER D':0x00814F,'Métro 1':0xFFCD00,'Métro 3':0x837902,'Métro 4':0xCF009E,'Métro 7':0xFA9ABA,'Métro 11':0x704B1C,'Métro 14':0x62259D};
 function lineOf(n){for(const k of Object.keys(LINE_COL))if(n.startsWith(k))return k;if(/Gare-de-Lyon|Gare du Nord/.test(n))return 'RER D';if(/Sceaux/.test(n))return 'RER B';return null;}
-function buildRail(){G.rer.clear();if(!SCN.voies)return;const show=l=>lvSel==='all'||l.some(v=>Math.round(v)===+lvSel);
+function buildRail(){G.rer.clear();if(!SCN.voies)return;const show=l=>lvSel==='all'||l.some(v=>lvm(v)===+lvSel);
  const bed=[],rails=[];const trains=[];
  SCN.voies.forEach(o=>{if(!show(o.l))return;const y=alt(Math.min(...o.l))-1.1;const pts=pairs(o.p);let len=0;
   for(let i=0;i<pts.length-1;i++){const[a,c]=[pts[i],pts[i+1]];const dx=c[0]-a[0],dz=c[1]-a[1],L=Math.hypot(dx,dz)||1,nx=-dz/L,nz=dx/L;len+=L;
@@ -127,9 +127,10 @@ function buildRail(){G.rer.clear();if(!SCN.voies)return;const show=l=>lvSel==='a
   for(let c=0;c<n;c++){const u=Math.min(.98,(30+c*(carL+1))/total);if(u>=.98)break;const p=curve.getPointAt(u),tg=curve.getTangentAt(u);const g=new THREE.Group();g.position.copy(p);g.lookAt(p.clone().add(tg));
    const b=new THREE.Mesh(new THREE.BoxGeometry(carW,carH,carL),body);b.position.y=carH/2+.3;const s=new THREE.Mesh(new THREE.BoxGeometry(carW+.04,.45,carL),band);s.position.y=1.1;const w=new THREE.Mesh(new THREE.BoxGeometry(carW+.06,.9,carL*.86),win);w.position.y=rer?2.6:2.2;g.add(b,s,w);
    g.traverse(m=>{if(m.isMesh){m.userData.info={type:'Rame '+t.ln,ligne:t.o.n,niveau:t.o.l.join(' ; '),source:'tracé de voie OSM ; rame posée pour la démonstration'};pick.push(m);}});G.rer.add(g);}});
- const pm=new THREE.MeshStandardMaterial({map:tileTex('#d8d2c6','rgba(110,100,85,.35)',32),roughness:.6,side:THREE.DoubleSide}),edgeM=new THREE.LineBasicMaterial({color:0xf2c200});
- SCN.quais.forEach(o=>{if(!o.l.length||!show(o.l))return;const y=alt(Math.min(...o.l));const m=polyMesh(o.p,y,pm);if(!m)return;const pos=m.geometry.attributes.position,uv=[];for(let i=0;i<pos.count;i++)uv.push(pos.getX(i)/4,pos.getZ(i)/4);m.geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
-  m.userData.info={type:'Quai',nom:o.n,niveau:o.l.join(' ; ')};pick.push(m);G.rer.add(m);G.rer.add(new THREE.Line(lineLoop(o.p,y+.05),edgeM));});}
+ const pm=new THREE.MeshBasicMaterial({visible:false,side:THREE.DoubleSide}),edgeM=new THREE.LineBasicMaterial({color:0xf2c200});
+ // quais : sol dessiné par sols.js (grille) à chaque niveau couvert ; ici la fiche au clic et le liseré jaune
+ SCN.quais.forEach(o=>{if(!o.l.length||!show(o.l))return;lvlsOf(o.l).forEach(L=>{if(lvSel!=='all'&&L!==+lvSel)return;const y=alt(L);const m=polyMesh(o.p,y,pm);if(!m)return;
+  m.userData.info={type:'Quai',nom:o.n,niveau:o.l.join(' ; ')};pick.push(m);G.rer.add(m);G.rer.add(new THREE.Line(lineLoop(o.p,y+.05),edgeM));});});}
 // ---------- Nuit du 19 octobre, 20h : ciel, lampadaires, fenêtres allumées, vitrines ----------
 function nightSky(){const c=document.createElement('canvas');c.width=1024;c.height=512;const x=c.getContext('2d');const g=x.createLinearGradient(0,0,0,512);g.addColorStop(0,'#05070f');g.addColorStop(.7,'#121a33');g.addColorStop(1,'#3a2f3a');x.fillStyle=g;x.fillRect(0,0,1024,512);
  for(let i=0;i<500;i++){x.fillStyle=`rgba(255,255,255,${Math.random()*.7})`;x.fillRect(Math.random()*1024,Math.random()*330,1,1);}const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.mapping=THREE.EquirectangularReflectionMapping;return t;}
@@ -237,8 +238,12 @@ function vitrineTex(){const c=document.createElement('canvas');c.width=1024;c.he
   x.fillStyle=sg[(Math.random()*6)|0];x.fillRect(ox,0,256,22);x.fillStyle='#f4efe4';x.font='bold 14px sans-serif';x.fillText(SHOPS[(Math.random()*SHOPS.length)|0],ox+12,16);x.fillStyle='#202224';x.fillRect(ox+250,0,6,128);}
  return tex(c);}
 function stepsTex(){const c=document.createElement('canvas');c.width=32;c.height=64;const x=c.getContext('2d');x.fillStyle='#6d7075';x.fillRect(0,0,32,64);x.fillStyle='#3d3f43';for(let i=0;i<64;i+=4)x.fillRect(0,i,32,2);x.fillStyle='#e0b04a';x.fillRect(0,0,2,64);x.fillRect(30,0,2,64);return tex(c);}
-function wallsGeo(list,hOf,yOf,su){const p=[],u=[];list.forEach(o=>{const pts=pairs(o.p);if(pts.length<3)return;const y=yOf(o),h=hOf(o);let acc=0;for(let i=0;i<pts.length;i++){const[a,c]=[pts[i],pts[(i+1)%pts.length]];const L=Math.hypot(c[0]-a[0],c[1]-a[1]);if(L<.3)continue;const u0=acc/su,u1=(acc+L)/su;acc+=L;
-  p.push(a[0],y,a[1],c[0],y,c[1],c[0],y+h,c[1],a[0],y,a[1],c[0],y+h,c[1],a[0],y+h,a[1]);u.push(u0,0,u1,0,u1,1,u0,0,u1,1,u0,1);}});
+function wallsGeo(list,hOf,yOf,su,gapsOf){const p=[],u=[];list.forEach(o=>{const pts=pairs(o.p);if(pts.length<3)return;const y=yOf(o),h=hOf(o);const gaps=gapsOf?gapsOf(o):null;let acc=0;for(let i=0;i<pts.length;i++){const[a,c]=[pts[i],pts[(i+1)%pts.length]];const L=Math.hypot(c[0]-a[0],c[1]-a[1]);if(L<.3)continue;const u0=acc/su;acc+=L;
+  // ouvertures (portes OSM, vitrines ouvertes) : on retire de la façade les tronçons à moins de r d'un point d'ouverture
+  const cuts=[];if(gaps)gaps.forEach(q=>{const dx=(c[0]-a[0])/L,dz=(c[1]-a[1])/L,t=(q.x-a[0])*dx+(q.z-a[1])*dz,d=Math.abs((q.x-a[0])*dz-(q.z-a[1])*dx);if(d<q.r+.6){const w=Math.sqrt(Math.max(0,q.r*q.r-Math.min(d,q.r)*Math.min(d,q.r)))+.6;cuts.push([t-w,t+w]);}});
+  cuts.sort((m,n)=>m[0]-n[0]);const segs=[];let s0=0;cuts.forEach(([c0,c1])=>{if(c0>s0)segs.push([s0,Math.min(c0,L)]);s0=Math.max(s0,c1);});if(s0<L)segs.push([s0,L]);
+  segs.forEach(([t0,t1])=>{if(t1-t0<.05)return;const ax=a[0]+(c[0]-a[0])*t0/L,az=a[1]+(c[1]-a[1])*t0/L,bx=a[0]+(c[0]-a[0])*t1/L,bz=a[1]+(c[1]-a[1])*t1/L,v0=u0+t0/su,v1=u0+t1/su;
+   p.push(ax,y,az,bx,y,bz,bx,y+h,bz,ax,y,az,bx,y+h,bz,ax,y+h,az);u.push(v0,0,v1,0,v1,1,v0,0,v1,1,v0,1);});}});
  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(u,2));g.computeVertexNormals();return g;}
 function floorsGeo(list,yOf,su){const p=[],u=[];list.forEach(o=>{const pts=pairs(o.p);if(pts.length<3)return;let tri=[];try{tri=THREE.ShapeUtils.triangulateShape(pts.map(([x,z])=>new THREE.Vector2(x,z)),[]);}catch(e){return;}const y=yOf(o);tri.forEach(t=>t.forEach(i=>{p.push(pts[i][0],y,pts[i][1]);u.push(pts[i][0]/su,pts[i][1]/su);}));});
  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(u,2));g.computeVertexNormals();return g;}
@@ -254,7 +259,7 @@ function liftModel(o,grp){const lv=o.l.length?o.l:[0];const a=Math.max(0,...lv),
  const shaft=new THREE.Mesh(new THREE.BoxGeometry(2.4,h,2.4),new THREE.MeshStandardMaterial({color:0xbfd6e0,transparent:true,opacity:.28,roughness:.05,side:THREE.DoubleSide,depthWrite:false}));g.add(shaft);
  const fr=new THREE.LineSegments(new THREE.EdgesGeometry(shaft.geometry),new THREE.LineBasicMaterial({color:0x2a2c2f}));g.add(fr);
  for(let y=-h/2+3.2;y<h/2;y+=ETAGE*spread){const ring=new THREE.Mesh(new THREE.BoxGeometry(2.5,.12,2.5),new THREE.MeshStandardMaterial({color:0x2a2c2f,metalness:.6}));ring.position.y=y;g.add(ring);}
- const cab=new THREE.Mesh(new THREE.BoxGeometry(2,2.4,2),new THREE.MeshStandardMaterial({color:0xd8c9a8,metalness:.5,roughness:.35}));cab.position.y=-h/2+1.3+Math.random()*(h-2.6);g.add(cab);
+ const cab=new THREE.Mesh(new THREE.BoxGeometry(2,2.4,2),new THREE.MeshStandardMaterial({color:0xd8c9a8,metalness:.5,roughness:.35}));cab.position.y=-h/2+1.3;LIFTS.push({cab,g,idx:SCN.ascenseurs.indexOf(o),y:alt(b)});g.add(cab);
  g.traverse(m=>{if(m.isMesh){m.userData.info={type:'Ascenseur',nom:o.n,niveau:lv.join(' ; ')};pick.push(m);}});grp.add(g);}
 
 // Optimisation : une passe de dessin par type de pièce (escalators, portes) au lieu d'un objet par élément
@@ -270,29 +275,25 @@ function instancedDoors(list){const box=new THREE.BoxGeometry(1,1,1);const frame
  const named=[];list.forEach((o,i)=>{const lv=o.l.length?o.l:[0];const y=alt(Math.min(...lv));IP.compose(new THREE.Vector3(o.x,y+1.3,o.z),new THREE.Quaternion(),new THREE.Vector3(2.2,2.6,.25));frame.setMatrixAt(i,IP);IP.compose(new THREE.Vector3(o.x,y+1.15,o.z),new THREE.Quaternion(),new THREE.Vector3(1.8,2.2,.3));pane.setMatrixAt(i,IP);if(/porte|sortie/i.test(o.n||''))named.push([o,y]);});
  frame.userData.instInfo=list.map(o=>({type:o.k==='main'||o.k==='yes'?'Entrée':'Porte ('+o.k+')',nom:o.n,niveau:(o.l.length?o.l:[0]).join(' ; ')}));pick.push(frame);G.portes.add(frame,pane);
  const sg=new THREE.InstancedMesh(box,new THREE.MeshStandardMaterial({color:0x0f9a52,emissive:0x0f9a52,emissiveIntensity:.8}),named.length);named.forEach(([o,y],i)=>{IP.compose(new THREE.Vector3(o.x,y+2.9,o.z),new THREE.Quaternion(),new THREE.Vector3(1.4,.45,.12));sg.setMatrixAt(i,IP);const lb=label(o.n,0x1f2328);lb.position.set(o.x,y+7,o.z);G.portes.add(lb);});G.portes.add(sg);}
-function buildIndoorParis(){G.interieur.clear();G.escalators.clear();G.escaliers.clear();G.ascenseurs.clear();G.portes.clear();
- const show=l=>lvSel==='all'||l.some(v=>Math.round(v)===+lvSel);const lvOf=o=>Math.min(...o.l);const yOf=o=>alt(lvOf(o));
- const vis=SCN.interieur.filter(o=>o.l.length&&show(o.l)&&lvOf(o)<=0);
+function buildIndoorParis(){LIFTS.length=0;G.interieur.clear();G.escalators.clear();G.escaliers.clear();G.ascenseurs.clear();G.portes.clear();
+ // niveaux fractionnaires et polygones multi-niveaux : chaque polygone est traité à chaque niveau entier qu'il couvre (même règle que build_navgrid.py)
+ const show=l=>lvSel==='all'||l.some(v=>lvm(v)===+lvSel);const yOf=o=>alt(o._L);
+ const vis=[];SCN.interieur.forEach((o,ri)=>{if(!o.l.length||Math.min(...o.l)>0)return;lvlsOf(o.l).forEach(L=>{if(lvSel==='all'||L===+lvSel)vis.push(Object.assign({},o,{_L:L,_i:ri}));});});
  [0,-1,-2,-3,-4,-5].forEach(l=>{if(!show([l])||l===0)return;const lab=label('NIVEAU '+l,0x3a3328);lab.position.set(-150,alt(l)+3,-110);G.interieur.add(lab);});
- const kinds={area:{y:0,t:ph('floor_tiles_06')||tileTex('#d9d0bf','rgba(120,105,85,.35)',32),su:4.8},corridor:{y:.03,t:ph('marble_tiles')||tileTex('#e6dfd1','rgba(110,95,75,.4)',21),su:3.6},room:{y:.06,t:ph('large_floor_tiles_02')||tileTex('#b9a98c','rgba(80,65,50,.35)',16),su:3}};
+ // Sols : dessinés par sols.js depuis la grille (une seule source de vérité) ; ici seulement les polygones OSM invisibles pour la fiche au clic
+ const kinds={area:{y:0},corridor:{y:.03},room:{y:.06}};
  Object.entries(kinds).forEach(([k,c])=>{const list=vis.filter(o=>(o.k===k)||(k==='area'&&!['corridor','room','wall'].includes(o.k)));if(!list.length)return;
-  const m=new THREE.Mesh(floorsGeo(list,o=>yOf(o)+c.y,c.su),new THREE.MeshStandardMaterial({map:c.t,roughness:.55,metalness:.05,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-1-c.y*30}));m.receiveShadow=true;G.interieur.add(m);
   list.forEach(o=>{const f=polyMesh(o.p,yOf(o)+c.y+.01,new THREE.MeshBasicMaterial({visible:false,side:THREE.DoubleSide}));if(f){f.userData.info={type:{corridor:'Couloir',room:'Boutique / local',area:'Zone'}[k]||'Espace intérieur',nom:o.n,niveau:o.l.join(' ; ')};G.interieur.add(f);pick.push(f);}});});
+ const fl=solsFloors(lvSel);if(fl)G.interieur.add(fl);
  const rooms=vis.filter(o=>o.k==='room'),corr=vis.filter(o=>o.k==='corridor'||o.k==='wall');
- const vt=vitrineTex();vt.repeat.set(1,1);const vtm=new THREE.MeshStandardMaterial({map:vt,roughness:.35,metalness:.15,side:THREE.DoubleSide,emissive:0xffffff,emissiveMap:vt,emissiveIntensity:night?.55:.12});NIGHT_MATS.push([vtm,.12,.55]);G.interieur.add(new THREE.Mesh(wallsGeo(rooms,()=>3.4,yOf,24),vtm));
+ const vt=vitrineTex();vt.repeat.set(1,1);const vtm=new THREE.MeshStandardMaterial({map:vt,roughness:.35,metalness:.15,side:THREE.DoubleSide,emissive:0xffffff,emissiveMap:vt,emissiveIntensity:night?.55:.12});NIGHT_MATS.push([vtm,.12,.55]);G.interieur.add(new THREE.Mesh(wallsGeo(rooms,()=>3.4,yOf,24,solsGapsOf),vtm));
  // Galeries -1 et -2 : OSM n'y décrit que les couloirs ; leurs bords deviennent des vitrines « estimées »
- const gal=o=>o.k==='corridor'&&[-1,-2].includes(Math.round(lvOf(o)));
+ const gal=o=>o.k==='corridor'&&[-1,-2].includes(o._L);
  const galW=new THREE.Mesh(wallsGeo(corr.filter(gal),()=>3.6,yOf,24),new THREE.MeshStandardMaterial({map:vitrineTex(),roughness:.35,metalness:.15,side:THREE.DoubleSide,emissive:0x2a2418,emissiveIntensity:.3}));
  galW.userData.info={type:'Vitrines de galerie',niveau:'-1 / -2',source:'estimé : OSM ne décrit pas les boutiques de ces niveaux'};G.interieur.add(galW);pick.push(galW);
  G.interieur.add(new THREE.Mesh(wallsGeo(corr.filter(o=>!gal(o)),o=>o.k==='wall'?3.6:.9,yOf,4),new THREE.MeshStandardMaterial({map:plasterTex(),roughness:.85,side:THREE.DoubleSide,transparent:true,opacity:.9})));
  // Mobilier : bancs, bacs à plantes, bornes d'information, panneaux suspendus (placement estimé, densité proportionnelle à la surface)
- const furn={banc:[],plante:[],borne:[],panneau:[]};vis.filter(o=>(o.k==='corridor'||o.k==='area')&&lvOf(o)<0).forEach(o=>{const pts=pairs(o.p);if(pts.length<3)return;let a=0;for(let i=0;i<pts.length;i++){const[x1,z1]=pts[i],[x2,z2]=pts[(i+1)%pts.length];a+=x1*z2-x2*z1;}a=Math.abs(a/2);
-  const xs=pts.map(p=>p[0]),zs=pts.map(p=>p[1]);const n=Math.min(25,Math.floor(a/90));for(let i=0,t=0;i<n&&t<n*20;t++){const x=Math.min(...xs)+Math.random()*(Math.max(...xs)-Math.min(...xs)),z=Math.min(...zs)+Math.random()*(Math.max(...zs)-Math.min(...zs));if(!pip(x,z,pts))continue;const k=['banc','plante','banc','borne','panneau'][i%5];furn[k].push([x,z,yOf(o),Math.random()*3.14]);i++;}});
- const putF=(arr,geo,mat,dy)=>{if(!arr.length)return;const m=new THREE.InstancedMesh(geo,mat,arr.length);const M=new THREE.Matrix4(),Q=new THREE.Quaternion(),E=new THREE.Euler();arr.forEach((p,i)=>{Q.setFromEuler(E.set(0,p[3],0));M.compose(new THREE.Vector3(p[0],p[2]+dy,p[1]),Q,new THREE.Vector3(1,1,1));m.setMatrixAt(i,M);});G.interieur.add(m);};
- putF(furn.banc,new THREE.BoxGeometry(2,.45,.6),new THREE.MeshStandardMaterial({color:0x7a5a3a,roughness:.7}),.25);
- putF(furn.plante,new THREE.CylinderGeometry(.6,.5,.8,10),new THREE.MeshStandardMaterial({color:0x3d3d3d}),.4);putF(furn.plante,new THREE.IcosahedronGeometry(.9,0),new THREE.MeshStandardMaterial({color:0x4f7a3a,roughness:.9}),1.5);
- putF(furn.borne,new THREE.BoxGeometry(.6,1.8,.35),new THREE.MeshStandardMaterial({color:0x1f2328,emissive:0x2b5d8a,emissiveIntensity:.35}),.9);
- putF(furn.panneau,new THREE.BoxGeometry(2.6,.5,.08),new THREE.MeshStandardMaterial({color:0x0f6b45,emissive:0x0f9a52,emissiveIntensity:.55}),3);
+ const fu=solsFurniture(lvSel);if(fu)G.interieur.add(fu);
  const ceil=new THREE.LineBasicMaterial({color:0xfff2cc,transparent:true,opacity:.55});corr.forEach(o=>{const g=lineLoop(o.p,yOf(o)+3.3);G.interieur.add(new THREE.Line(g,ceil));});
  instancedEscalators(SCN.escalators.filter(o=>show(o.l.length?o.l:[0])));
  const stm=new THREE.MeshStandardMaterial({color:0x9a9488,roughness:.8});SCN.escaliers.forEach(o=>{const lv=o.l.length?o.l:[0];if(!show(lv))return;const a=Math.max(...lv),b=Math.min(...lv);const pts=pairs(o.p);if(pts.length<2)return;
@@ -412,5 +413,6 @@ simLoad().then(()=>{buildPerturb();(function w(){if(SCN&&PEO.length)calm();else 
 <script src="agents.js"></script>
 <script src="horloge.js"></script>
 <script src="mannequin.js"></script>
+<script src="sols.js"></script>
 </body>
 </html>
