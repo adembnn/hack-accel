@@ -1,0 +1,40 @@
+COUCHE DE DONNEES EN ACTION (BROUILLON, 22 oct. 2026)
+Produit : jumeau 3D du Forum des Halles pour tester les decisions d'evacuation.
+Etat : teste en local sur PostgreSQL 16 (conteneur Docker). PAS ENCORE teste sur Aiven : les phrases marquees [A FAIRE] ne sont pas verifiees.
+
+1. QUOI EST STOCKE OU
+Tout vit dans un seul PostgreSQL (service Aiven for PostgreSQL), 7 tables (infra/schema.sql) :
+- scenes        le decor 3D et sa grille praticable (un document JSON par version)
+- contraintes   chaque issue, bouche de metro ou escalator ferme/ouvert, avec qui l'a pose et quand ; l'etat courant = la derniere ligne par objet
+- runs          une simulation d'un plan avec sa graine aleatoire (rejouable a l'identique)
+- decisions     chaque levier actionne par un decideur (prefecture, RATP, securite, directeur), a quelle minute simulee, avec sa justification et ses notes
+- memoire       les cas passes (etiquettes de la situation + plan retenu + note) ; on y retrouve les plus proches d'une situation neuve
+- tableau_commun ce que les agents et l'interface s'ecrivent en direct ; chaque ligne declenche un NOTIFY PostgreSQL relaye en SSE au navigateur
+- journal_chiffres tout nombre affiche ou prononce, avec sa source, pour que le verificateur de chiffres le retrouve
+
+2. POURQUOI
+- Fraicheur : le tableau commun pousse chaque ecriture au navigateur sans interrogation en boucle (NOTIFY -> SSE).
+- Memoire : chaque run termine ecrit un cas dans `memoire` ; la decision suivante lit les cas voisins (similarite de Jaccard sur les etiquettes, index GIN). L'agent s'ameliore au fil des executions.
+- Ancrage : chaque chiffre du pitch renvoie a une ligne de `journal_chiffres` avec sa source et un drapeau "verifie".
+- Un seul moteur pour tout : un PostgreSQL suffit au volume mesure ci-dessous, donc pas de service a synchroniser.
+
+3. PREUVES (sorties reelles du 22 oct., PostgreSQL 16 en Docker local, `node --test src/server/db.test.mjs`)
+- 5 tests sur 5 passes : schema idempotent (applique 3 fois), ecriture/relecture scene-contrainte-run-decision-chiffre,
+  memoire, serveur HTTP, flux SSE.
+- Tables creees : contraintes, decisions, journal_chiffres, memoire, runs, scenes, tableau_commun.
+- Memoire : pour la situation {issue_fermee:sortie-3, metro_ferme:chatelet}, "cas A" ressort a similarite 1, "cas B" a 0.5, le cas sans rapport est exclu.
+- /sante : 200 {"ok":true,"base":"ok"}.
+- Flux en direct : une ecriture POST /api/tableau arrive par SSE ("event: tableau", id 1, auteur alexandre, genre alerte).
+- Serveur lance a la main avec PORT=8099 : GET /sante -> HTTP 200.
+
+4. VOLUME ET CLICKHOUSE
+Mesure (infra/mesure-volume.sql, PostgreSQL 16 local, donnees aleatoires) : 5 000 personnes x 1 position par seconde x 10 minutes
+= 3 000 000 lignes, inserees en 1,0 s, 149 Mo. Une carte de densite (groupe par minute, niveau, cellule de 2 m) sur ces 3 M de lignes : 2,9 s.
+Lecture : pour une simulation, PostgreSQL suffit largement. ClickHouse ne se justifie que si on veut (a) garder toutes les simulations
+(100 runs = 300 M de lignes, ~15 Go, requetes de plusieurs dizaines de secondes en PostgreSQL non partitionne : ordre de grandeur
+extrapole, NON mesure), ou (b) afficher la densite en temps reel pendant la simulation. Pour la demo (quelques runs), on garde les
+positions en memoire dans le navigateur et on n'ecrit en base que les decisions, les chiffres et un instantane par minute.
+Decision : pas de ClickHouse dans la demo. De plus ClickHouse n'est pas dans la detection Compose d'Aiven Runtime [non verifie].
+La route de croissance (apres le hack) : Kafka + ClickHouse pour les positions des vraies foules.
+
+5. [A FAIRE] sur Aiven : appliquer le schema sur le service PostgreSQL, mesurer la latence reelle depuis Runtime, coller le 200 de /sante de l'URL hebergee.
