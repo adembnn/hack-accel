@@ -30,7 +30,7 @@ function ll(med,b){const u=Math.min(.999,Math.max(.001,Math.random()));return me
 function gauss(){return Math.sqrt(-2*Math.log(Math.random()+1e-9))*Math.cos(6.2832*Math.random());}
 function simResetCounters(){SIM.T=0;SIM.out=0;SIM.outBy={};SIM.expo=0;SIM.dmax=0;SIM.zoneOut=0;}
 // Passe de « calme » (avant l'alerte) à « évacuation » sans déplacer personne : chacun garde sa place, tire son délai de départ
-function simAlert(){if(!SIM.A)return;const g=SIM.g,T0=SIM.T;SIM.A.forEach(a=>{if(a.ride){const to=a.ride.to;a.l=to[0];a.x=g.bbox[0]+(to[2]+.5)*g.res;a.z=g.bbox[1]+(to[1]+.5)*g.res;a.ride=null;}
+function simAlert(){if(!SIM.A)return;const g=SIM.g,T0=SIM.T;hBuild();SIM.A.forEach(a=>{if(a.ride){const to=a.ride.to;a.l=to[0];a.ride=null;simPlace(a,g.bbox[0]+(to[2]+.5)*g.res,g.bbox[1]+(to[1]+.5)*g.res,null,null);}
  a.st=null;a.t=-1;a.next=0;a.hes=0;a.stopT=0;a.pre=a.kind==='cine'?ll(40.5,3.5):a.kind==='rer'?ll(20,3):ll(30,3.5);});simResetCounters();g.links.forEach(k=>{k.free=[0,0];});SIM.quais.forEach(q=>{q.pend.length=0;q.nextR=0;q.streams.forEach(t=>{t.next=Math.max(0,t.next-T0);});});SIM.gare.sigT=0;SIM.mode='evac';}
 function simSpawn(n){const g=SIM.g,N=SIM.N;SIM.A=[];simResetCounters();g.links.forEach(k=>{k.free=[0,0];});
  const ugc=SCN.interieur.filter(o=>/UGC|Cin[ée]/i.test(o.n||''));const inPoly=(x,z)=>ugc.some(o=>pip(x,z,pairs(o.p)));
