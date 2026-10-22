@@ -5,6 +5,7 @@ import { readFileSync, writeFileSync, statSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import type { Navgrid } from './navgrid.ts';
 import { construireNavgrid, serialiserNavgrid, niveauEntier, NIVEAUX } from './navgrid.ts';
+import { cleDePorte } from './leviers.ts';
 import type { Scene, LienVertical, Porte, Bouche, Sortie } from './types.ts';
 
 const LAT0 = 48.862, LON0 = 2.347;
@@ -151,7 +152,10 @@ export function genererScene(dir: string): Scene {
       sorties.push({ id: `S-${p.id}`, genre: p.k === 'main' ? 'rue' : 'secours', ref: p.id, niveau: 0, x: p.x, z: p.z, largeur_m: p.largeur_m, etat: p.etat, hors_modele: false });
     }
   }
-  for (const m of metro) sorties.push({ id: `S-${m.id}`, genre: 'metro', ref: m.id, niveau: m.l[0], x: m.x, z: m.z, largeur_m: m.largeur_m, etat: m.etat, hors_modele: true });
+  for (const m of metro) {
+    const nom_porte = cleDePorte(m.n); // clé des décideurs (lescot, berger…) demandée sur le ticket #7
+    sorties.push({ id: `S-${m.id}`, genre: 'metro', ref: m.id, niveau: m.l[0], x: m.x, z: m.z, largeur_m: m.largeur_m, etat: m.etat, hors_modele: true, ...(nom_porte ? { nom_porte } : {}) });
+  }
 
   const niveaux = (NIVEAUX as readonly number[]).map((n) => {
     const nb = objPar[n] ?? 0;

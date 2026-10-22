@@ -1,0 +1,200 @@
+[
+ {
+  "nom": "Porte Lescot",
+  "type": "porte",
+  "niveau": "0 (descend jusqu'au -4)",
+  "lat": 48.861623,
+  "lon": 2.347777,
+  "certitude": "source",
+  "source": "OSM node/1713195678 (Overpass, 22 oct. 2026) + Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdesh"
+ },
+ {
+  "nom": "Porte Berger",
+  "type": "porte",
+  "niveau": "0",
+  "lat": 48.861374,
+  "lon": 2.346412,
+  "certitude": "source",
+  "source": "OSM node/3753296381 (Overpass, 22 oct. 2026) + Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdesh"
+ },
+ {
+  "nom": "Porte Rambuteau",
+  "type": "porte",
+  "niveau": "0",
+  "lat": 48.862615,
+  "lon": 2.347044,
+  "certitude": "source",
+  "source": "OSM node/9547125104 (Overpass, 22 oct. 2026) + Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdesh"
+ },
+ {
+  "nom": "Porte du Pont Neuf",
+  "type": "porte",
+  "niveau": "0 (escaliers -1;0 puis -2;-1)",
+  "lat": 48.86164,
+  "lon": 2.345234,
+  "certitude": "source",
+  "source": "OSM node/5954227359 (Overpass, 22 oct. 2026) + Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdesh"
+ },
+ {
+  "nom": "Porte Saint-Eustache",
+  "type": "porte",
+  "niveau": "0",
+  "lat": 48.862439,
+  "lon": 2.345658,
+  "certitude": "source",
+  "source": "OSM node/9554596026 (Overpass, 22 oct. 2026) + Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdesh"
+ },
+ {
+  "nom": "Porte Marguerite de Navarre",
+  "type": "porte",
+  "niveau": "0 (portes coulissantes)",
+  "lat": 48.86059,
+  "lon": 2.346528,
+  "certitude": "source",
+  "source": "OSM node/9554596034 (Overpass, 22 oct. 2026) + Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdesh"
+ },
+ {
+  "nom": "Porte du Jour",
+  "type": "porte",
+  "niveau": "0",
+  "lat": 48.863175,
+  "lon": 2.343882,
+  "certitude": "source",
+  "source": "OSM node/5913737144 (Overpass, 22 oct. 2026) + Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdesh"
+ },
+ {
+  "nom": "Porte du Louvre (rue, niveau 0)",
+  "type": "porte",
+  "niveau": "0",
+  "lat": 48.86242,
+  "lon": 2.343939,
+  "certitude": "source",
+  "source": "OSM node/9545578222 (Overpass, 22 oct. 2026) + Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdesh"
+ },
+ {
+  "nom": "Porte du Louvre (accès niveau -3)",
+  "type": "porte",
+  "niveau": "-3",
+  "lat": 48.862344,
+  "lon": 2.343435,
+  "certitude": "source",
+  "source": "OSM node/5914444314 (Overpass, 22 oct. 2026) ; relie le -3 au niveau 0 par escaliers fixes (way 569285574, 20 marches) e"
+ },
+ {
+  "nom": "Entrée Canopée / jardin Nelson Mandela",
+  "type": "porte",
+  "niveau": "0",
+  "lat": null,
+  "lon": null,
+  "certitude": "estimé",
+  "source": "Westfield Forum des Halles, page Accès (westfield.com/en/france/forumdeshalles/access) : « entre le jardin Nelson Mandel"
+ },
+ {
+  "nom": "Sortie de métro Rue de Turbigo (ref 1)",
+  "type": "porte",
+  "niveau": "0",
+  "lat": 48.863707,
+  "lon": 2.348986,
+  "certitude": "source",
+  "source": "OSM node/681294134 (Overpass, 22 oct. 2026)"
+ },
+ {
+  "nom": "Sortie de métro Rue Montorgueil (ref 9)",
+  "type": "porte",
+  "niveau": "0",
+  "lat": 48.862845,
+  "lon": 2.346587,
+  "certitude": "source",
+  "source": "OSM node/5321652780 (Overpass, 22 oct. 2026)"
+ },
+ {
+  "nom": "Issue de secours (côté Porte du Louvre / Piscine)",
+  "type": "issue",
+  "niveau": "-1",
+  "lat": 48.862358,
+  "lon": 2.344265,
+  "certitude": "source",
+  "source": "OSM node/5914443920 (Overpass, 22 oct. 2026) entrance=emergency, access=customers"
+ },
+ {
+  "nom": "Issue de secours (côté Porte du Louvre / Piscine)",
+  "type": "issue",
+  "niveau": "-1",
+  "lat": 48.862326,
+  "lon": 2.344359,
+  "certitude": "source",
+  "source": "OSM node/5914443923 (Overpass, 22 oct. 2026) entrance=emergency, access=customers"
+ },
+ {
+  "nom": "Issue de secours (côté Porte du Louvre / Piscine)",
+  "type": "issue",
+  "niveau": "-1",
+  "lat": 48.862311,
+  "lon": 2.344378,
+  "certitude": "source",
+  "source": "OSM node/5914443924 (Overpass, 22 oct. 2026) entrance=emergency, access=customers"
+ },
+ {
+  "nom": "Issue de secours niveau -2 (ouest)",
+  "type": "issue",
+  "niveau": "-2",
+  "lat": 48.862768,
+  "lon": 2.34372,
+  "certitude": "source",
+  "source": "OSM node/5913768893 (Overpass, 22 oct. 2026) entrance=emergency"
+ },
+ {
+  "nom": "Issue de secours (nord, près de l'accès Rambuteau)",
+  "type": "issue",
+  "niveau": null,
+  "lat": 48.862752,
+  "lon": 2.346993,
+  "certitude": "source",
+  "source": "OSM node/4111880719 (Overpass, 22 oct. 2026) entrance=emergency"
+ },
+ {
+  "nom": "Issue de secours « ref 824 »",
+  "type": "issue",
+  "niveau": null,
+  "lat": 48.862009,
+  "lon": 2.343192,
+  "certitude": "source",
+  "source": "OSM node/10054908598 (Overpass, 22 oct. 2026) entrance=emergency ref=824"
+ },
+ {
+  "nom": "Sortie de secours rue Berger n°11",
+  "type": "issue",
+  "niveau": null,
+  "lat": 48.861077,
+  "lon": 2.347287,
+  "certitude": "source",
+  "source": "OSM node/9383668597 (Overpass, 22 oct. 2026) exit=emergency, survey=yes"
+ },
+ {
+  "nom": "Sortie de secours rue Berger n°15",
+  "type": "issue",
+  "niveau": null,
+  "lat": 48.861105,
+  "lon": 2.347166,
+  "certitude": "source",
+  "source": "OSM node/9383668599 (Overpass, 22 oct. 2026) exit=emergency, survey=yes"
+ },
+ {
+  "nom": "Sortie de secours rue Berger n°19",
+  "type": "issue",
+  "niveau": null,
+  "lat": 48.861171,
+  "lon": 2.34688,
+  "certitude": "source",
+  "source": "OSM node/9383668598 (Overpass, 22 oct. 2026) exit=emergency, survey=yes"
+ },
+ {
+  "nom": "Sortie de secours rue Berger n°21",
+  "type": "issue",
+  "niveau": null,
+  "lat": 48.861206,
+  "lon": 2.346731,
+  "certitude": "source",
+  "source": "OSM node/9383668600 (Overpass, 22 oct. 2026) exit=emergency, survey=yes"
+ }
+]

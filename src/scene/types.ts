@@ -65,6 +65,8 @@ export interface Sortie {
   etat: EtatContrainte;
   /** true = la sortie débouche sur un lieu non modélisé (intérieur d'une station) : le flux y disparaît. */
   hors_modele: boolean;
+  /** Clé de la porte nommée du Forum pour les décideurs (lescot, berger, rambuteau, pont_neuf, saint_eustache, jour, louvre, marguerite_de_navarre, montorgueil). */
+  nom_porte?: string;
 }
 
 export interface Polygone { k?: string; n?: string; l?: number[]; p: number[] }
