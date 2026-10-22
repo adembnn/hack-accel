@@ -31,7 +31,7 @@ document.body.appendChild(root);
 root.querySelector('.ouvrir').onclick = () => root.classList.add('on');
 
 const LIB = { 'est': 'par l’est', 'ouest': 'par l’ouest' };
-const varLib = (id, V) => { const v = V.find((x) => x.id === id); return v ? `manif ${v.taille} pers. ${LIB[v.trajet]}, ${v.avance ? '20 min plus tôt' : 'à l’heure prévue'}` : 'sans manif'; };
+const varLib = (id, V) => { const v = V.find((x) => x.id === id); return v ? v.nom : 'sans perturbation'; };
 // Nom affiché : celui de la vue (LEV.nom, ex. « Issue rue Berger 11 ») quand on le trouve
 const court = (n) => { const L = typeof LEV !== 'undefined' && LEV.find((l) => nomLev(l) === n); return L && L.type === 'issue' && L.nom !== 'Issue de secours' ? L.nom : n; };
 const mmss = (s) => (s == null ? 'pas atteint' : `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, '0')}`);
@@ -80,7 +80,7 @@ let minuteur = null, mesTensions = null;
 function nomLev(L) { return L.type === 'porte' ? SIM.groups[L.grp]?.n : L.type === 'issue' ? `Issue de secours ${+L.id.split('-')[1] + 1}` : null; }
 async function jouerDansLaVue(x) {
   if (typeof LEV === 'undefined' || typeof levRefresh !== 'function') return;
-  const p = x.plan, v = R.variantes.find((w) => w.id === x.pire.variante), { positionCortege } = await import('../../../src/explorateur/scenario.mjs'); // la page doit être servie depuis la racine du dépôt
+  const p = x.plan, v = R.variantes.find((w) => w.id === x.pire.variante), { zonesActives } = await import('../../../src/explorateur/scenario.mjs'); // la page doit être servie depuis la racine du dépôt
   clearInterval(minuteur);
   // contraintes imposées : stations fermées (toutes les bouches), sauf la bouche gardée par la RATP si le plan l'obtient
   const bouches = LEV.filter((L) => L.type === 'bouche');
@@ -88,12 +88,17 @@ async function jouerDansLaVue(x) {
   // comme dans l'explorateur : seule la position du cortège dit quelles portes sont « côté manif » (pas de zone fixe)
   SIM.groups.forEach((G) => { G.zone0 = false; });
   LEV.forEach((L) => { const n = nomLev(L); if (!n) return; L.etat = p.fermees.includes(n) ? 'fermé' : 'ouvert'; L.agent = p.agents.includes(n); L.annonce = p.annonces.includes(n); });
-  // manifestation : un cortège qui avance (zone D1), et des troubles qui bloquent les portes au contact si elle est grosse (D2)
+  // perturbations de la variante (plusieurs possibles) : chaque cortège, colis ou trouble = une zone à éviter (D1)
+  // et, s'il bloque, une zone impraticable (D2) ; les cortèges avancent, un colis apparaît à son heure.
   for (let k = ZONES.length - 1; k >= 0; k--) if (ZONES[k].plan) { ZONES[k].mesh.parent?.remove(ZONES[k].mesh); ZONES.splice(k, 1); }
-  const poser = (code) => { if (typeof addZone !== 'function') return null; addZone(code, 0, 0); const Z = ZONES[ZONES.length - 1]; Z.plan = true; Z.x0 = 0; Z.z0 = 0; return Z; };
-  const zs = v ? [poser('D1'), v.rayon_bloque ? poser('D2') : null].filter(Boolean) : [];
-  if (zs[0]) zs[0].r = v.rayon_evite - 25; if (zs[1]) zs[1].r = v.rayon_bloque - 10;
-  const bouger = () => { const c = v && positionCortege(v, SIM.T || 0); zs.forEach((Z) => { const [cx, cz] = c || [9e3, 9e3]; Z.x = cx; Z.z = cz; Z.mesh.position.set(cx - Z.x0, 0, cz - Z.z0); }); levRefresh(); };
+  const poser = (code, r) => { if (typeof addZone !== 'function') return null; addZone(code, 0, 0); const Z = ZONES[ZONES.length - 1]; Z.plan = true; Z.r = r; return Z; };
+  const zs = (v ? v.evenements : []).map((e) => ({ e, d1: poser('D1', Math.max(5, e.rayon_evite - 25)), d2: e.rayon_bloque ? poser('D2', Math.max(5, e.rayon_bloque - 10)) : null }));
+  const bouger = () => {
+    const actives = zonesActives(v, SIM.T || 0);
+    zs.forEach(({ e, d1, d2 }) => { const z = actives.find((a) => a.ev === e); const [cx, cz] = z ? [z.x, z.z] : [9e3, 9e3];
+      [d1, d2].forEach((Z) => { if (!Z) return; Z.x = cx; Z.z = cz; Z.mesh.position.set(cx, 0, cz); }); });
+    levRefresh();
+  };
   bouger();
   if (typeof calm === 'function') calm();
   if (p.escalators === 'montee') SIM.g.links.forEach((k) => { if (k.k === 'escalator') k.debit = 2.0; });

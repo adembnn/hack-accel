@@ -15,7 +15,7 @@ if (!existsSync(join(DOSSIER_FORUM, 'navgrid.json'))) {
   console.log('ÉCHEC navgrid.json absent : dans reports/maquettes/chatelet-3d, lancer ./recuperer-osm.sh puis python build_navgrid.py');
   process.exit(1);
 }
-const V = variantes(), dure = V.find((v) => v.id === 'est-3000-tot');
+const V = variantes(), dure = V.reduce((a, b) => (b.evenements.length > a.evenements.length ? b : a));
 const fermeLouvre = { ...CONSIGNE_REELLE, id: 'test-louvre-ferme', fermees: ['Porte du Louvre'] };
 const P = pool(4);
 const [a, b, c, d] = await Promise.all([P.run(CONSIGNE_REELLE, dure, 1000), P.run(CONSIGNE_REELLE, dure, 1000), P.run(fermeLouvre, dure, 1000), P.run(CONSIGNE_REELLE, null, 1000)]);

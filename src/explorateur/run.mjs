@@ -1,11 +1,13 @@
 // Un run : un plan du directeur, une variante des contraintes imposées, une graine. Rend la note du run.
 import { nouveauMonde } from './moteur.mjs';
-import { IMPOSEES, positionCortege } from './scenario.mjs';
+import { IMPOSEES, EFFETS, zonesActives } from './scenario.mjs';
+import { hasard } from './hasard.mjs';
 import { agentsDuPlan } from './plans.mjs';
 
 // La bouche RATP gardée ouverte passe par le filtre du moteur (1,3 pers./s, codé dans sim.js).
 const PAS = 0.1, ECART_VAGUE_S = 120, DEBIT_MONTEE = 2.0;
-export const SEUIL_DENSITE = 5, LIGNE_ROUGE_S = 60;
+// Ligne rouge : seuil rouge d'Adem (4 pers./m², Still, guides britanniques) tenu plus d'une minute sur un même m².
+export const SEUIL_DENSITE = 4, LIGNE_ROUGE_S = 60;
 
 // Les issues de secours forment un seul groupe dans le moteur : on les sépare pour que le directeur choisisse lesquelles ouvrir.
 function separerIssues(m) {
@@ -35,9 +37,25 @@ export async function jouer(plan, variante, graine, { imposees = IMPOSEES, trace
   // (voyageurs sur les quais, et des zones du niveau -2 reliées seulement par les quais dans la carte OSM).
   // Ils sont comptés à part : seul un plan qui obtient une bouche de la RATP peut les sortir.
   for (const a of S.A) { const i = a.l * S.N + ((a.z - g.bbox[1]) / g.res | 0) * g.w + ((a.x - g.bbox[0]) / g.res | 0); a.piege = !S.F.some((F, q) => S.groups[q].open && F[i] < 1e9); }
+  // perturbations fixes de la variante (le directeur ne peut pas les annuler)
+  const evs = variante ? variante.evenements : [], imposeFerme = new Set(), lents = [], paniques = [], ponctuels = [];
+  const sorties = S.groups.map((G, i) => i).filter((i) => S.groups[i].type !== 'train');
+  const posAgent = (r) => { const a = S.A[(r() * S.A.length) | 0]; return { l: a.l, x: a.x, z: a.z }; };
+  for (const e of evs) {
+    const r = hasard(e.graine || 1);
+    if (e.type === 'issues') { const libres = sorties.filter((i) => !imposeFerme.has(i)); for (let j = 0; j < e.n && libres.length; j++) { const i = libres.splice((r() * libres.length) | 0, 1)[0]; imposeFerme.add(i); S.groups[i].open = false; } }
+    else if (e.type === 'escalators') g.links.forEach((k) => { if (k.k === 'escalator' && r() < e.part) { k.k = 'escalier'; k.debit = EFFETS.escalator_arrete_debit; } });
+    else if (e.type === 'ascenseurs') g.links.forEach((k) => { if (k.k === 'ascenseur' && r() < e.part) k.open = false; });
+    else if (e.type === 'profil') S.A.forEach((a) => { if (r() >= e.part) return; if (e.profil === 'pmr') a.v0 *= EFFETS.pmr_v0; else { a.v0 *= EFFETS.agites_v0; a.bh *= EFFETS.agites_suivisme; } });
+    else if (e.type === 'tardive') S.delay = (S.delay || 0) + e.retard_s;
+    else if (e.type === 'lent') lents.push({ ...e, ...posAgent(r) });
+    else if (e.type === 'panique') paniques.push({ ...e, ...posAgent(r), fait: false });
+    else if (e.type === 'rumeur' || e.type === 'contradictoire') ponctuels.push({ ...e, r, fait: false });
+  }
+  S.A.forEach((a) => { a.v0b = a.v0; });
   // plan du directeur
   if (train && plan.ratp) { train.open = true; train.filtre = true; }
-  const fermeParPlan = new Set(plan.fermees);
+  const fermeParPlan = new Set([...plan.fermees, ...[...imposeFerme].map((i) => S.groups[i].n)]);
   for (const n of plan.fermees) { const G = parNom(n); if (G) G.open = false; }
   for (const n of plan.agents) { const G = parNom(n); if (G) G.agent = true; }
   for (const n of plan.annonces) { const G = parNom(n); if (G) G.annonce = true; }
@@ -52,13 +70,35 @@ export async function jouer(plan, variante, graine, { imposees = IMPOSEES, trace
   const departMax = S.A.reduce((m2, a) => Math.max(m2, a.pre), 0) + (S.delay || 0);
   const suivi = [];
   const manif = () => {
-    const c = variante ? positionCortege(variante, S.T) : null, nouv = new Set();
+    const Z = zonesActives(variante, S.T), nouv = new Set();
+    // panique (A5) : pendant 60 s, les sorties à moins de 60 m du point font peur, et les gens proches repartent plus vite
+    for (const p of paniques) if (S.T >= p.debut_s && S.T < p.debut_s + 60) {
+      Z.push({ x: p.x, z: p.z, rayon_evite: 60, rayon_bloque: 0, ev: p });
+      if (!p.fait) { p.fait = true; for (const a of S.A) if (!a.out && a.l === p.l && Math.hypot(a.x - p.x, a.z - p.z) < p.rayon) { a.v0b *= EFFETS.panique_v0; a.next = 0; } }
+    }
+    // rumeur (A6) : une part de la foule part vers une sortie au hasard pendant une minute ; annonce contradictoire (F4)
+    for (const p of ponctuels) if (!p.fait && S.T >= p.debut_s) {
+      p.fait = true;
+      const ouvertes = sorties.filter((i) => S.groups[i].open);
+      if (p.type === 'rumeur') { for (const a of S.A) if (!a.out && p.r() < p.part && ouvertes.length) { a.t = ouvertes[(p.r() * ouvertes.length) | 0]; a.next = S.T + 60; } }
+      else { const cible = ouvertes.filter((i) => S.groups[i].zone); const i = (cible.length ? cible : ouvertes)[(p.r() * (cible.length || ouvertes.length)) | 0]; if (i !== undefined) S.groups[i].annonce = true; }
+    }
+    // zones lentes (B6 éclairage, B9 sol glissant)
+    for (const a of S.A) {
+      if (a.out) continue; let f = 1;
+      for (const z of lents) if (S.T >= z.debut_s && a.l === z.l && Math.hypot(a.x - z.x, a.z - z.z) < z.rayon) f *= z.effet;
+      a.v0 = a.v0b * f;
+    }
     S.groups.forEach((G, i) => {
       if (G.type === 'train') return;
-      const d = c ? Math.min(...posG[i].map(([x, z]) => Math.hypot(x - c[0], z - c[1]))) : Infinity;
-      G.zone = d < (variante?.rayon_evite ?? 0);
-      if (d < (variante?.rayon_bloque ?? 0)) nouv.add(i);
+      G.zone = false;
+      for (const z of Z) {
+        const d = Math.min(...posG[i].map(([x, y]) => Math.hypot(x - z.x, y - z.z)));
+        if (d < z.rayon_evite) G.zone = true;
+        if (d < z.rayon_bloque) nouv.add(i);
+      }
     });
+    const c = Z.map((z) => [Math.round(z.x), Math.round(z.z)]);
     const change = [...nouv].some((i) => !bloquees.has(i)) || [...bloquees].some((i) => !nouv.has(i));
     if (change) {
       S.groups.forEach((G, i) => { if (G.type !== 'train' && !fermeParPlan.has(G.n)) G.open = !nouv.has(i); });
@@ -96,7 +136,7 @@ export async function jouer(plan, variante, graine, { imposees = IMPOSEES, trace
     }
   };
   while (S.T < imposees.duree_s - 1e-9) {
-    if (k % 100 === 0) { const c = manif(); if (trace) suivi.push({ T: Math.round(S.T), sortis: S.out, cortege: c && c.map(Math.round) }); }
+    if (k % 10 === 0) { const c = manif(); if (trace) suivi.push({ T: Math.round(S.T), sortis: S.out, zones: c }); }
     if (k % 10 === 0) relever();
     m.simStep(PAS); k++;
     if (k % 5 === 0) {
