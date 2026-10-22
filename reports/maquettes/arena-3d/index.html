@@ -373,5 +373,6 @@ fetch('scene.json').then(r=>r.json()).then(d=>{SCN=d;document.getElementById('lo
 let last=performance.now();(function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;movePeople(dt);ctl.update();rnd.render(scene,cam);requestAnimationFrame(loop);})(performance.now());
 </script>
 <script src="arena-calques.js"></script>
+<script src="../commun/regie-ui.js"></script>
 </body>
 </html>

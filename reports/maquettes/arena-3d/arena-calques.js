@@ -1,7 +1,7 @@
 // Calques propres à l'Adidas Arena, posés sur la vue de la session Châtelet (index.html repris tel quel, style D).
 // Même langage visuel : textures dessinées dans un canvas avec tex() et noisy() de index.html, pas de photo.
 // 1) l'Arena d'après le vrai plan NP2F (scene.reel : murs épais, aire, gymnase, tribunes, vomitoires, socle, terrasse, volume haut)
-// 2) barre des niveaux (coupe horizontale de l'Arena seule)  3) leviers du juré (scene.leviers, codes du catalogue des contraintes)
+// 2) barre des niveaux (coupe horizontale de l'Arena seule). Les leviers sont gérés par ../commun/regie-ui.js.
 // Paramètres d'URL : ?embed=1 (sans panneaux) &cam=x,y,z,tx,ty,tz &lv=0..4
 (function () {
   const QP = new URLSearchParams(location.search);
@@ -125,40 +125,7 @@
   }
   window.setLevel = setLevel;
 
-  // ---------- Leviers du juré ----------
-  const FAM = {C1: 0x1D6FB8, B1: 0x0A8A3E, B3: 0xC98A12, B5: 0x7A4FB5, D1: 0xD8572A, D2: 0xB8322A, D5: 0x1D1F1E, F1: 0x1D1F1E};
-  G.leviers = new THREE.Group(); scene.add(G.leviers); window.LEVIERS = [];
-  function paintLever(g) {
-    const L = g.userData.lever, on = /ouvert|^0 min|inactive|inactif/.test(L.etat);
-    g.children.forEach(c => { if (c.userData.head) c.material.color.set(on ? FAM[L.code] : 0xE0461F); });
-    if (g.userData.zone) g.userData.zone.visible = !on;
-  }
-  function buildLevers() {
-    G.leviers.clear(); window.LEVIERS = [];
-    (SCN.leviers || []).forEach(L => {
-      if (L.type === 'parametre') return;
-      const g = new THREE.Group(), y0 = L.niveau ? 5.6 : 0;
-      const post = new THREE.Mesh(new THREE.CylinderGeometry(.18, .18, 6, 6), new THREE.MeshStandardMaterial({color: 0x1D1F1E})); post.position.y = 3; g.add(post);
-      const head = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.6, .4), new THREE.MeshStandardMaterial({color: FAM[L.code]})); head.position.y = 6.6; head.userData.head = 1; g.add(head);
-      const c = document.createElement('canvas'); c.width = 128; c.height = 64; const k = c.getContext('2d'); k.font = '700 40px system-ui,sans-serif'; k.fillStyle = '#fff'; k.textAlign = 'center'; k.fillText(L.code, 64, 46);
-      const s = new THREE.Sprite(new THREE.SpriteMaterial({map: new THREE.CanvasTexture(c), depthTest: false})); s.scale.set(2.4, 1.2, 1); s.position.y = 6.6; g.add(s);
-      g.position.set(L.x, y0, L.z); g.userData.lever = L;
-      if (L.poly) { const z = slab(pairs(L.poly), .35, new THREE.MeshBasicMaterial({color: FAM[L.code], transparent: true, opacity: .35, side: THREE.DoubleSide, depthWrite: false}), 10); z.position.set(-L.x, -y0, -L.z); g.add(z); g.userData.zone = z; }
-      if (L.rayon) { const z = new THREE.Mesh(new THREE.RingGeometry(0, L.rayon, 48), new THREE.MeshBasicMaterial({color: 0xE0461F, transparent: true, opacity: .25, depthWrite: false})); z.rotation.x = -Math.PI / 2; z.position.y = .4; g.add(z); g.userData.zone = z; }
-      [post, head].forEach(m => { m.userData.info = {type: 'Levier ' + L.code, nom: L.nom, état: L.etat, effet: L.effet, source: L.e ? 'estimé : ' + L.source : L.source}; pick.push(m); });
-      paintLever(g); G.leviers.add(g); window.LEVIERS.push(g);
-    });
-  }
-  window.toggleLever = id => {
-    const g = window.LEVIERS.find(o => o.userData.lever.id === id); if (!g) return null; const L = g.userData.lever;
-    L.etat = L.type === 'zone' ? (L.etat === 'inactive' ? 'active' : 'inactive') : L.type === 'point' ? (L.etat === 'inactif' ? 'actif' : 'inactif') : (L.etat === 'ouvert' ? 'fermé' : 'ouvert');
-    paintLever(g); window.dispatchEvent(new CustomEvent('levier', {detail: L})); return L.etat;
-  };
-  rnd.domElement.addEventListener('dblclick', e => {
-    const r = rnd.domElement.getBoundingClientRect(), m = new THREE.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
-    const ray = new THREE.Raycaster(); ray.setFromCamera(m, cam); const h = ray.intersectObjects(G.leviers.children, true)[0];
-    if (h) { let o = h.object; while (o && !o.userData.lever) o = o.parent; if (o) toggleLever(o.userData.lever.id); }
-  });
+  // Leviers : dessinés et cliquables par ../commun/regie-ui.js (module commun avec la vue Châtelet)
 
   // ---------- Branchement sur rebuild() de index.html ----------
   const baseRebuild = rebuild;
@@ -168,7 +135,7 @@
       SCN.batiments = SCN.batiments.filter(b => b !== SCN._arena);
       SCN.interieur = SCN.interieur.filter(o => !o.e); SCN.portes = SCN.portes.filter(o => !o.e); SCN.escaliers = SCN.escaliers.filter(o => !o.e); SCN.gradins = [];
     }
-    baseRebuild(); buildReel(); buildLevers();
+    baseRebuild(); buildReel();
     const c = QP.get('cam'); if (c && !SCN._camSet) { SCN._camSet = 1; const v = c.split(',').map(Number); camGo(v.slice(0, 3), v.slice(3, 6)); }
     setLevel(+(QP.get('lv') || 2));
   };
