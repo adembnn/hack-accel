@@ -9,6 +9,8 @@ import { dirname } from 'node:path';
 import type { Action, Decideur, EtatResume } from './types.ts';
 import { PORTES_VERS_PERIMETRE } from './types.ts';
 import type { ClientDecision, QuestionJev, ReponseJev } from './questions.ts';
+import { gardePayant } from './garde-payant.ts';
+import { ouvrirScelle, sceller, type EntreeScellee } from './integrite.ts';
 import { CATALOGUE, type LevierCatalogue } from './catalogue-leviers.ts';
 
 export const MODELE_JEV = 'jev-1.14.0'; // version figée, jamais jev-latest (rejeu reproductible)
@@ -234,7 +236,7 @@ export class ClientJev implements ClientDecision {
       delete etat.leçons;
       const res = await this.#o.transport.envoyer({
         model: this.#o.modele ?? MODELE_JEV,
-        state: { ...etat, lecons_du_retour_d_experience: n.leçons },
+        state: { ...etat, lecons_du_retour_d_experience: n.leçons, lecons_validees_par_simulation: q.entree.lecons_validees ?? [] },
         questions: Object.fromEntries(specs.map((s) => [s.cle, s.question])),
       });
       answers = res.answers;
@@ -276,19 +278,19 @@ export class ErreurRejeuJevAbsent extends Error {
 // Rejeu : cache fichier JSON { cle: ReponseSystemOne }. Aucun réseau, échoue si absent.
 export class TransportRejeuJev implements TransportJev {
   #chemin: string;
-  #cache: Record<string, ReponseSystemOne>;
+  #cache: Record<string, EntreeScellee<ReponseSystemOne>>;
   constructor(chemin: string) {
     this.#chemin = chemin;
-    this.#cache = existsSync(chemin) ? (JSON.parse(readFileSync(chemin, 'utf8')) as Record<string, ReponseSystemOne>) : {};
+    this.#cache = existsSync(chemin) ? (JSON.parse(readFileSync(chemin, 'utf8')) as Record<string, EntreeScellee<ReponseSystemOne>>) : {};
   }
   async envoyer(r: RequeteJev): Promise<ReponseSystemOne> {
     const cle = cleDeRequete(r);
-    const rep = this.#cache[cle];
-    if (!rep) throw new ErreurRejeuJevAbsent(cle);
-    return structuredClone(rep);
+    const brut = this.#cache[cle];
+    if (!brut) throw new ErreurRejeuJevAbsent(cle);
+    return structuredClone(ouvrirScelle<ReponseSystemOne>(brut, cle));
   }
   enregistrer(r: RequeteJev, rep: ReponseSystemOne): void {
-    this.#cache[cleDeRequete(r)] = rep;
+    this.#cache[cleDeRequete(r)] = sceller(rep);
     mkdirSync(dirname(this.#chemin), { recursive: true });
     writeFileSync(this.#chemin, `${JSON.stringify(this.#cache, null, 2)}\n`);
   }
@@ -299,10 +301,7 @@ export class TransportHttpJev implements TransportJev {
   #cle: string;
   #fetch: typeof fetch;
   constructor(o: { autorise_payant: boolean; env?: Record<string, string | undefined>; fetchImpl?: typeof fetch }) {
-    if (!o.autorise_payant) throw new Error('TransportHttpJev : appel payant non autorisé (accord d\'Adem requis)');
-    const cle = (o.env ?? process.env).TYPESAFE_API_KEY;
-    if (!cle) throw new Error('TransportHttpJev : TYPESAFE_API_KEY absente de l\'environnement');
-    this.#cle = cle;
+    this.#cle = gardePayant('TransportHttpJev', o, 'TYPESAFE_API_KEY') as string;
     this.#fetch = o.fetchImpl ?? fetch;
   }
   async envoyer(r: RequeteJev): Promise<ReponseSystemOne> {

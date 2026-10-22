@@ -1,5 +1,6 @@
 // Test de fumée Jev : UN SEUL appel minuscule (une question choice à trois options, un état de quelques mots).
 // À lancer UNE fois par Titouan, jamais par un agent :
+// Prérequis : MODE_PAYANT=oui dans l'environnement (par exemple dans .env, le temps du test).
 //   node --env-file=.env src/agents/smoke-jev.mts --oui-payant            (passerelle Vercel, AI_GATEWAY_API_KEY)
 //   node --env-file=.env src/agents/smoke-jev.mts --oui-payant --direct    (TypeSafe direct, TYPESAFE_API_KEY)
 // Refuse de tourner sans --oui-payant et sans clé. Écrit la réponse dans le cache de rejeu fixtures/jev/smoke.json.
@@ -31,7 +32,9 @@ const requete: RequeteJev = {
   },
 };
 
-const transport = direct ? new TransportHttpJev({ autorise_payant: true }) : new TransportJevGateway({ autorise_payant: true, plafond_appels: 1 });
+// L'autorisation vient du drapeau --oui-payant (vérifié plus haut) ; MODE_PAYANT=oui doit aussi être dans l'environnement (garde globale).
+const autorise_payant = args.includes('--oui-payant');
+const transport = direct ? new TransportHttpJev({ autorise_payant }) : new TransportJevGateway({ autorise_payant, plafond_appels: 1 });
 const reponse = await transport.envoyer(requete);
 new TransportRejeuJev('fixtures/jev/smoke.json').enregistrer(requete, reponse);
 console.log(`Backend : ${direct ? 'TypeSafe direct' : 'Vercel AI Gateway'} ; clé de cache : ${cleDeRequete(requete)}`);

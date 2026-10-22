@@ -6,6 +6,7 @@
 //  - réponse : { model, answers: { cle: { type, noul | choice+probabilities+confidence | score+... } }, usage, provider_metadata }.
 // Aucun appel réseau n'est fait par ce fichier tant qu'on n'appelle pas envoyer() sur un transport payant autorisé.
 import type { DecideurJeu } from './types.ts';
+import { gardePayant } from './garde-payant.ts';
 import { DECIDEURS } from './types.ts';
 import type { ClientDecision } from './questions.ts';
 import {
@@ -40,10 +41,7 @@ export class TransportJevGateway implements TransportJev {
   jetons_entree = 0;
   jetons_sortie = 0;
   constructor(o: OptionsGateway) {
-    if (!o.autorise_payant) throw new Error('TransportJevGateway : appel payant non autorisé (accord d\'Adem requis)');
-    const cle = (o.env ?? process.env).AI_GATEWAY_API_KEY;
-    if (!cle) throw new Error('TransportJevGateway : AI_GATEWAY_API_KEY absente de l\'environnement');
-    this.#cle = cle;
+    this.#cle = gardePayant('TransportJevGateway', o, 'AI_GATEWAY_API_KEY') as string;
     this.#fetch = o.fetchImpl ?? fetch;
     this.#timeout = o.timeout_ms ?? 8000;
     this.#plafond = o.plafond_appels ?? 300;
