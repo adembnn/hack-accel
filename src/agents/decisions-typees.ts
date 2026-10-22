@@ -1,19 +1,18 @@
-// Couche Jev (TypeSafe AI, modèle « System One »). Partage des rôles : Jev choisit, le code calcule, Claude rédige.
-// Jev n'écrit aucun texte : il répond par probabilités à des questions typées (choice / score / noul).
-// Source : recherche/07-jev-typesafe.md §2, §3, §7. Contrat : POST https://api.typesafe.ai/v1/systemone, Bearer TYPESAFE_API_KEY.
-// AUCUN appel réel ici : le transport par défaut des tests est le rejeu (cache fichier) ; le transport HTTP est payant
-// (crédits gratuits à confirmer) et exige l'option autorise_payant, jamais utilisée dans les tests.
+// Décisions typées : les questions (oui/non, choix, score) posées à chaque décideur, leurs réponses avec probabilité ou confiance,
+// le seuil de confiance (en code), la mémoire de la décision précédente, le repli à règles déterministes et le cache de rejeu.
+// Partage des rôles : Claude Haiku décide dans le menu, le code calcule et borne, Claude Sonnet rédige.
+// Les questions sont des OUTILS à schéma JSON côté Claude (claude-decideurs.ts). AUCUN appel réel ici : le transport par défaut
+// des tests est le rejeu (cache fichier scellé) ; le transport Claude est payant, derrière la garde MODE_PAYANT.
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import type { Action, Decideur, EtatResume } from './types.ts';
 import { PORTES_VERS_PERIMETRE } from './types.ts';
-import type { ClientDecision, QuestionJev, ReponseJev } from './questions.ts';
-import { gardePayant } from './garde-payant.ts';
+import type { ClientDecision, QuestionDecision, ReponseDecision } from './questions.ts';
 import { ouvrirScelle, sceller, type EntreeScellee } from './integrite.ts';
 import { CATALOGUE, type LevierCatalogue } from './catalogue-leviers.ts';
 
-export const MODELE_JEV = 'jev-1.14.0'; // version figée, jamais jev-latest (rejeu reproductible)
+export const MODELE_DECIDEURS = 'claude-haiku-5-5'; // défaut ; surchargé par l'environnement MODELE_DECIDEURS (voir claude-decideurs.ts)
 
 // ---------- Contrat de l'API ----------
 export type QuestionTypee =
@@ -21,16 +20,16 @@ export type QuestionTypee =
   | { type: 'score'; instructions: string; criteria: string[] }
   | { type: 'noul'; instructions: string };
 
-export interface RequeteJev { model: string; state: Record<string, unknown>; questions: Record<string, QuestionTypee> }
-export type ReponseQuestionJev =
+export interface RequeteTypee { model: string; state: Record<string, unknown>; questions: Record<string, QuestionTypee> }
+export type ReponseQuestionTypee =
   | { choice: string; probabilities: Record<string, number>; confidence: number }
   | { score: number; probabilities: number[]; confidence: number }
   | { noul: number };
-export interface ReponseSystemOne { model: string; answers: Record<string, ReponseQuestionJev>; usage?: { input_tokens: number; output_tokens: number } }
+export interface ReponseTypee { model: string; answers: Record<string, ReponseQuestionTypee>; usage?: { input_tokens: number; output_tokens: number } }
 
-export interface TransportJev { envoyer(requete: RequeteJev): Promise<ReponseSystemOne> }
+export interface TransportTypee { envoyer(requete: RequeteTypee): Promise<ReponseTypee> }
 
-// ---------- État en niveaux nommés (pas de chiffres bruts : Jev est mauvais sur chiffres et dates) ----------
+// ---------- État en niveaux nommés (pas de chiffres bruts : Claude est mauvais sur chiffres et dates) ----------
 export type NiveauDensite = 'faible' | 'moderee' | 'elevee' | 'critique';
 export interface NiveauxEtat {
   role: Decideur;
@@ -46,7 +45,7 @@ export interface NiveauxEtat {
   nouvelle_perturbation: boolean;
 }
 
-export function niveauxDe(q: QuestionJev, seuilDensite = 5, stationsMinute = 1320, precedent?: EtatResume, population0?: number): NiveauxEtat {
+export function niveauxDe(q: QuestionDecision, seuilDensite = 5, stationsMinute = 1320, precedent?: EtatResume, population0?: number): NiveauxEtat {
   const e = q.entree.etat;
   const d = e.densite_max;
   const densite: NiveauDensite = d >= seuilDensite ? 'critique' : d >= seuilDensite * 0.6 ? 'elevee' : d >= seuilDensite * 0.3 ? 'moderee' : 'faible';
@@ -81,7 +80,7 @@ export interface SpecQuestion {
 
 const NIVEAUX_GUIDAGE = ['aucun', 'messages sonores', 'agents sur place', 'évacuation dirigée'];
 
-export const SPECS_JEV: Record<Decideur, SpecQuestion[]> = {
+export const SPECS_NOYAU: Record<Decideur, SpecQuestion[]> = {
   ugc: [],
   bspp: [],
   directeur: [
@@ -134,7 +133,7 @@ export const SPECS_JEV: Record<Decideur, SpecQuestion[]> = {
   ],
 };
 
-// ---------- Questions Jev du catalogue complet (46 leviers, 6 décideurs) ----------
+// ---------- Questions Claude du catalogue complet (46 leviers, 6 décideurs) ----------
 // oui_non → noul ; choix → choice ; score → score (niveaux nommés) ; sous_ensemble → choice sur la porte préférée ;
 // oui_non_par_cible → noul sur la cible la plus critique. Les valeurs retournées passent ensuite par les bornes de leviers.ts.
 const NIVEAUX_SCORE = ['aucun', 'faible', 'moyen', 'fort', 'maximum'];
@@ -175,7 +174,7 @@ export const SPECS_CATALOGUE: Record<Decideur, SpecQuestion[]> = Object.fromEntr
 export const SEUIL_CONFIANCE = 0.6;
 export const ZONE_INCERTAINE: [number, number] = [0.35, 0.65];
 
-export function valeurDecidee(spec: SpecQuestion, rep: ReponseQuestionJev | undefined, seuil = SEUIL_CONFIANCE): string | number | boolean | null {
+export function valeurDecidee(spec: SpecQuestion, rep: ReponseQuestionTypee | undefined, seuil = SEUIL_CONFIANCE): string | number | boolean | null {
   if (!rep) return null;
   if (spec.question.type === 'noul' && 'noul' in rep) {
     if (rep.noul > ZONE_INCERTAINE[1]) return true;
@@ -187,8 +186,8 @@ export function valeurDecidee(spec: SpecQuestion, rep: ReponseQuestionJev | unde
   return null;
 }
 
-// ---------- Repli à règles déterministes (Jev indisponible) : fabrique des réponses au format Jev ----------
-export function reponsesParRegles(n: NiveauxEtat): Record<string, ReponseQuestionJev> {
+// ---------- Repli à règles déterministes (Claude indisponible) : fabrique des réponses au format Claude ----------
+export function reponsesParRegles(n: NiveauxEtat): Record<string, ReponseQuestionTypee> {
   const critique = n.densite === 'critique';
   const elevee = n.densite === 'elevee' || critique;
   const choix = critique ? 'fermer' : elevee || n.stations === 'ouvertes_bientot_fermees' ? 'fermer_par_etapes' : 'rester_ouvert';
@@ -203,9 +202,9 @@ export function reponsesParRegles(n: NiveauxEtat): Record<string, ReponseQuestio
   };
 }
 
-// ---------- Client Jev (implémente ClientDecision) ----------
-export interface OptionsClientJev {
-  transport: TransportJev;
+// ---------- Client Claude (implémente ClientDecision) ----------
+export interface OptionsClientTypee {
+  transport: TransportTypee;
   modele?: string;
   seuil_confiance?: number;
   effectif_securite?: number;
@@ -215,27 +214,27 @@ export interface OptionsClientJev {
   catalogue?: boolean;              // poser aussi les questions des 46 leviers du catalogue (défaut : non)
 }
 
-export class ClientJev implements ClientDecision {
-  #o: OptionsClientJev;
+export class ClientTypee implements ClientDecision {
+  #o: OptionsClientTypee;
   #memoire = new Map<string, string | number | boolean>();
   #precedent: EtatResume | undefined;
   requetes = 0;
   replis = 0;
-  constructor(o: OptionsClientJev) { this.#o = o; }
+  constructor(o: OptionsClientTypee) { this.#o = o; }
 
-  async decider(q: QuestionJev): Promise<ReponseJev> {
+  async decider(q: QuestionDecision): Promise<ReponseDecision> {
     const n = niveauxDe(q, 5, this.#o.stations_minute ?? 1320, this.#precedent);
     this.#precedent = q.entree.etat;
-    const specs = this.#o.catalogue ? [...SPECS_JEV[q.decideur], ...SPECS_CATALOGUE[q.decideur]] : SPECS_JEV[q.decideur];
-    let answers: Record<string, ReponseQuestionJev>;
-    let source = 'jev';
+    const specs = this.#o.catalogue ? [...SPECS_NOYAU[q.decideur], ...SPECS_CATALOGUE[q.decideur]] : SPECS_NOYAU[q.decideur];
+    let answers: Record<string, ReponseQuestionTypee>;
+    let source = 'claude';
     try {
       if (this.#o.plafond_requetes !== undefined && this.requetes >= this.#o.plafond_requetes) throw new Error('plafond de requêtes atteint');
       this.requetes++;
       const etat: Record<string, unknown> = { ...n };
       delete etat.leçons;
       const res = await this.#o.transport.envoyer({
-        model: this.#o.modele ?? MODELE_JEV,
+        model: this.#o.modele ?? MODELE_DECIDEURS,
         state: { ...etat, lecons_du_retour_d_experience: n.leçons, lecons_validees_par_simulation: q.entree.lecons_validees ?? [] },
         questions: Object.fromEntries(specs.map((s) => [s.cle, s.question])),
       });
@@ -246,7 +245,7 @@ export class ClientJev implements ClientDecision {
       this.#o.surRepli?.(q.decideur, (err as Error).message);
       answers = reponsesParRegles(n);
     }
-    const actions: ReponseJev['actions'] = [];
+    const actions: ReponseDecision['actions'] = [];
     const notes: string[] = [];
     for (const s of specs) {
       const cleM = `${q.decideur}/${s.cle}`;
@@ -265,65 +264,46 @@ export class ClientJev implements ClientDecision {
 }
 
 // ---------- Transports ----------
-export function cleDeRequete(r: RequeteJev): string {
+export function cleDeRequete(r: RequeteTypee): string {
   const canon = (v: unknown): string => Array.isArray(v) ? `[${v.map(canon).join(',')}]` : v && typeof v === 'object' ? `{${Object.keys(v).sort().map((k) => `${JSON.stringify(k)}:${canon((v as Record<string, unknown>)[k])}`).join(',')}}` : JSON.stringify(v);
   return createHash('sha256').update(canon({ model: r.model, state: r.state, questions: r.questions })).digest('hex').slice(0, 24);
 }
 
-export class ErreurRejeuJevAbsent extends Error {
+export class ErreurRejeuTypeeAbsent extends Error {
   cle: string;
-  constructor(cle: string) { super(`rejeu Jev : requête ${cle} absente du cache ; aucun appel réseau n'est fait`); this.cle = cle; }
+  constructor(cle: string) { super(`rejeu Claude : requête ${cle} absente du cache ; aucun appel réseau n'est fait`); this.cle = cle; }
 }
 
-// Rejeu : cache fichier JSON { cle: ReponseSystemOne }. Aucun réseau, échoue si absent.
-export class TransportRejeuJev implements TransportJev {
+// Rejeu : cache fichier JSON { cle: ReponseTypee }. Aucun réseau, échoue si absent.
+export class TransportRejeuTypee implements TransportTypee {
   #chemin: string;
-  #cache: Record<string, EntreeScellee<ReponseSystemOne>>;
+  #cache: Record<string, EntreeScellee<ReponseTypee>>;
   constructor(chemin: string) {
     this.#chemin = chemin;
-    this.#cache = existsSync(chemin) ? (JSON.parse(readFileSync(chemin, 'utf8')) as Record<string, EntreeScellee<ReponseSystemOne>>) : {};
+    this.#cache = existsSync(chemin) ? (JSON.parse(readFileSync(chemin, 'utf8')) as Record<string, EntreeScellee<ReponseTypee>>) : {};
   }
-  async envoyer(r: RequeteJev): Promise<ReponseSystemOne> {
+  async envoyer(r: RequeteTypee): Promise<ReponseTypee> {
     const cle = cleDeRequete(r);
     const brut = this.#cache[cle];
-    if (!brut) throw new ErreurRejeuJevAbsent(cle);
-    return structuredClone(ouvrirScelle<ReponseSystemOne>(brut, cle));
+    if (!brut) throw new ErreurRejeuTypeeAbsent(cle);
+    return structuredClone(ouvrirScelle<ReponseTypee>(brut, cle));
   }
-  enregistrer(r: RequeteJev, rep: ReponseSystemOne): void {
+  enregistrer(r: RequeteTypee, rep: ReponseTypee): void {
     this.#cache[cleDeRequete(r)] = sceller(rep);
     mkdirSync(dirname(this.#chemin), { recursive: true });
     writeFileSync(this.#chemin, `${JSON.stringify(this.#cache, null, 2)}\n`);
   }
 }
 
-// HTTP réel : PAYANT (crédits gratuits à confirmer). Jamais appelé par les tests ni par l'implémenteur.
-export class TransportHttpJev implements TransportJev {
-  #cle: string;
-  #fetch: typeof fetch;
-  constructor(o: { autorise_payant: boolean; env?: Record<string, string | undefined>; fetchImpl?: typeof fetch }) {
-    this.#cle = gardePayant('TransportHttpJev', o, 'TYPESAFE_API_KEY') as string;
-    this.#fetch = o.fetchImpl ?? fetch;
-  }
-  async envoyer(r: RequeteJev): Promise<ReponseSystemOne> {
-    const rep = await this.#fetch('https://api.typesafe.ai/v1/systemone', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', authorization: `Bearer ${this.#cle}` },
-      body: JSON.stringify(r),
-    });
-    if (!rep.ok) throw new Error(`Jev a répondu ${rep.status}`);
-    return (await rep.json()) as ReponseSystemOne;
-  }
-}
-
 // Enregistreur : sur absence dans le cache, délègue (transport payant) puis enregistre. Pour remplir le cache une fois, avec accord.
-export class TransportEnregistreurJev implements TransportJev {
-  #rejeu: TransportRejeuJev;
-  #delegue: TransportJev;
-  constructor(rejeu: TransportRejeuJev, delegue: TransportJev) { this.#rejeu = rejeu; this.#delegue = delegue; }
-  async envoyer(r: RequeteJev): Promise<ReponseSystemOne> {
+export class TransportEnregistreurTypee implements TransportTypee {
+  #rejeu: TransportRejeuTypee;
+  #delegue: TransportTypee;
+  constructor(rejeu: TransportRejeuTypee, delegue: TransportTypee) { this.#rejeu = rejeu; this.#delegue = delegue; }
+  async envoyer(r: RequeteTypee): Promise<ReponseTypee> {
     try { return await this.#rejeu.envoyer(r); }
     catch (e) {
-      if (!(e instanceof ErreurRejeuJevAbsent)) throw e;
+      if (!(e instanceof ErreurRejeuTypeeAbsent)) throw e;
       const rep = await this.#delegue.envoyer(r);
       this.#rejeu.enregistrer(r, rep);
       return rep;

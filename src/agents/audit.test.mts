@@ -11,9 +11,9 @@ import { StockageMemoire } from './stockage.ts';
 import { extraireNombres, verifierChiffres } from './verificateur.ts';
 import { RedacteurClaude, RedacteurClaudeCli, RedacteurGabarit, RedacteurRejeu, ErreurChiffres, argsClaudeCli, envSansSecrets, demandeExplication, demandeOrdre, redigerVerifie } from './redacteur.ts';
 import type { DemandeRedaction, Redacteur, TexteRedige } from './redacteur.ts';
-import { TransportHttpJev, TransportRejeuJev, MODELE_JEV } from './jev.ts';
-import type { RequeteJev } from './jev.ts';
-import { TransportJevGateway } from './jev-gateway.ts';
+import { TransportRejeuTypee, MODELE_DECIDEURS } from './decisions-typees.ts';
+import type { RequeteTypee } from './decisions-typees.ts';
+import { TransportClaudeHaiku } from './claude-decideurs.ts';
 import { incoherencesAvecPlan, validerRex, RedacteurPlafonne } from './limites.ts';
 import { ErreurCacheCorrompu } from './integrite.ts';
 import { planInitial } from './types.ts';
@@ -75,21 +75,19 @@ test('(a) un message chiffré du plan n\'est pas recopié dans un ordre de servi
 
 // ============ (b) garde globale des appels payants ============
 test('(b) MODE_PAYANT=oui est exigé par TOUS les transports, en plus de l\'autorisation et de la clé', () => {
-  const sansMode = { ANTHROPIC_API_KEY: 'k', TYPESAFE_API_KEY: 'k', AI_GATEWAY_API_KEY: 'k' };
+  const sansMode = { ANTHROPIC_API_KEY: 'k' };
   assert.throws(() => new RedacteurClaude({ autorise_payant: true, env: sansMode }), /MODE_PAYANT/);
-  assert.throws(() => new TransportHttpJev({ autorise_payant: true, env: sansMode }), /MODE_PAYANT/);
-  assert.throws(() => new TransportJevGateway({ autorise_payant: true, env: sansMode }), /MODE_PAYANT/);
+  assert.throws(() => new TransportClaudeHaiku({ autorise_payant: true, env: sansMode }), /MODE_PAYANT/);
   assert.throws(() => new RedacteurClaudeCli({ autorise: true, env: {} }), /MODE_PAYANT/);
   assert.throws(() => new RedacteurClaudeCli({ autorise: true, env: { MODE_PAYANT: 'peut-etre' } }), /MODE_PAYANT/);
   const avec = { ...sansMode, MODE_PAYANT: 'oui' };
   assert.doesNotThrow(() => new RedacteurClaude({ autorise_payant: true, env: avec }));
-  assert.doesNotThrow(() => new TransportHttpJev({ autorise_payant: true, env: avec }));
-  assert.doesNotThrow(() => new TransportJevGateway({ autorise_payant: true, env: avec }));
-  assert.throws(() => new TransportJevGateway({ autorise_payant: false, env: avec }), /non autorisé/, 'MODE_PAYANT seul ne suffit pas');
+  assert.doesNotThrow(() => new TransportClaudeHaiku({ autorise_payant: true, env: avec }));
+  assert.throws(() => new TransportClaudeHaiku({ autorise_payant: false, env: avec }), /non autorisé/, 'MODE_PAYANT seul ne suffit pas');
 });
 
-test('(b) smoke-jev ne met plus autorise_payant à true en dur', () => {
-  const source = readFileSync(new URL('./smoke-jev.mts', import.meta.url), 'utf8');
+test('(b) smoke-claude ne met plus autorise_payant à true en dur', () => {
+  const source = readFileSync(new URL('./smoke-claude.mts', import.meta.url), 'utf8');
   assert.ok(!/autorise_payant:\s*true/.test(source));
   assert.match(source, /--oui-payant/);
 });
@@ -137,14 +135,14 @@ test('(d) un cache falsifié est détecté à la lecture (hash du contenu), text
   writeFileSync(chemin, JSON.stringify(brut));
   await assert.rejects(new RedacteurRejeu(chemin).rediger(d), /sans empreinte/);
 
-  const req: RequeteJev = { model: MODELE_JEV, state: { densite: 'faible' }, questions: { x: { type: 'noul', instructions: 'ok ?' } } };
+  const req: RequeteTypee = { model: MODELE_DECIDEURS, state: { densite: 'faible' }, questions: { x: { type: 'noul', instructions: 'ok ?' } } };
   const cj = join(dossier, 'jev.json');
-  new TransportRejeuJev(cj).enregistrer(req, { model: MODELE_JEV, answers: { x: { noul: 0.1 } } });
-  assert.deepEqual((await new TransportRejeuJev(cj).envoyer(req)).answers.x, { noul: 0.1 });
+  new TransportRejeuTypee(cj).enregistrer(req, { model: MODELE_DECIDEURS, answers: { x: { noul: 0.1 } } });
+  assert.deepEqual((await new TransportRejeuTypee(cj).envoyer(req)).answers.x, { noul: 0.1 });
   const jb = JSON.parse(readFileSync(cj, 'utf8'));
   jb[Object.keys(jb)[0]].valeur.answers.x.noul = 0.99;
   writeFileSync(cj, JSON.stringify(jb));
-  await assert.rejects(new TransportRejeuJev(cj).envoyer(req), ErreurCacheCorrompu);
+  await assert.rejects(new TransportRejeuTypee(cj).envoyer(req), ErreurCacheCorrompu);
 });
 
 // ============ (e) branchements dans la boucle réelle ============

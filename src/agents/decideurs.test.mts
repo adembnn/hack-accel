@@ -9,6 +9,7 @@ import { join } from 'node:path';
 import { LEVIERS, leviersDe, appliquerActions, etatInitial, verifierPlan } from './leviers.ts';
 import { DECIDEURS, PORTES } from './types.ts';
 import type { Action, Decideur, Journal } from './types.ts';
+import { TransportClaudeHaiku } from './claude-decideurs.ts';
 import { lireReponse, schemaReponse } from './questions.ts';
 import { lancerBoucle, clientsHeuristiques, comparerNotes } from './boucle.ts';
 import { FauxSimulateur, scenarioDeTest } from './fausse-sim.ts';
@@ -20,8 +21,8 @@ import {
 } from './redacteur.ts';
 import { AnalysteDeterministe, StockageRexMemoire, verifierLecon, leconsPertinentes } from './rex.ts';
 import type { RexCrise } from './rex.ts';
-import { ClientJev, TransportRejeuJev, TransportHttpJev, cleDeRequete, valeurDecidee, SPECS_JEV, MODELE_JEV } from './jev.ts';
-import type { RequeteJev, ReponseSystemOne, TransportJev } from './jev.ts';
+import { ClientTypee, TransportRejeuTypee, cleDeRequete, valeurDecidee, SPECS_NOYAU, MODELE_DECIDEURS } from './decisions-typees.ts';
+import type { RequeteTypee, ReponseTypee, TransportTypee } from './decisions-typees.ts';
 
 // Garde-fou global : tout appel réseau fait échouer le test.
 let appelsReseau = 0;
@@ -183,8 +184,8 @@ test('les implémentations Claude refusent de démarrer sans accord, sans clé, 
   assert.throws(() => new RedacteurClaude({ autorise_payant: false, env: {} }), /non autorisé/);
   assert.throws(() => new RedacteurClaude({ autorise_payant: true, env: {} }), /ANTHROPIC_API_KEY absente/);
   assert.throws(() => new RedacteurClaudeCli({ autorise: false }), /non autorisé/);
-  assert.throws(() => new TransportHttpJev({ autorise_payant: false, env: {} }), /non autorisé/);
-  assert.throws(() => new TransportHttpJev({ autorise_payant: true, env: {} }), /TYPESAFE_API_KEY absente/);
+  assert.throws(() => new TransportClaudeHaiku({ autorise_payant: false, env: {} }), /non autorisé/);
+  assert.throws(() => new TransportClaudeHaiku({ autorise_payant: true, env: {} }), /ANTHROPIC_API_KEY absente/);
   // La version CLI s'injecte : lanceur factice (aucun processus `claude` lancé), gabarit à champs rempli depuis les faits.
   const { journal } = await jouer(clientsHeuristiques(), 5);
   const cli = new RedacteurClaudeCli({ autorise: true, lanceur: async () => 'Fermeture à {{heure_stations}}, {{non_sortis_fin}} personnes restantes.' });
@@ -225,20 +226,20 @@ test('les leçons pertinentes sont montrées au décideur et citées dans sa dé
 });
 
 // ---------------- Jev : probabilités, seuil, repli, rejeu ----------------
-function transportScripte(reponses: Record<string, ReponseSystemOne['answers']>, vues: RequeteJev[] = []): TransportJev {
+function transportScripte(reponses: Record<string, ReponseTypee['answers']>, vues: RequeteTypee[] = []): TransportTypee {
   let i = 0;
   return { envoyer: async (r) => { vues.push(r); const cle = Object.keys(reponses)[Math.min(i++, Object.keys(reponses).length - 1)]; return { model: r.model, answers: reponses[cle] }; } };
 }
 
 test('Jev : version figée, état en niveaux nommés (pas de chiffres bruts), une requête par décideur et par minute', async () => {
-  const vues: RequeteJev[] = [];
+  const vues: RequeteTypee[] = [];
   const t = transportScripte({ a: { plan: { choice: 'fermer_par_etapes', probabilities: { rester_ouvert: 0.1, fermer_par_etapes: 0.8, fermer: 0.1 }, confidence: 0.8 }, confinement: { noul: 0.1 }, fermer_portes_perimetre: { noul: 0.9 } } }, vues);
   const clients = clientsHeuristiques();
-  clients.directeur = new ClientJev({ transport: t });
+  clients.directeur = new ClientTypee({ transport: t });
   await jouer(clients, 3);
   assert.equal(vues.length, 3);
-  assert.ok(vues.every((v) => v.model === MODELE_JEV && (v.model as string) !== 'jev-latest'));
-  assert.deepEqual(Object.keys(vues[0].questions).sort(), SPECS_JEV.directeur.map((s) => s.cle).sort());
+  assert.ok(vues.every((v) => v.model === MODELE_DECIDEURS && (v.model as string) !== 'claude-haiku-latest'));
+  assert.deepEqual(Object.keys(vues[0].questions).sort(), SPECS_NOYAU.directeur.map((s) => s.cle).sort());
   for (const v of vues) for (const val of Object.values(v.state)) assert.ok(typeof val !== 'number', 'pas de nombre brut dans le state');
 });
 
@@ -246,13 +247,13 @@ test('Jev : sous le seuil de confiance on garde la décision précédente', asyn
   const sur = { plan: { choice: 'fermer', probabilities: { rester_ouvert: 0.05, fermer_par_etapes: 0.05, fermer: 0.9 }, confidence: 0.9 }, confinement: { noul: 0.5 }, fermer_portes_perimetre: { noul: 0.5 } };
   const hesite = { plan: { choice: 'rester_ouvert', probabilities: { rester_ouvert: 0.4, fermer_par_etapes: 0.3, fermer: 0.3 }, confidence: 0.4 }, confinement: { noul: 0.5 }, fermer_portes_perimetre: { noul: 0.5 } };
   const clients = clientsHeuristiques();
-  clients.directeur = new ClientJev({ transport: transportScripte({ sur, hesite }) });
+  clients.directeur = new ClientTypee({ transport: transportScripte({ sur, hesite }) });
   const { journal } = await jouer(clients, 4);
   assert.deepEqual(journal.entrees.map((e) => e.plan.mode), ['fermer', 'fermer', 'fermer', 'fermer']);
-  const spec = SPECS_JEV.directeur[0];
+  const spec = SPECS_NOYAU.directeur[0];
   assert.equal(valeurDecidee(spec, hesite.plan), null);
-  assert.equal(valeurDecidee(SPECS_JEV.directeur[1], { noul: 0.5 }), null);
-  assert.equal(valeurDecidee(SPECS_JEV.directeur[1], { noul: 0.9 }), true);
+  assert.equal(valeurDecidee(SPECS_NOYAU.directeur[1], { noul: 0.5 }), null);
+  assert.equal(valeurDecidee(SPECS_NOYAU.directeur[1], { noul: 0.9 }), true);
 });
 
 test('Jev : sans réponse en cache ou en panne, le repli à règles décide sans réseau', async () => {
@@ -261,7 +262,7 @@ test('Jev : sans réponse en cache ou en panne, le repli à règles décide sans
   writeFileSync(vide, '{}');
   const raisons: string[] = [];
   const clients = clientsHeuristiques();
-  const cj = new ClientJev({ transport: new TransportRejeuJev(vide), surRepli: (_d, r) => raisons.push(r) });
+  const cj = new ClientTypee({ transport: new TransportRejeuTypee(vide), surRepli: (_d, r) => raisons.push(r) });
   clients.directeur = cj;
   const { journal } = await jouer(clients, 3);
   assert.equal(cj.replis, 3);
@@ -273,15 +274,15 @@ test('Jev : sans réponse en cache ou en panne, le repli à règles décide sans
 test('Jev : rejeu fichier, clé = hash(model + state + questions), plafond de requêtes', async () => {
   const dossier = mkdtempSync(join(tmpdir(), 'jev-'));
   const chemin = join(dossier, 'jev.json');
-  const req: RequeteJev = { model: MODELE_JEV, state: { densite: 'faible' }, questions: { x: { type: 'noul', instructions: 'ok ?' } } };
-  const rejeu = new TransportRejeuJev(chemin);
-  rejeu.enregistrer(req, { model: MODELE_JEV, answers: { x: { noul: 0.8 } } });
-  const relu = new TransportRejeuJev(chemin);
+  const req: RequeteTypee = { model: MODELE_DECIDEURS, state: { densite: 'faible' }, questions: { x: { type: 'noul', instructions: 'ok ?' } } };
+  const rejeu = new TransportRejeuTypee(chemin);
+  rejeu.enregistrer(req, { model: MODELE_DECIDEURS, answers: { x: { noul: 0.8 } } });
+  const relu = new TransportRejeuTypee(chemin);
   assert.deepEqual((await relu.envoyer(structuredClone(req))).answers.x, { noul: 0.8 });
-  assert.notEqual(cleDeRequete(req), cleDeRequete({ ...req, model: 'jev-1.13.0' }));
+  assert.notEqual(cleDeRequete(req), cleDeRequete({ ...req, model: 'claude-haiku-4-5' }));
   assert.notEqual(cleDeRequete(req), cleDeRequete({ ...req, state: { densite: 'critique' } }));
   assert.equal(cleDeRequete(req), cleDeRequete({ questions: req.questions, state: req.state, model: req.model }));
-  const cj = new ClientJev({ transport: transportScripte({ a: {} }), plafond_requetes: 0 });
+  const cj = new ClientTypee({ transport: transportScripte({ a: {} }), plafond_requetes: 0 });
   const { journal } = await jouer({ ...clientsHeuristiques(), directeur: cj }, 2);
   assert.equal(cj.requetes, 0);
   assert.equal(cj.replis, 2);

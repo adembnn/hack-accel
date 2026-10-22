@@ -11,8 +11,8 @@ import { FauxSimulateur, scenarioDeTest } from './fausse-sim.ts';
 import { StockageMemoire } from './stockage.ts';
 import { appliquerContrainte, detecterConflits, lirePerturbations, validerContrainte } from './evenements.ts';
 import type { EvenementContrainte } from './evenements.ts';
-import { ClientJev, SPECS_CATALOGUE, SPECS_JEV } from './jev.ts';
-import type { RequeteJev, TransportJev } from './jev.ts';
+import { ClientTypee, SPECS_CATALOGUE, SPECS_NOYAU } from './decisions-typees.ts';
+import type { RequeteTypee, TransportTypee } from './decisions-typees.ts';
 import { RedacteurGabarit, demandeExplication, demandeOrdre, redigerVerifie } from './redacteur.ts';
 import { lireReponse } from './questions.ts';
 
@@ -191,8 +191,8 @@ test('questions Jev du catalogue : une par levier, typées, et leurs réponses p
     assert.equal(q.type, attendu, l.code);
     if (q.type === 'choice') assert.ok(!('generale' in q.criteria), 'l\'alarme générale n\'est jamais proposée à Jev');
   }
-  const vues: RequeteJev[] = [];
-  const transport: TransportJev = {
+  const vues: RequeteTypee[] = [];
+  const transport: TransportTypee = {
     envoyer: async (r) => {
       vues.push(r);
       const answers: Record<string, never> = {} as never;
@@ -204,13 +204,13 @@ test('questions Jev du catalogue : une par levier, typées, et leurs réponses p
       return { model: r.model, answers };
     },
   };
-  const cj = new ClientJev({ transport, catalogue: true });
-  const clients = { prefecture: cj, ratp: cj, securite_centre: cj, directeur: new ClientJev({ transport, catalogue: true }) };
+  const cj = new ClientTypee({ transport, catalogue: true });
+  const clients = { prefecture: cj, ratp: cj, securite_centre: cj, directeur: new ClientTypee({ transport, catalogue: true }) };
   const stockage = new StockageMemoire();
   const j = await lancerBoucle({ simulateur: new FauxSimulateur(), scenario: sc, clients, stockage, minutes: 2 });
   assert.equal(j.entrees.length, 2);
   const reqDirecteur = vues.find((v) => 'plan' in v.questions && 'D1' in v.questions)!;
-  assert.deepEqual(Object.keys(reqDirecteur.questions).sort(), [...SPECS_JEV.directeur, ...SPECS_CATALOGUE.directeur].map((s) => s.cle).sort());
+  assert.deepEqual(Object.keys(reqDirecteur.questions).sort(), [...SPECS_NOYAU.directeur, ...SPECS_CATALOGUE.directeur].map((s) => s.cle).sort());
   const tout = await stockage.lister();
   const acceptees = tout.flatMap((t) => t.actions_acceptees);
   assert.ok(acceptees.some((a) => a.levier === 'D1' && a.valeur === 'immediat'));

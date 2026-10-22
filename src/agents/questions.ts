@@ -5,7 +5,7 @@ import type { Action, Decideur, EtatResume, Note } from './types.ts';
 import type { Lecon } from './rex.ts';
 import { trouverLevier, leviersDe, type EtatDecisions } from './leviers.ts';
 
-export interface QuestionJev {
+export interface QuestionDecision {
   version: 1;
   id: string;                       // décideur + minute, stable : sert de clé de cache
   decideur: Decideur;
@@ -16,7 +16,7 @@ export interface QuestionJev {
   reponse_schema: Record<string, unknown>;
 }
 
-export interface ReponseJev { actions: { levier: string; valeur: unknown }[]; justification?: string }
+export interface ReponseDecision { actions: { levier: string; valeur: unknown }[]; justification?: string }
 
 const ROLES: Record<Decideur, string> = {
   prefecture: 'Tu es la préfecture de police de Paris. Tu fixes l\'heure et le périmètre du couvre-feu et tu demandes des renforts ou la fermeture des stations.',
@@ -75,7 +75,7 @@ export function construireQuestion(args: {
   decideur: Decideur; minute: number; etat: EtatResume; derniere_note: Note | null;
   plan_courant: EtatDecisions['plan']; decisions_des_autres: { decideur: Decideur; actions: Action[] }[]; lecons?: Lecon[];
   lecons_validees?: string[]; perturbations?: string[]; conflits?: string[]; nouvelles_perturbations?: boolean;
-}): QuestionJev {
+}): QuestionDecision {
   return {
     version: 1,
     id: `${args.decideur}@${args.minute}`,
@@ -91,9 +91,9 @@ export function construireQuestion(args: {
 // Valide une réponse brute (JSON déjà parsé) contre le menu du décideur, sans bibliothèque de schéma.
 export function lireReponse(decideur: Decideur, brut: unknown): { actions: Action[]; erreurs: string[] } {
   const erreurs: string[] = [];
-  if (typeof brut !== 'object' || brut === null || !Array.isArray((brut as ReponseJev).actions)) return { actions: [], erreurs: ['réponse : { actions: [...] } attendu'] };
+  if (typeof brut !== 'object' || brut === null || !Array.isArray((brut as ReponseDecision).actions)) return { actions: [], erreurs: ['réponse : { actions: [...] } attendu'] };
   const actions: Action[] = [];
-  for (const [i, a] of (brut as ReponseJev).actions.entries()) {
+  for (const [i, a] of (brut as ReponseDecision).actions.entries()) {
     if (typeof a !== 'object' || a === null || typeof a.levier !== 'string' || !('valeur' in a)) { erreurs.push(`actions[${i}] : {levier, valeur} attendu`); continue; }
     if (!trouverLevier(decideur, a.levier)) { erreurs.push(`actions[${i}] : levier « ${a.levier} » hors du menu de ${decideur}`); continue; }
     actions.push({ decideur, levier: a.levier, valeur: a.valeur });
@@ -103,4 +103,4 @@ export function lireReponse(decideur: Decideur, brut: unknown): { actions: Actio
 }
 
 // Client de décision injecté : Jev en production, un décideur déterministe en test.
-export interface ClientDecision { decider(question: QuestionJev): Promise<ReponseJev> }
+export interface ClientDecision { decider(question: QuestionDecision): Promise<ReponseDecision> }
