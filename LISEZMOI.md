@@ -29,9 +29,17 @@ Le détail : `CLAUDE.md` (règles et boucle de travail), `GLOSSARY.md` (les mots
 5. **Fusionner** : `node tools/fusionner.mjs` (vert obligatoire ; ferme le ticket).
 
 ## Suivre l'équipe
-- Discord `#agents` : « État du build » toutes les 10 min (qui est sur quoi, critères cochés, vérification rouge, lots sans signe de vie, étapes de démo couvertes). Il est publié par la machine d'Adem (`node tools/journal-push.mjs` dans un terminal, avec `ETAT_BUILD=1` dans son `.env`) ; une seule machine le fait. `node tools/etat-build.mjs` l'affiche à la main sur n'importe quelle machine.
+- Discord `#agents` : « État du build » toutes les 5 min (qui est sur quoi, critères cochés, vérification rouge, lots sans signe de vie, étapes de démo couvertes). Il est publié par la machine d'Adem (`node tools/journal-push.mjs` dans un terminal, avec `ETAT_BUILD=1` dans son `.env`) ; une seule machine le fait. `node tools/etat-build.mjs` l'affiche à la main sur n'importe quelle machine.
 - Discord `#tickets` : chaque ticket, commentaire, branche poussée, fusion (GitHub en direct).
 - Besoin de quelqu'un ? Commente son ticket, son Claude le voit à sa prochaine session.
+
+## La boucle de 5 minutes (chaque coéquipier, dans sa session Claude Code)
+Les agents se parlent par les commentaires des tickets GitHub. Pour que ça tourne tout seul, lance une fois dans ta session :
+
+```
+/loop 5m Point de 5 min sur mes lots : 1) lis les nouveaux commentaires des tickets où je suis assigné ou mentionné (gh issue list --assignee @me, gh search issues --mentions @me --repo adembnn/hack-accel --state open) et réponds-y ; 2) coche dans mon ticket les critères passés, avec la sortie de commande en commentaire ; 3) si j'ai besoin d'un autre lot, je commente son ticket, je ne touche pas à son code ; 4) je poste sur mon ticket un point de 3 lignes : fait, bloquant, prochain.
+```
+Les tickets de décision (étiquette `bloque`) attendent Adem : ne les tranche pas à sa place, commente-les.
 
 ## Les agents critiques (dis juste leur nom à Claude)
 `coupeur` (coupe ce qui ne sert pas la démo) · `jury-simule` (Accel, Aiven, l'utilisateur) · `testeur-parcours` (joue la démo, casse tout) · `red-team-agents` (attaque l'agent par la donnée) · `chasseur-de-wow` (moments de surprise en moins d'une heure) · `inspecteur-harnais` (audite le harnais).
