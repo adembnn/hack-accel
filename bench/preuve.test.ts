@@ -4,8 +4,8 @@ import { writeFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  choisirPlanAvec, creerMoteur, ENTETE_CSV, ISSUES, lancer, lignesCsv, PLAN_APRES, PLAN_AVANT, planPourSituation, problemesPlan,
-  resumerPreuve, scenePourSituation, SITUATIONS,
+  choisirPlanAvec, comparerReactions, creerMoteur, ENTETE_CSV, ISSUES, lancer, lignesCsv, PLAN_APRES, PLAN_AVANT, planPourSituation, problemesPlan,
+  resumerPreuve, scenePourSituation, SITUATIONS, SITUATIONS_SURPRISE,
 } from './preuve-lib.ts';
 
 const GRAINES = [101, 102];
@@ -66,4 +66,36 @@ test('le plan « avec » retombe sur PLAN_APRES si le fichier de l’explorateur
 
 test('le moteur simjs n’est pas encore branché et le dit', () => {
   assert.throws(() => creerMoteur('simjs'), /pas encore branché/);
+});
+
+test('blocage surprise : l’issue ferme à 120 s sans message ni guidage vers elle, des gens hésitent, et les deux foules (sans / avec réactions) sont comparées', () => {
+  assert.equal(SITUATIONS_SURPRISE.length, 2);
+  for (const sit of SITUATIONS_SURPRISE) {
+    for (const plan of [PLAN_AVANT, PLAN_APRES]) {
+      const jouee = planPourSituation(plan, sit);
+      assert.deepEqual(problemesPlan(jouee, scenePourSituation(sit)), []);
+      const cible = sit.ferme_en_cours![0].id;
+      assert.ok(jouee.portes.some((p) => p.id === cible && !p.ouverte && p.a_partir_de_s === 120));
+      assert.ok(jouee.messages_par_zone.every((m) => m.issue_id !== cible), 'aucun message vers l’issue qui ferme');
+      assert.notEqual(jouee.guidage?.issue_id, cible);
+    }
+  }
+  const [sit] = SITUATIONS_SURPRISE;
+  const lignes = comparerReactions(sit, PLAN_AVANT, [101, 102], [
+    { id: 'sans' },
+    { id: 'litterature', reactions: { actif: true, source: 'litterature' } },
+    { id: 'llm:chinois', reactions: { actif: true, source: 'llm:chinois' } },
+  ]);
+  assert.equal(lignes.length, 3);
+  for (const l of lignes) assert.ok(l.hesitations > 0, `${l.variante} : des gens hésitent devant l’issue fermée`);
+  assert.equal(lignes[0].reactions_tirees, 0);
+  assert.ok(lignes[1].reactions_tirees > 3000, 'avec réactions, toute la foule tire (au moins l’annonce)');
+  assert.ok(lignes[2].reactions_tirees > 3000);
+});
+
+test('--reactions : le moteur accepte une source de réactions et la foule réagit', () => {
+  const [sit] = choisir('B1-secours');
+  const m = creerMoteur('test', { actif: true, source: 'litterature' }).jouer(PLAN_AVANT, 101, sit);
+  assert.ok((m.journal.stats.reactions_total ?? 0) > 3000);
+  assert.equal(creerMoteur('test').jouer(PLAN_AVANT, 101, sit).journal.stats.reactions_total, undefined);
 });

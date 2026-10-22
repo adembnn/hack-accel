@@ -91,6 +91,8 @@ export interface Intention {
   vitesse_voulue_m_s: number;
   groupe: number;
   etat: EtatPersonne;
+  /** Multiplicateur du débit de la porte franchie par cette personne (réactions « bousculer », « fuite précipitée » : < 1). Omis = 1. */
+  mult_debit_porte?: number;
 }
 
 /** Ce que le mouvement rend au comportement, par pas. */
@@ -197,6 +199,23 @@ export interface JournalRun {
   /** Comptes de contrôle du comportement (changements d'avis, hésitations, groupes...). */
   stats: Record<string, number>;
   grille: Grille;
+  /** Réactions de la foule (option `reactions` de `simuler`) : absent quand l'option est désactivée. Les mêmes comptes sont à plat dans `stats` (clés `reactions_...`). */
+  reactions?: JournalReactions;
+}
+
+/** Détail des réactions tirées par la foule : nombre de chaque réaction par moment, part touchée par l'influence, part des meneurs. */
+export interface JournalReactions {
+  source: string;
+  /** moment (annonce, issue_bloquee, file_longue, voisin_qui_tombe, influence, malaise) -> réaction -> nombre. */
+  comptes: Record<string, Record<string, number>>;
+  nb_meneurs: number;
+  part_meneurs: number;
+  part_touchee_influence: number;
+  part_touchee_par_meneurs: number;
+  malaises: number;
+  aides_malaise_voisin: number;
+  aides_malaise_secours: number;
+  changements_file: number;
 }
 
 export const AVERTISSEMENT = 'modèle simplifié, non certifié';

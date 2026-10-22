@@ -7,6 +7,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { creerMouvementSimple } from '../src/sim/behavior/mouvement-simple.ts';
 import { PRESET_CENTRAL, PRESET_LENT } from '../src/sim/behavior/depart.ts';
 import { SCENE_UGC } from '../src/sim/behavior/scene-ugc.ts';
+import type { OptionsReactions } from '../src/sim/behavior/reactions/foule.ts';
 import { simuler, type OptionsSimulation } from '../src/sim/behavior/simuler.ts';
 import { AVERTISSEMENT, type Issue, type JournalRun, type Mouvement, type Plan, type Scene } from '../src/sim/behavior/types.ts';
 import { PLAN_APRES, PLAN_AVANT } from './scenarios.ts';
@@ -29,6 +30,11 @@ export interface Situation {
   bloquees: string[];
   /** Changements de la scène par issue (escalator arrêté : largeur réduite ; troubles devant l'issue : derrière « interdite »). */
   scene?: Record<string, Partial<Pick<Issue, 'largeur_m' | 'derriere'>>>;
+  /**
+   * Blocage SURPRISE : issues qui ferment en cours de route (à partir de `a_partir_de_s`), sans message ni guidage vers elles
+   * (les messages et le guidage du plan qui la citaient sont retirés). Personne n'est prévenu : on le découvre devant la porte.
+   */
+  ferme_en_cours?: { id: string; a_partir_de_s: number }[];
   /** F1 : retard (s) de toutes les annonces. */
   retard_annonce_s?: number;
   options?: Pick<OptionsSimulation, 'depart' | 'part_mobilite_reduite'>;
@@ -60,13 +66,21 @@ export const SITUATIONS: Situation[] = [
   S({ id: 'D1+B1-secours', libelle: 'Troubles devant la principale, secours bloquée', lieu: 'principale+secours', codes: ['D1', 'B1'], bloquees: ['secours'], scene: { principale: { derriere: 'interdite' } } }),
 ];
 
+/** Les deux situations « blocage surprise » (critère « issue bloquée » du ticket #41) : jouées avec et sans réactions, hors de la ligne du jury. */
+export const SITUATIONS_SURPRISE: Situation[] = [
+  S({ id: 'surprise-principale-120s', libelle: 'Issue principale fermée à 120 s, sans message ni guidage', lieu: 'principale', codes: ['B1'], bloquees: [], ferme_en_cours: [{ id: 'principale', a_partir_de_s: 120 }] }),
+  S({ id: 'surprise-escalators-120s', libelle: 'Escalators fermés à 120 s, sans message ni guidage', lieu: 'escalators', codes: ['B1'], bloquees: [], ferme_en_cours: [{ id: 'escalators', a_partir_de_s: 120 }] }),
+];
+
 /** Plan réellement joué dans la situation : le plan de base, plus les issues bloquées (fermées à 0 s, en dernier donc prioritaires) et le retard des annonces. */
 export function planPourSituation(plan: Plan, sit: Situation): Plan {
   const retard = sit.retard_annonce_s ?? 0;
+  const surprise = new Set((sit.ferme_en_cours ?? []).map((f) => f.id));
   return {
     ...plan,
-    portes: [...plan.portes, ...sit.bloquees.map((id) => ({ id, ouverte: false, a_partir_de_s: 0 }))],
-    messages_par_zone: plan.messages_par_zone.map((m) => ({ ...m, a_partir_de_s: m.a_partir_de_s + retard })),
+    portes: [...plan.portes, ...sit.bloquees.map((id) => ({ id, ouverte: false, a_partir_de_s: 0 })), ...(sit.ferme_en_cours ?? []).map((f) => ({ id: f.id, ouverte: false, a_partir_de_s: f.a_partir_de_s }))],
+    messages_par_zone: plan.messages_par_zone.map((m) => ({ ...m, a_partir_de_s: m.a_partir_de_s + retard, issue_id: m.issue_id !== null && surprise.has(m.issue_id) ? null : m.issue_id })),
+    guidage: plan.guidage && surprise.has(plan.guidage.issue_id) ? null : plan.guidage,
   };
 }
 
@@ -145,14 +159,14 @@ function mouvementCompteur(): { mouvement: Mouvement; sorties: Record<string, nu
  * POINT D'ENTRÉE DU MOTEUR : `test` = mouvement de test de src/sim/behavior. `simjs` (moteur sim.js) sera câblé par un autre
  * sous-agent : il devra rendre un `Moteur` dont `jouer` renvoie le journal (même forme que `simuler()`) et les sorties par issue.
  */
-export function creerMoteur(nom: string): Moteur {
+export function creerMoteur(nom: string, reactions?: OptionsReactions): Moteur {
   if (nom === 'simjs') throw new Error('Le moteur simjs n’est pas encore branché : utiliser --moteur=test.');
   if (nom !== 'test') throw new Error(`--moteur doit valoir test ou simjs (reçu : ${nom})`);
   return {
     nom: 'test',
     jouer(plan, graine, sit) {
       const { mouvement, sorties } = mouvementCompteur();
-      const journal = simuler(planPourSituation(plan, sit), graine, DUREE_S, { ...sit.options, scene: scenePourSituation(sit), mouvement });
+      const journal = simuler(planPourSituation(plan, sit), graine, DUREE_S, { ...sit.options, scene: scenePourSituation(sit), mouvement, ...(reactions ? { reactions } : {}) });
       return { journal, sorties };
     },
   };
@@ -297,4 +311,59 @@ export function lignesCsv(res: ResultatSituation[], meta: { plan_avec: string; m
     ]));
   }
   return lignes;
+}
+
+// ---------- Réactions de la foule : mêmes situations, foule sans réactions / réactions littérature / réactions LLM ----------
+
+export interface Variante {
+  id: string;
+  reactions?: OptionsReactions;
+}
+export const VARIANTES_REACTIONS: Variante[] = [
+  { id: 'sans réactions' },
+  { id: 'littérature', reactions: { actif: true, source: 'litterature' } },
+  { id: 'LLM (tous)', reactions: { actif: true, source: 'llm' } },
+  { id: 'LLM chinois', reactions: { actif: true, source: 'llm:chinois' } },
+  { id: 'LLM américain', reactions: { actif: true, source: 'llm:americain' } },
+  { id: 'LLM européen', reactions: { actif: true, source: 'llm:europeen' } },
+];
+
+export interface LigneReactions {
+  situation: string;
+  variante: string;
+  hesitations: number;
+  demi_tours: number;
+  /** Part des personnes qui ont changé d'avis au moins une fois (%). */
+  ont_change_pct: number;
+  /** Sortis par l'issue touchée (première de `lieu`) / par les autres issues : le report de charge. */
+  sortis_issue_touchee: number;
+  sortis_autres_issues: number;
+  non_sortis_22h: number;
+  t90_s: number | null;
+  reactions_tirees: number;
+  part_touchee_influence_pct: number;
+}
+
+/** Joue une situation avec chaque variante (mêmes graines, mêmes personnes) et renvoie les moyennes par graine. */
+export function comparerReactions(sit: Situation, plan: Plan, graines: number[], variantes: Variante[] = VARIANTES_REACTIONS): LigneReactions[] {
+  const touchee = sit.lieu.split('+')[0];
+  return variantes.map((v): LigneReactions => {
+    const moteur = creerMoteur('test', v.reactions);
+    const mesures = graines.map((g) => moteur.jouer(plan, g, sit));
+    const m = (f: (x: Mesure) => number) => moy(mesures.map(f));
+    const t90 = mesures.map((x) => x.journal.grille.delai_t90_s).filter((x): x is number => x !== null);
+    return {
+      situation: sit.id,
+      variante: v.id,
+      hesitations: m((x) => x.journal.stats.hesitations_issue_fermee),
+      demi_tours: m((x) => x.journal.stats.demi_tours),
+      ont_change_pct: m((x) => 100 * x.journal.stats.part_ayant_change),
+      sortis_issue_touchee: m((x) => x.sorties[touchee] ?? 0),
+      sortis_autres_issues: m((x) => ISSUES.filter((id) => id !== touchee).reduce((a, id) => a + (x.sorties[id] ?? 0), 0)),
+      non_sortis_22h: m((x) => x.journal.grille.non_sortis_22h.valeur),
+      t90_s: t90.length === mesures.length ? moy(t90) : null,
+      reactions_tirees: m((x) => x.journal.stats.reactions_total ?? 0),
+      part_touchee_influence_pct: m((x) => 100 * (x.journal.stats.reactions_part_touchee_influence ?? 0)),
+    };
+  });
 }

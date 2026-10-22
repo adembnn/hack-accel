@@ -5,7 +5,7 @@
 // Chaque personne a ses propres flux aléatoires (voir rng.ts) : deux plans joués avec la même graine voient les mêmes
 // personnes, les mêmes délais et les mêmes tirages. Modèle simplifié, non certifié.
 import { calculerGrille, NIVEAU_DANGER, SEJOUR_DEHORS_MIN, SEUIL_ALERTE, SEUIL_ROUGE, type Mesures } from '../metrics/grille.ts';
-import { medianePreset, multiplicateurDelai, nePartPas, PRESET_PLANCHER, tirerDelaiLogLogistique, type PreregageDepart } from './depart.ts';
+import { CONTEXTE_SANS_MENACE_MAX, medianePreset, multiplicateurDelai, nePartPas, PRESET_PLANCHER, tirerDelaiLogLogistique, type PreregageDepart } from './depart.ts';
 import { creerMouvementSimple, DEBIT_PAR_METRE, distanceVers } from './mouvement-simple.ts';
 import { CANAL, creerRngPersonne, type Rng } from './rng.ts';
 import {
@@ -21,6 +21,9 @@ import {
   vitesseAidee,
   type OptionsPmr,
 } from './pmr.ts';
+import { reaction } from './reactions/catalogue.ts';
+import { CONTAGIEUSES, creerReactions, type Moment, type OptionsReactions } from './reactions/foule.ts';
+import { appliquerInfluence, BONUS_MAX, type Personne as PersonneVoisine } from './reactions/influence.ts';
 import { SCENE_UGC, ECHEANCES_UGC } from './scene-ugc.ts';
 import {
   choisir,
@@ -67,6 +70,13 @@ export interface OptionsSimulation {
    * PRESET_CENTRAL ou PRESET_LENT pour le couvre-feu sans menace visible (hypothèses encadrées, maths-2).
    */
   depart?: PreregageDepart;
+  /**
+   * Réactions de TOUTE la foule (reactions/foule.ts) : à l'annonce, devant une issue fermée sans avoir été prévenu, dans une file
+   * de plus de 2 min, quand un voisin fait un malaise, quand un voisin donne un ordre ou répand une info, chaque personne tire
+   * une des 15 réactions du catalogue dans une répartition (littérature ou LLM) et en subit l'effet chiffré. Désactivé par
+   * défaut : sans cette option (ou `actif: false`), les résultats à graine égale sont identiques à ceux d'avant.
+   */
+  reactions?: OptionsReactions;
 }
 
 /** Les six salles du cinéma, nommées comme au glossaire : salle_<kk> sur deux chiffres. */
@@ -185,6 +195,7 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
   const personnes = creerPopulation(graine, opts);
   const pmrP = completerPmr(opts.pmr);
   const n = personnes.length;
+  const rx = opts.reactions?.actif ? creerReactions(graine, n, opts.reactions) : null;
   mouvement.init(scene, personnes);
 
   const issuesId = scene.issues.map((i) => i.id);
@@ -251,6 +262,8 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
   for (const p of personnes) if (p.groupe) membresGroupe.set(p.groupe, [...(membresGroupe.get(p.groupe) ?? []), p.id]);
   const groupeCible = new Map<number, string>(); // le premier du groupe qui décide donne la cible (cohésion)
   let changements = 0;
+  let demiTours = 0; // personnes distinctes qui ont fait demi-tour : nouvelle visée après une hésitation devant une issue fermée
+  const aFaitDemiTour: boolean[] = personnes.map(() => false);
   let hesitations = 0;
   let tentatives_vaines = 0;
   let sortisDanger = 0;
@@ -303,10 +316,16 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
       }
       const msgs = nouveau.messages_par_zone.filter((x) => x.zone === p.salle);
       const premier = msgs.length ? msgs.reduce((a, b) => (b.a_partir_de_s < a.a_partir_de_s ? b : a)) : undefined;
-      const ordreT = (premier ? premier.a_partir_de_s : 0) + (nouveau.phasage_salles.find((x) => x.salle === p.salle)?.delai_s ?? 0);
+      const ordreT_ = (premier ? premier.a_partir_de_s : 0) + (nouveau.phasage_salles.find((x) => x.salle === p.salle)?.delai_s ?? 0);
       const clarte = premier ? premier.clarte : ordonne ? 0.6 : null;
-      departT[i] = ordreT + p.delai_s * multiplicateurDelai({ clarte, guide: guide[i], ordonne });
+      const mult = multiplicateurDelai({ clarte, guide: guide[i], ordonne });
+      if (rx) {
+        ordreT[i] = ordreT_;
+        multBase[i] = mult;
+      }
+      departT[i] = ordreT_ + p.delai_s * mult * (rx ? rxDelai[i] : 1);
     }
+    if (rx) annoncer(t);
   };
 
   const ouverte = (id: string, tt: number): boolean => {
@@ -324,6 +343,10 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
     cible[i] = id;
     ciblant.set(id, (ciblant.get(id) ?? 0) + 1);
     debutMarche[i] = tt;
+    if (rx && !malaiseProg[i] && malaiseApres[i] !== undefined) {
+      malaiseProg[i] = true;
+      malaiseT[i] = tt + malaiseApres[i]!;
+    }
     // même distance que le mouvement : toute la distance au premier départ, détour ensuite
     resteInitial[i] = distanceVers(issue.get(id)!, !aQuitteSalle[i]);
     if (!aQuitteSalle[i]) {
@@ -347,8 +370,8 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
       if (fermee && (msg !== undefined || guide[i])) continue;
       const sait = fermee && issue.get(id)!.visible;
       let consigne = 0; // le poids du message est une HYPOTHÈSE (aucune mesure « message par zone », maths-3 §4.3)
-      if (msg && msg.issue_id === id) consigne += p.confiance * msg.clarte;
-      if (guide[i] && plan!.guidage?.issue_id === id) consigne += p.confiance;
+      if (msg && msg.issue_id === id && !(rx && rxIgnore[i])) consigne += p.confiance * msg.clarte;
+      if (guide[i] && plan!.guidage?.issue_id === id && !(rx && rxIgnore[i])) consigne += p.confiance;
       out.push({
         id,
         marche_min: issue.get(id)!.distance_m / (vit[i] * 60),
@@ -358,6 +381,7 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
         consigne: Math.min(1, consigne),
         attente_min: attenteMin(id, 1), // (n + 1) / débit : la personne elle-même compte
         n_voisines: voisines.get(id),
+        ...(rx ? { bonus: (rxBonus[i]?.get(id) ?? 0) + rxSuitFoule[i] * ((ciblant.get(id) ?? 0) / totalCible) } : {}),
       });
     }
     return out;
@@ -412,6 +436,194 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
     return true;
   };
 
+  // --- réactions de la foule (reactions/foule.ts) ; tout est inerte quand `rx` est null ---
+  const zeros = () => personnes.map(() => 0);
+  const uns = () => personnes.map(() => 1);
+  const rxDelai = uns(); // produit des multiplicateurs de délai (annonce, influence)
+  const rxVit = uns(); // produit des multiplicateurs de vitesse voulus
+  const rxVitAp = uns(); // part déjà appliquée à vit[]
+  const rxDebit = uns(); // multiplicateur de débit de la porte franchie
+  const rxBonus: (Map<string, number> | undefined)[] = new Array(n);
+  const rxIgnore: boolean[] = personnes.map(() => false); // ignore message et guidage (choisir seul, suivre la foule)
+  const rxSuitFoule = zeros(); // bonus multiplié par la part de la foule vers la porte
+  const ordreT = zeros();
+  const multBase = uns();
+  const annonceFaite: boolean[] = personnes.map(() => false);
+  const fileFaite: boolean[] = personnes.map(() => false);
+  const malaiseApres = personnes.map((p) => (rx && !p.mobilite_reduite ? rx.malaiseApres(p.id) : undefined));
+  const malaiseT: number[] = personnes.map(() => Infinity);
+  const malaiseProg: boolean[] = personnes.map(() => false);
+  const malade: boolean[] = personnes.map(() => false);
+  const malaiseFin: number[] = personnes.map(() => Infinity);
+  const vitAvant = zeros();
+  let malaises = 0;
+  let aidesMalaiseVoisin = 0;
+  let aidesMalaiseSecours = 0;
+  let changementsFile = 0;
+  const issueEntree = scene.issues.find((is) => is.porte_entree)?.id ?? null;
+  const COTE_SALLE = Math.sqrt(scene.surface_salle_m2 / Math.max(1, nbSalles));
+  /** Délai du secours (agent) pour un malaise sans aide d'un voisin (s). HYPOTHÈSE, aucune mesure. */
+  const SECOURS_MALAISE_S = 180;
+  const borneVit = (x: number) => Math.min(1.6, Math.max(0.4, x));
+
+  const syncVit = (i: number) => {
+    if (estPmr[i] || malade[i]) return;
+    const f = rxVit[i] / rxVitAp[i];
+    if (f !== 1) {
+      vit[i] *= f;
+      rxVitAp[i] = rxVit[i];
+    }
+  };
+  const ajouterBonus = (i: number, id: string | null, b: number) => {
+    if (!id || b <= 0) return;
+    const m = (rxBonus[i] ??= new Map());
+    m.set(id, Math.min(BONUS_MAX, (m.get(id) ?? 0) + b));
+  };
+  /** Issue conseillée à la personne : message de sa salle, sinon guidage du plan. */
+  const issueConseillee = (i: number, tt: number): string | null => messageDe(personnes[i].salle, tt)?.issue_id ?? plan?.guidage?.issue_id ?? null;
+
+  /** Effet d'une réaction sur la personne elle-même (hors influence). Renvoie le multiplicateur de délai à appliquer par l'appelant. */
+  const appliquerReaction = (i: number, id: string, moment: Moment, tt: number): number => {
+    if (id === 'suivre_consigne' && moment === 'annonce') return 1; // l'ancien comportement obéit déjà à la consigne : rien à ajouter
+    const r = reaction(id);
+    const e = r.effet;
+    // seules les réactions de mouvement changent la vitesse de marche ; les attentes (s'informer, se figer...) passent par le délai
+    if (e.mult_vitesse > 0 && (r.famille === 'urgence' || r.famille === 'entraide') && !estPmr[i]) {
+      rxVit[i] = borneVit(rxVit[i] * e.mult_vitesse);
+      syncVit(i);
+    }
+    if (e.mult_debit_porte < 1) rxDebit[i] = Math.min(rxDebit[i], e.mult_debit_porte);
+    if (id === 'choisir_seul') {
+      ajouterBonus(i, issueEntree, e.bonus_issue); // « souvent celle par laquelle on est entré » (catalogue)
+      rxIgnore[i] = true;
+    } else if (id === 'suivre_la_foule') {
+      rxIgnore[i] = true;
+      rxSuitFoule[i] = Math.max(rxSuitFoule[i], e.bonus_issue);
+    } else if (e.bonus_issue > 0) {
+      ajouterBonus(i, id === 'donner_un_ordre' ? (cible[i] ?? issueConseillee(i, tt) ?? issueEntree) : issueConseillee(i, tt), e.bonus_issue);
+    }
+    return e.mult_delai;
+  };
+
+  /** Voisins de la personne i dans le rayon (m) : même salle avant le départ, même issue visée en marche (ou même salle si rayon_zone = 'salle'). */
+  const voisinsDe = (i: number, rayon: number): PersonneVoisine[] => {
+    const r = rx!;
+    const avant = phase[i] === 'attente' || !cible[i];
+    const salle = avant || r.options.rayon_zone === 'salle';
+    const cote = salle ? COTE_SALLE : Math.sqrt(issue.get(cible[i]!)!.surface_approche_m2);
+    const [ui, vi] = r.position(i);
+    const out: PersonneVoisine[] = [];
+    for (let j = 0; j < n; j++) {
+      if (j === i || phase[j] === 'dehors') continue;
+      if (salle) {
+        if (personnes[j].salle !== personnes[i].salle) continue;
+        if (avant ? aQuitteSalle[j] : phase[j] !== 'marche') continue;
+      } else if (phase[j] !== 'marche' || cible[j] !== cible[i]) continue;
+      const [uj, vj] = r.position(j);
+      if (Math.hypot((uj - ui) * cote, (vj - vi) * cote) > rayon) continue;
+      out.push({ id: String(j), x: uj * cote, y: vj * cote, confiance: personnes[j].confiance });
+    }
+    return out;
+  };
+  const recalerDepart = (j: number, tt: number) => {
+    if (phase[j] === 'attente' && Number.isFinite(departT[j])) departT[j] = Math.max(tt, ordreT[j] + personnes[j].delai_s * multBase[j] * rxDelai[j]);
+  };
+  /** Une réaction contagieuse de la personne i se propage à ses voisins (appliquerInfluence) ; adoption aléatoire bornée par les poids publiés. */
+  const propager = (i: number, id: string, moment: Moment, tt: number) => {
+    const r = rx!;
+    if (!CONTAGIEUSES.has(id)) return;
+    const c = reaction(id).effet.contagion;
+    if (!c) return;
+    const [ui, vi] = r.position(i);
+    const cote = phase[i] === 'attente' || !cible[i] || r.options.rayon_zone === 'salle' ? COTE_SALLE : Math.sqrt(issue.get(cible[i]!)!.surface_approche_m2);
+    const cite = id === 'donner_un_ordre' || id === 'propager_une_info' ? (cible[i] ?? issueConseillee(i, tt) ?? issueEntree) : null;
+    const effets = appliquerInfluence(
+      { id: String(i), x: ui * cote, y: vi * cote, reaction: id, issue: cite, intensite: r.estMeneur(i) ? 1 : 0.6 },
+      voisinsDe(i, c.rayon_m),
+      r.fluxInfluence(i, moment),
+    );
+    for (const ev of effets) {
+      const j = Number(ev.id);
+      r.touchees.add(j);
+      if (r.estMeneur(i)) r.touchees_par_meneur.add(j);
+      r.comptes.influence[id] = (r.comptes.influence[id] ?? 0) + 1;
+      rxDelai[j] = Math.min(30, Math.max(0.3, rxDelai[j] * ev.mult_delai));
+      recalerDepart(j, tt);
+      if (!estPmr[j]) {
+        rxVit[j] = borneVit(rxVit[j] * ev.mult_vitesse);
+        syncVit(j);
+      }
+      if (ev.issue) ajouterBonus(j, ev.issue, ev.bonus_issue);
+    }
+  };
+  /** À l'annonce : situation de la personne (agent qui guide, message clair, annonce sans menace, rumeur) puis réaction tirée. Une seule fois par personne. */
+  const annoncer = (tt: number) => {
+    const r = rx!;
+    const ordonne = plan!.mode !== 'rester_ouvert';
+    const sources: [number, string][] = [];
+    for (const p of personnes) {
+      const i = p.id;
+      if (annonceFaite[i] || phase[i] !== 'attente' || !Number.isFinite(departT[i])) continue;
+      annonceFaite[i] = true;
+      const msgs = plan!.messages_par_zone.filter((x) => x.zone === p.salle);
+      const premier = msgs.length ? msgs.reduce((a, b) => (b.a_partir_de_s < a.a_partir_de_s ? b : a)) : undefined;
+      const situation = guide[i] ? 'agent_qui_guide' : premier ? (premier.clarte >= 0.7 ? 'message_clair' : 'annonce_sans_menace') : ordonne ? 'annonce_sans_menace' : 'rumeur';
+      const id = r.tirer(i, 'annonce', situation);
+      rxDelai[i] *= appliquerReaction(i, id, 'annonce', tt);
+      if (CONTAGIEUSES.has(id)) sources.push([i, id]);
+    }
+    for (const [i, id] of sources) propager(i, id, 'annonce', tt);
+    for (const p of personnes) recalerDepart(p.id, tt);
+  };
+  /** Une file de plus de 2 min devant la personne : réaction tirée ; certaines réactions la font reconsidérer sa porte (avec leur bonus). */
+  const fileLongue = (i: number, ouv: Record<string, boolean>, tt: number) => {
+    const r = rx!;
+    fileFaite[i] = true;
+    const cur = cible[i]!;
+    const id = r.tirer(i, 'file_longue', 'file_longue');
+    appliquerReaction(i, id, 'file_longue', tt);
+    if (id === 'choisir_seul' || id === 'suivre_la_foule' || id === 'suivre_consigne') {
+      const c = choisir(candidats(i, tt, ouv), personnes[i].suivisme, fluxChoix(i), choixP);
+      if (c && c !== cur) {
+        ciblant.set(cur, (ciblant.get(cur) ?? 0) - 1);
+        viser(i, c, tt);
+        changementsFile++;
+      }
+    }
+    propager(i, id, 'file_longue', tt);
+  };
+  /** Malaise de la personne i : elle s'arrête ; ses voisins proches tirent « voisin qui tombe » ; le premier qui aide la remet en route. */
+  const tomber = (i: number, tt: number) => {
+    const r = rx!;
+    malaiseT[i] = Infinity;
+    malade[i] = true;
+    vitAvant[i] = vit[i];
+    vit[i] = 0;
+    rxDebit[i] = Math.min(rxDebit[i], reaction('malaise').effet.mult_debit_porte);
+    r.comptes.malaise.malaise = (r.comptes.malaise.malaise ?? 0) + 1;
+    malaises++;
+    const u = r.fluxInfluence(i, 'malaise');
+    let aidant = -1;
+    for (const v of voisinsDe(i, reaction('malaise').effet.contagion!.rayon_m)) {
+      const j = Number(v.id);
+      const id = r.tirer(j, 'voisin_qui_tombe', 'voisin_qui_tombe');
+      if (id === 'aider') {
+        if (aidant < 0 && !estPmr[j]) {
+          aidant = j;
+          rxVit[j] = borneVit(rxVit[j] * reaction('aider').effet.mult_vitesse); // il ralentit pour accompagner
+          syncVit(j);
+        }
+      } else {
+        appliquerReaction(j, id, 'voisin_qui_tombe', tt);
+        propager(j, id, 'voisin_qui_tombe', tt);
+      }
+    }
+    // aide d'un voisin : 10 à 30 s (hypothèse) ; sinon le secours arrive après SECOURS_MALAISE_S (hypothèse)
+    malaiseFin[i] = tt + (aidant >= 0 ? 10 + 20 * u.next() : SECOURS_MALAISE_S);
+    if (aidant >= 0) aidesMalaiseVoisin++;
+    else aidesMalaiseSecours++;
+  };
+
   /** Une étape de h secondes (h <= 1). */
   const sousPas = (h: number) => {
     const ouv: Record<string, boolean> = Object.fromEntries(issuesId.map((id) => [id, ouverte(id, t)]));
@@ -420,6 +632,19 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
       const p = personnes[i];
       const it = intentions[i];
       if (phase[i] === 'dehors') continue;
+      if (rx) {
+        if (malade[i] && t >= malaiseFin[i]) {
+          // aidée (ou secourue) : la personne repart plus lentement (vitesse x 0,7 = comportement coopératif, catalogue « aider »)
+          malade[i] = false;
+          malaiseFin[i] = Infinity;
+          vit[i] = vitAvant[i] * reaction('aider').effet.mult_vitesse;
+          syncVit(i);
+        }
+        if (phase[i] === 'marche' && malaiseT[i] <= t) {
+          if (resteM(i, t) > 0) tomber(i, t);
+          else malaiseT[i] = Infinity; // déjà dans la file : pas de malaise simulé
+        }
+      }
       const revision = t >= prochaineRevision[i];
       if (revision) prochaineRevision[i] += chgP.periode_s;
 
@@ -441,7 +666,13 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
       } else if (phase[i] === 'hesite' && t >= reprise[i]) {
         // nouveau choix en excluant les issues vues fermées
         const c = choisir(candidats(i, t, ouv), p.suivisme, fluxChoix(i), choixP);
-        if (c) viser(i, c, t);
+        if (c) {
+          viser(i, c, t);
+          if (!aFaitDemiTour[i]) {
+            aFaitDemiTour[i] = true;
+            demiTours++;
+          }
+        }
         else if (estPmr[i]) entrerRefuge(i, t);
         else {
           reprise[i] = t + 10;
@@ -489,9 +720,13 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
         }
       }
 
+      // file de plus de 2 min devant la personne (attente estimée au débit de l'issue), une seule fois par personne
+      if (rx && revision && !fileFaite[i] && phase[i] === 'marche' && cible[i] && resteM(i, t) <= 0 && (retour.file_par_issue[cible[i]!] ?? 0) / debit.get(cible[i]!)! / 60 > 2) fileLongue(i, ouv, t);
+
       it.etat = phase[i] === 'marche' ? 'marche' : phase[i] === 'hesite' ? 'hesite' : phase[i] === 'refuge' ? 'refuge' : 'attente';
       it.sortie_cible = phase[i] === 'marche' ? cible[i] : null;
       it.vitesse_voulue_m_s = vit[i];
+      if (rx) it.mult_debit_porte = rxDebit[i];
     }
 
     const r = mouvement.pas(h, t, intentions, ouv);
@@ -503,9 +738,17 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
         ciblant.set(c, (ciblant.get(c) ?? 0) - 1);
         memoireFermee[id].add(c);
       }
+      // issue fermée sans avoir été prévenu (les prévenus l'excluent d'emblée) : réaction tirée, qui allonge ou raccourcit l'hésitation
+      let multHes = 1;
+      if (rx && c) {
+        const rid = rx.tirer(id, 'issue_bloquee', 'issue_bloquee');
+        multHes = Math.min(appliquerReaction(id, rid, 'issue_bloquee', t), CONTEXTE_SANS_MENACE_MAX); // plafond : hypothèse
+        propager(id, rid, 'issue_bloquee', t);
+      }
       cible[id] = null;
       phase[id] = 'hesite';
-      reprise[id] = t + hesMin + (hesMax - hesMin) * fluxHesitation(id).next(); // hypothèse balayée, aucune mesure
+      const uHes = fluxHesitation(id).next();
+      reprise[id] = rx ? t + (hesMin + (hesMax - hesMin) * uHes) * multHes : t + hesMin + (hesMax - hesMin) * uHes; // hypothèse balayée, aucune mesure
       hesitations++;
     }
     for (const s of r.sorties) {
@@ -597,6 +840,37 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
     },
 
     journal(): JournalRun {
+      const detailReactions = (): NonNullable<JournalRun['reactions']> => ({
+        source: rx!.options.source,
+        comptes: Object.fromEntries(Object.entries(rx!.comptes).map(([m, c]) => [m, { ...c }])),
+        nb_meneurs: rx!.meneurs.size,
+        part_meneurs: rx!.meneurs.size / n,
+        part_touchee_influence: rx!.touchees.size / n,
+        part_touchee_par_meneurs: rx!.touchees_par_meneur.size / n,
+        malaises,
+        aides_malaise_voisin: aidesMalaiseVoisin,
+        aides_malaise_secours: aidesMalaiseSecours,
+        changements_file: changementsFile,
+      });
+      /** Version à plat de detailReactions, pour `stats` (Record<string, number>) : reactions_<moment>_<réaction>. */
+      const statsReactions = (): Record<string, number> => {
+        const d = detailReactions();
+        const out: Record<string, number> = {
+          // tirages de réactions (l'adoption d'une réaction d'un voisin, moment « influence », est comptée à part)
+          reactions_total: Object.entries(d.comptes).reduce((a, [m, c]) => (m === 'influence' ? a : a + Object.values(c).reduce((x, y) => x + y, 0)), 0),
+          reactions_adoptions_influence: Object.values(d.comptes.influence).reduce((x, y) => x + y, 0),
+          reactions_nb_meneurs: d.nb_meneurs,
+          reactions_part_meneurs: d.part_meneurs,
+          reactions_part_touchee_influence: d.part_touchee_influence,
+          reactions_part_touchee_par_meneurs: d.part_touchee_par_meneurs,
+          reactions_malaises: d.malaises,
+          reactions_aides_malaise_voisin: d.aides_malaise_voisin,
+          reactions_aides_malaise_secours: d.aides_malaise_secours,
+          reactions_changements_file: d.changements_file,
+        };
+        for (const [m, c] of Object.entries(d.comptes)) for (const [r, k] of Object.entries(c)) if (k) out[`reactions_${m}_${r}`] = k;
+        return out;
+      };
       const personnesQuiOntChange = aChange.filter(Boolean).length;
       const pmrIds = personnes.filter((p) => p.mobilite_reduite).map((p) => p.id);
       const pmrSortis = pmrIds.filter((i) => Number.isFinite(mes.t_sortie_s[i]));
@@ -614,6 +888,7 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
           personnes_ayant_change: personnesQuiOntChange,
           part_ayant_change: personnesQuiOntChange / n,
           hesitations_issue_fermee: hesitations,
+          demi_tours: demiTours,
           tentatives_sans_issue: tentatives_vaines,
           culs_de_sac: mes.culs_de_sac,
           // mobilité réduite : temps moyen = instant de sortie moyen des PMR déjà sortis (0 si aucun) ; aidants = proches distincts + aides d'agents
@@ -624,7 +899,9 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
           pmr_aides_agent: aidesAgent,
           pmr_aides_voisin: aidesVoisin,
           aidants: aidantsDistincts.size + aidesAgent,
+          ...(rx ? statsReactions() : {}),
         },
+        ...(rx ? { reactions: detailReactions() } : {}),
       };
     },
   };
