@@ -16,6 +16,7 @@
     "e2e:socle": "node --test tests/e2e/socle.test.mjs",
     "test:db": "node --test src/server/db.test.mjs src/server/securite.test.mjs src/server/vecteur.test.mjs",
     "test:decideurs": "node --test src/agents/*.test.mts",
+    "test:adaptateurs": "node --test src/server/adaptateurs/adaptateurs.test.mjs",
     "test:scene": "node scripts/lot-absent.mjs scene src/scene",
     "test:motion": "node scripts/lot-absent.mjs motion src/sim/motion",
     "test:behavior": "node scripts/lot-absent.mjs behavior src/sim/behavior",
