@@ -13,6 +13,7 @@
     "build": "vite build",
     "e2e:socle": "node --test tests/e2e/socle.test.mjs",
     "test:db": "node tools/lot-absent.mjs db src/server",
+    "test:directeur": "node --test src/agents/directeur/*.test.mts",
     "test:decideurs": "node tools/lot-absent.mjs decideurs src/agents",
     "test:scene": "node tools/lot-absent.mjs scene src/scene",
     "test:motion": "node tools/lot-absent.mjs motion src/sim/motion",
