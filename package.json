@@ -1,0 +1,10 @@
+{
+  "name": "hack-accel-foule-decision",
+  "private": true,
+  "type": "module",
+  "description": "Prototype du lot foule-decision : décision humaine, grille de critères, benchmark avant/après. Modèle simplifié, non certifié.",
+  "scripts": {
+    "test:behavior": "node --test \"src/sim/**/*.test.ts\"",
+    "bench:avant-apres": "node bench/avant-apres.ts"
+  }
+}
