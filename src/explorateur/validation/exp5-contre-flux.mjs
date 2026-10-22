@@ -10,7 +10,7 @@ const phi = (pts) => {
   let s = 0;
   for (const p of pts) {
     let a = 0, b = 0;
-    for (const q of pts) if (Math.abs(q.z - p.z) < 0.5) (q.dir === p.dir ? a++ : b++);
+    for (const q of pts) if (Math.abs(q.z - p.z) < 0.5) { if (q.dir === p.dir) a++; else b++; }
     s += ((a - b) / (a + b)) ** 2;
   }
   return s / pts.length;

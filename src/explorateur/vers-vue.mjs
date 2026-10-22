@@ -8,7 +8,7 @@ const ICI = dirname(fileURLToPath(import.meta.url));
 export const SORTIE_VUE = join(ICI, '..', '..', 'reports', 'maquettes', 'commun', 'plans-forum.json');
 
 export function versVue(r) {
-  const court = (x) => ({ plan: x.plan, etape: x.etape, pire: x.pire, variantes: x.variantes.map(({ par_sortie, ...n }) => n) });
+  const court = (x) => ({ plan: x.plan, etape: x.etape, pire: x.pire, variantes: x.variantes.map((n) => { const c = { ...n }; delete c.par_sortie; return c; }) });
   return {
     genere: new Date().toISOString(), imposees: r.imposees, variantes: r.variantes, runs: r.runs, duree_s: r.duree_s,
     plans_essayes: r.plans_essayes, plans_elagues: r.plans_elagues, rang_reference: r.rang_reference,

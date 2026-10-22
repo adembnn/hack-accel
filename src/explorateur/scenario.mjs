@@ -51,7 +51,7 @@ const TIRAGES = {
   pmr: (r) => ({ code: 'E2', type: 'profil', profil: 'pmr', part: 0.03 + r() * 0.07, graine: (r() * 1e9) | 0, nom: '' }),
   agites: (r) => ({ code: 'E6', type: 'profil', profil: 'agites', part: 0.05 + r() * 0.15, graine: (r() * 1e9) | 0, nom: '' }),
   tardive: (r) => ({ code: 'F1', type: 'tardive', retard_s: 60 + Math.round(r() * 180), nom: '' }),
-  contradictoire: (r, pick) => ({ code: 'F4', type: 'contradictoire', debut_s: 60 + Math.round(r() * 200), graine: (r() * 1e9) | 0, nom: 'annonce contradictoire vers une porte côté manif' }),
+  contradictoire: (r) => ({ code: 'F4', type: 'contradictoire', debut_s: 60 + Math.round(r() * 200), graine: (r() * 1e9) | 0, nom: 'annonce contradictoire vers une porte côté manif' }),
 };
 const nomEv = (e) => e.nom || ({
   B1: `${e.n} issue(s) de secours condamnée(s)`, B3: `${Math.round(e.part * 100)} % des escalators arrêtés`, B5: `${Math.round(e.part * 100)} % des ascenseurs en panne`,

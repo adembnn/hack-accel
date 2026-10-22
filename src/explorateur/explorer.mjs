@@ -21,7 +21,7 @@ export function pool(nFils) {
   };
   fils.forEach((w) => w.on('message', (r) => {
     const j = attente.get(r.id); attente.delete(r.id); libres.push(w); lancer();
-    r.erreur ? j.rej(new Error(r.erreur)) : j.res(r.note);
+    if (r.erreur) j.rej(new Error(r.erreur)); else j.res(r.note);
   }));
   return {
     run: (plan, variante, graine) => new Promise((res, rej) => { const msg = { id: ++id, plan, variante, graine }; attente.set(msg.id, { res, rej }); file.push({ msg }); lancer(); }),

@@ -23,7 +23,7 @@ export async function job({ rho, graine = 1, patches = [], chauffe = 25, mesure 
     const x = X0 + (((col + 0.5 + (rg % 2) * 0.5) * (X1 - X0)) / nx) % (X1 - X0);
     m.ajouter({ x, z: 0.3 + ((rg + 0.5) * 3.4) / ny + (m.rng() - 0.5) * 0.04, t: 0, vx: 0.8 });
   }
-  let sv = 0, nech = 0, srho = 0, vmin = 9, vmax = 0;
+  let sv = 0, nech = 0, srho = 0;
   const aire = (FEN[1] - FEN[0]) * W, nPas = Math.round((chauffe + mesure) / dt);
   for (let p = 0; p < nPas; p++) {
     m.simStep(dt);
