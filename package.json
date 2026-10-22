@@ -1,0 +1,10 @@
+{
+  "name": "hack-accel-jumeau-3d",
+  "private": true,
+  "type": "module",
+  "description": "Prototype jumeau-3d : scène du Forum des Halles, grille praticable et événement contrainte (TypeScript exécuté directement par Node 24).",
+  "scripts": {
+    "test": "node --test src/scene/*.test.ts",
+    "generer": "node src/scene/generer.ts"
+  }
+}
