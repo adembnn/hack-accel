@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planche B · Salle de régulation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fond:#d4d8dc; --pan:#eceef0; --blanc:#fafbfb; --ligne:#b9bfc5;
+  --texte:#18222d; --texte2:#56626e;
+  --bleu:#1b4f94; --orange:#d9480f;
+  --f:'Barlow Semi Condensed','Arial Narrow',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--fond);color:var(--texte);font:15px/1.3 var(--f);font-variant-numeric:tabular-nums;overflow:hidden}
+.app{height:calc(100vh - 34px);min-height:640px;display:grid;grid-template-rows:46px 1fr 262px;grid-template-columns:310px 1fr 290px;grid-template-areas:"top top top" "voix vue chi" "tps tps tps"}
+h2{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--texte2);padding:10px 14px 6px}
+/* haut */
+.top{grid-area:top;background:var(--bleu);color:#fff;display:flex;align-items:center;gap:22px;padding:0 16px}
+.top strong{font-size:19px;font-weight:600;letter-spacing:.02em}
+.top .ph{background:var(--orange);padding:3px 10px;font-weight:700;letter-spacing:.08em;font-size:14px}
+.top span{opacity:.92}
+.top .d{margin-left:auto}
+/* voix */
+.voix{grid-area:voix;background:var(--pan);border-right:1px solid var(--ligne);display:flex;flex-direction:column;min-height:0;overflow:auto}
+.dit{margin:2px 14px 8px;padding:10px 12px;background:var(--blanc);border:1px solid var(--ligne)}
+.dit .q{font-size:17px;font-weight:500}
+.dit .c{margin-top:6px;color:var(--texte2);font-size:14px;border-top:1px dashed var(--ligne);padding-top:6px}
+.dit .c b{color:var(--bleu)}
+.dit .m{font-size:12px;color:var(--texte2);margin-bottom:2px}
+.file{list-style:none;padding:0;margin:0 0 6px}
+.file li{display:grid;grid-template-columns:26px 1fr;gap:8px;padding:6px 14px;border-top:1px solid var(--ligne);background:var(--blanc)}
+.file li:first-child{border-left:5px solid var(--orange);padding-left:9px}
+.file .nb{font-size:22px;font-weight:700;color:var(--bleu);line-height:1}
+.file p{font-weight:600;font-size:15px}
+.file small{display:block;color:var(--texte2);font-size:13px;margin:0 0 4px}
+.file button{min-height:34px;padding:4px 12px}
+.b2{display:flex;gap:6px}
+button{font:600 14px var(--f);cursor:pointer;border:1.5px solid var(--bleu);background:#fff;color:var(--bleu);padding:6px 12px;min-height:38px}
+button.ok{background:var(--bleu);color:#fff;flex:1}
+button:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.parle{margin:auto 14px 12px;display:flex;align-items:center;gap:10px;background:var(--bleu);color:#fff;padding:10px 14px;font-weight:600}
+.parle i{width:10px;height:10px;border-radius:50%;background:#fff}
+.parle span{font-weight:400;opacity:.9;font-size:13px}
+/* vue */
+.vue{grid-area:vue;position:relative;container-type:size;overflow:hidden;background:#889}
+.carte,.pins{position:absolute;left:50%;top:50%;width:max(100cqw,160cqh);aspect-ratio:1440/900;transform:translate(-50%,-50%)}
+.carte{background:url(fond-3d.png) center/cover;filter:saturate(.7) brightness(1.18) contrast(.95)}
+.pin{position:absolute;transform:translate(-50%,-100%);font-weight:600;font-size:13px;background:#fff;border:2px solid var(--bleu);color:var(--bleu);padding:1px 7px;white-space:nowrap}
+.pin.x{border-color:var(--orange);color:var(--orange)}
+.pin.x::before{content:"✕ "}
+.zone{position:absolute;border:2.5px solid var(--orange);background:repeating-linear-gradient(45deg,#d9480f40 0 7px,#d9480f12 7px 14px);border-radius:50%}
+.zone span{position:absolute;left:50%;top:-24px;transform:translateX(-50%);background:var(--orange);color:#fff;font-weight:700;font-size:12px;padding:1px 7px;white-space:nowrap}
+.outils{position:absolute;left:10px;top:10px;display:flex;flex-direction:column;background:#fff;border:1px solid var(--ligne)}
+.outils button{border:0;border-bottom:1px solid var(--ligne);min-height:46px;width:92px;font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;color:var(--texte);background:#fff}
+.outils button b{font-size:17px;color:var(--bleu)}
+.outils button.x b{color:var(--orange)}
+.outils button:last-child{border:0}
+.flux{position:absolute;right:10px;top:10px;background:#fffd;border:1px solid var(--ligne);font-size:12px;padding:5px 9px;color:var(--texte2)}
+/* chiffres */
+.chi{grid-area:chi;background:var(--pan);border-left:1px solid var(--ligne);overflow:auto;min-height:0}
+.m1{padding:4px 14px 10px}
+.m1 label{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--texte2)}
+.m1 label b{font-size:30px;color:var(--texte);font-weight:600;line-height:1}
+.bar{position:relative;height:12px;background:#fff;border:1px solid var(--ligne);margin:4px 0 2px}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:var(--bleu)}
+.bar s{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--texte)}
+.m1 small{font-size:12px;color:var(--texte2)}
+.m1.x label b{color:var(--orange)}.m1.x .bar i{background:var(--orange)}
+.disp{list-style:none;padding:0 14px}
+.disp li{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid var(--ligne);font-size:14px}
+.disp em{font-style:normal;color:var(--texte2);font-size:13px;white-space:nowrap}
+.disp .on em{color:var(--bleu);font-weight:600}
+/* frise */
+.tps{grid-area:tps;background:var(--blanc);border-top:2px solid var(--texte);position:relative;display:grid;grid-template-columns:150px 1fr}
+.voies{padding-top:34px}
+.voies div{height:44px;display:flex;align-items:center;padding-left:14px;font-weight:600;font-size:13px;color:var(--texte2);border-top:1px solid var(--ligne);text-transform:uppercase;letter-spacing:.06em}
+.graph{position:relative;padding-top:34px;overflow:hidden}
+.graph .titre{position:absolute;left:12px;top:8px;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--texte2)}
+.graph .leg{position:absolute;right:14px;top:6px;font-size:13px;display:flex;gap:16px}
+.leg i{display:inline-block;width:22px;height:0;border-top:3px solid;vertical-align:middle;margin-right:5px}
+.lane{position:relative;height:44px;border-top:1px solid var(--ligne)}
+.lane:nth-of-type(odd){background:#f3f5f6}
+.fut{position:absolute;left:58%;right:0;top:34px;bottom:0;background:repeating-linear-gradient(135deg,#1b4f9410 0 8px,transparent 8px 16px);border-left:2px solid var(--texte)}
+.fut::before{content:"MAINTENANT · T+04:12";position:absolute;left:6px;top:-26px;font-size:12px;font-weight:700;letter-spacing:.08em;white-space:nowrap;background:var(--texte);color:#fff;padding:1px 6px}
+.t{position:absolute;top:8px;font-size:13px;font-weight:600;padding:2px 7px;white-space:nowrap;border:1.5px solid var(--texte)}
+.t.o{background:var(--orange);border-color:var(--orange);color:#fff}
+.t.b{background:var(--bleu);border-color:var(--bleu);color:#fff}
+.t.p{background:#fff;border-style:dashed;border-color:var(--bleu);color:var(--bleu)}
+.t small{font-weight:400;margin-left:5px}
+.courbe{position:absolute;left:0;right:0;bottom:0;height:64px}
+.courbe svg{width:100%;height:100%;display:block}
+.courbe .y{position:absolute;left:8px;top:2px;font-size:11px;color:var(--texte2)}
+.cible-planche{min-height:34px;background:#0c141c;color:#d7dde3;font-size:12px;padding:6px 14px;display:flex;gap:18px;flex-wrap:wrap;border-top:1px solid #000}
+.cible-planche b{color:#fff}
+@media (max-width:900px){
+  html,body{height:auto}body{overflow:auto}
+  .app{display:flex;flex-direction:column;height:auto}
+  .top{flex-wrap:wrap;padding:8px 14px;gap:8px 16px;height:auto;order:1}.top .d{margin-left:0}
+  .vue{height:50vh;min-height:300px;order:2}.flux{display:none}
+  .outils{flex-direction:row;left:0;right:0;top:auto;bottom:0;border-width:1px 0 0}
+  .outils button{flex:1;width:auto;min-height:48px;border-bottom:0;border-right:1px solid var(--ligne)}
+  .voix{order:3;border-right:0}.chi{order:4;border-left:0}.tps{order:5;display:block;height:auto}
+  .voies{display:none}.graph{height:300px;overflow-x:auto}.graph>*{min-width:640px}
+  .parle{margin:8px 14px}
+  .cible-planche{display:block}.cible-planche span{display:block}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <strong>Forum des Halles · Châtelet</strong>
+    <span class="ph">ÉVACUATION</span>
+    <span>Lun. 19 oct. 2026 · 20:09:41</span>
+    <span>3 perturbations</span>
+    <span class="d">Directeur · chef de poste PC sécurité</span>
+  </header>
+
+  <section class="voix" aria-label="Voix et décisions">
+    <h2>Dernier ordre dit</h2>
+    <div class="dit"><div class="m">20:09:12 · le directeur</div><div class="q">« Ferme la porte Rambuteau et mets un agent à la Porte du Jour. »</div><div class="c"><b>Compris :</b> fermer Porte Rambuteau, guide-files Porte du Jour. Joué dans la simulation.</div></div>
+    <h2>Décisions en attente · 3</h2>
+    <ol class="file">
+      <li><span class="nb">1</span><div><p>Sonorisation vers la Porte du Jour</p><small>PC sécurité · effet après 30 s · le plus urgent</small><div class="b2"><button class="ok">Valider</button><button>Refuser</button></div></div></li>
+      <li><span class="nb">2</span><div><p>Guide-files Porte du Jour et Porte du Louvre</p><small>PC sécurité · effet après 2 min</small><div class="b2"><button class="ok">Valider</button><button>Refuser</button></div></div></li>
+      <li><span class="nb">3</span><div><p>Rouvrir un accès des stations du Forum</p><small>Liaison RATP · effet après 5 min</small><div class="b2"><button class="ok">Valider</button><button>Refuser</button></div></div></li>
+    </ol>
+    <div class="parle"><i></i>Parler <span>l'outil écrit avant d'agir</span></div>
+  </section>
+
+  <section class="vue" aria-label="Vue 3D">
+    <div class="carte"></div>
+    <div class="pins">
+      <div class="zone" style="left:55%;top:22%;width:17%;aspect-ratio:1"><span>TROUBLES · D2</span></div>
+      <div class="pin" style="left:36%;top:10%">Porte du Jour</div>
+      <div class="pin x" style="left:63.5%;top:31%">Porte Rambuteau</div>
+      <div class="pin" style="left:60%;top:60%">Porte Lescot</div>
+      <div class="pin x" style="left:40%;top:66%">Issue Berger 15</div>
+    </div>
+    <div class="outils" aria-label="Leviers">
+      <button>Portes<b>7/8</b></button><button class="x">Issues<b>11/12</b></button><button class="x">Bouches<b>2/5</b></button><button>Ascenseurs<b>4/4</b></button><button>Escalators<b>9/10</b></button>
+    </div>
+    <div class="flux">Vue : foule · densité · flux</div>
+  </section>
+
+  <aside class="chi" aria-label="Chiffres clés">
+    <h2>Chiffres clés</h2>
+    <div class="m1 x"><label>Non sortis <b>1 184</b></label><div class="bar"><i style="width:37%"></i></div><small>sur 3 216 personnes</small></div>
+    <div class="m1 x"><label>Densité max <b>5,8</b></label><div class="bar"><i style="width:73%"></i><s style="left:62%"></s></div><small>pers./m² · seuil 5 · Porte Lescot</small></div>
+    <div class="m1"><label>Pers.·min &gt; 5/m² <b>212</b></label><div class="bar"><i style="width:21%"></i></div><small>depuis T+02:30</small></div>
+    <div class="m1 x"><label>Vers la zone <b>37</b></label><div class="bar"><i style="width:4%"></i></div><small>sorties côté Rambuteau</small></div>
+    <h2>Dispositif en place</h2>
+    <ul class="disp"><li class="on"><span>Levée de doute</span><em>en cours</em></li><li class="on"><span>Sonorisation</span><em>sollicitée</em></li><li><span>Alarme générale</span><em>prête</em></li><li><span>Issues contrôlées</span><em>prêtes</em></li><li><span>Liaison RATP</span><em>prête</em></li></ul>
+  </aside>
+
+  <footer class="tps" aria-label="Chronologie">
+    <div class="voies"><div>Perturbations</div><div>Ordres</div><div>Non sortis</div></div>
+    <div class="graph">
+      <span class="titre">Chronologie · du passé à T+15 min</span>
+      <span class="leg"><span><i style="border-color:var(--texte)"></i>réel</span><span><i style="border-color:var(--orange);border-top-style:dashed"></i>sans rien faire</span><span><i style="border-color:var(--bleu)"></i>si on valide 1, 2 et 3</span></span>
+      <div class="lane"><span class="t o" style="left:12%">20:07 Stations fermées</span><span class="t o" style="left:34%">20:08 Troubles Berger</span><span class="t o" style="left:50%;top:8px;display:none">x</span></div>
+      <div class="lane"><span class="t" style="left:30%">20:09 Alerte</span><span class="t b" style="left:41%">20:09 Rambuteau fermée</span><span class="t p" style="left:63%">+30 s sono</span><span class="t p" style="left:74%">+2 min guide-files</span><span class="t p" style="left:88%">+5 min RATP</span></div>
+      <div class="lane" style="height:76px"></div>
+      <div class="fut"></div>
+      <div class="courbe"><div class="y">3 216</div>
+        <svg viewBox="0 0 100 76" preserveAspectRatio="none">
+          <polyline fill="none" stroke="#18222d" stroke-width="3" vector-effect="non-scaling-stroke" points="2,4 20,5 35,10 50,22 58,32"/>
+          <polyline fill="none" stroke="#d9480f" stroke-width="3" stroke-dasharray="7 5" vector-effect="non-scaling-stroke" points="58,30 70,36 85,44 100,50"/>
+          <polyline fill="none" stroke="#1b4f94" stroke-width="3" vector-effect="non-scaling-stroke" points="58,30 66,38 76,50 88,58 100,61"/>
+        </svg></div>
+    </div>
+  </footer>
+</div>
+<div class="cible-planche"><span><b>Planche B · Salle de régulation</b></span><span>Police : Barlow Semi Condensed</span><span>Deux couleurs : bleu acier #1B4F94 (état et validation), orange sécurité #D9480F (danger)</span><span>Audace : la chronologie trace aussi le futur, avec et sans nos propositions</span><span>Pour : le directeur, qui doit choisir entre plusieurs avenirs</span><span>Chiffres d'exemple</span></div>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planche C · La voix d'abord</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --noir:#0b0e11; --verre:#0b0e11d6; --ligne:#ffffff30;
+  --texte:#f4f6f7; --texte2:#aab3ba;
+  --cyan:#3bd4ec; --jaune:#ffd23f;
+  --f:'Atkinson Hyperlegible','Verdana',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--noir);color:var(--texte);font:15px/1.35 var(--f);font-variant-numeric:tabular-nums;overflow:hidden}
+.scene{position:relative;height:calc(100vh - 34px);min-height:600px;container-type:size;overflow:hidden}
+.vue{position:absolute;inset:0;container-type:size;overflow:hidden}
+.carte,.pins{position:absolute;left:50%;top:50%;width:max(100cqw,160cqh);aspect-ratio:1440/900;transform:translate(-50%,-50%)}
+.carte{background:url(fond-3d.png) center/cover;filter:brightness(.78) saturate(.85)}
+.voile{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,transparent 40%,#0b0e11cc 100%),linear-gradient(to top,#0b0e11 0,#0b0e11e6 14%,transparent 38%)}
+/* épingles */
+.pin{position:absolute;transform:translate(-50%,-100%);font-weight:700;font-size:13px;background:var(--verre);border:1.5px solid #fff;padding:2px 8px;white-space:nowrap}
+.pin.x{color:#0b0e11;border-color:var(--noir);background:repeating-linear-gradient(-45deg,var(--jaune) 0 7px,#0b0e11 7px 14px);text-shadow:0 0 3px var(--jaune),0 0 3px var(--jaune),0 0 5px var(--jaune)}
+.pin.x span{background:var(--jaune);padding:0 5px;color:#0b0e11;text-shadow:none}
+.zone{position:absolute;border:3px solid var(--jaune);background:repeating-linear-gradient(-45deg,#ffd23f4d 0 9px,#0b0e1166 9px 18px);border-radius:50%}
+.zone span{position:absolute;left:50%;top:-26px;transform:translateX(-50%);background:var(--jaune);color:#0b0e11;font-weight:700;font-size:12px;padding:1px 8px;white-space:nowrap}
+/* propositions accrochées à la carte */
+.appel{position:absolute;width:268px;background:var(--verre);border:2px solid var(--cyan);padding:9px 11px;transform:translate(-50%,0)}
+.appel::before{content:"";position:absolute;left:50%;bottom:100%;width:2px;height:var(--h,40px);background:var(--cyan)}
+.appel .k{font-size:11px;letter-spacing:.1em;font-weight:700;color:var(--cyan)}
+.appel p{font-weight:700;font-size:15px;margin:2px 0 1px}
+.appel small{display:block;color:var(--texte2);font-size:12px;margin-bottom:7px}
+.bt{display:flex;gap:6px}
+button{font:700 14px var(--f);cursor:pointer;border:1.5px solid var(--texte2);background:transparent;color:var(--texte);padding:6px 12px;min-height:38px}
+button.ok{background:var(--cyan);border-color:var(--cyan);color:#041014;flex:1}
+button:focus-visible{outline:3px solid var(--jaune);outline-offset:2px}
+/* haut */
+.etat{position:absolute;left:14px;top:14px;display:flex;align-items:center;gap:12px;background:var(--verre);border:1px solid var(--ligne);padding:8px 14px}
+.etat b{background:var(--jaune);color:#0b0e11;padding:2px 9px;letter-spacing:.06em}
+.etat span{color:var(--texte2)}
+.chiffres{position:absolute;right:14px;top:14px;display:flex;background:var(--verre);border:1px solid var(--ligne)}
+.chiffres div{padding:7px 16px;border-left:1px solid var(--ligne)}
+.chiffres div:first-child{border:0}
+.chiffres small{display:block;font-size:11px;color:var(--texte2);letter-spacing:.04em}
+.chiffres strong{font-size:30px;line-height:1.05;font-weight:700}
+.chiffres .a strong{color:var(--jaune)}
+.liste{display:none}
+/* gauche : dispositif ; droite : leviers */
+.disp{position:absolute;left:14px;top:84px;background:var(--verre);border:1px solid var(--ligne);padding:8px 12px;font-size:13px;min-width:210px}
+.disp h3,.lev h3{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--texte2);margin-bottom:4px;font-weight:700}
+.disp div{display:flex;justify-content:space-between;gap:14px;padding:3px 0;border-top:1px solid var(--ligne)}
+.disp em{font-style:normal;color:var(--texte2)}
+.disp .on em{color:var(--cyan);font-weight:700}
+.lev{position:absolute;right:14px;top:92px;background:var(--verre);border:1px solid var(--ligne);padding:8px 10px;display:flex;flex-direction:column;gap:5px}
+.lev button{display:flex;justify-content:space-between;gap:16px;min-height:34px;padding:4px 10px;font-size:13px;min-width:170px}
+.lev button b{font-size:16px}
+.lev button.x{border-color:var(--jaune);color:var(--jaune)}
+/* bas : sous-titre */
+.sous{position:absolute;left:50%;transform:translateX(-50%);bottom:68px;width:min(860px,92%);text-align:center}
+.sous .m{color:var(--texte2);font-size:13px;margin-bottom:6px}
+.sous q{display:block;font-size:30px;line-height:1.15;font-weight:700;quotes:"« " " »";text-shadow:0 2px 12px #000}
+.sous .c{margin-top:10px;display:inline-flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.sous .c span{border:1.5px solid var(--cyan);color:var(--cyan);padding:3px 11px;font-weight:700;font-size:14px}
+.sous .c span::before{content:"✓ "}
+.micro{position:absolute;left:50%;transform:translateX(-50%);bottom:-6px}
+/* frise */
+.frise{position:absolute;left:0;right:0;bottom:0;height:56px;background:#0b0e11f2;border-top:1px solid var(--ligne)}
+.frise .ax{position:absolute;left:14px;right:14px;top:30px;height:2px;background:var(--texte2)}
+.frise .ax::after{content:"";position:absolute;left:60%;right:0;top:-1px;height:4px;background:repeating-linear-gradient(90deg,var(--cyan) 0 6px,transparent 6px 12px)}
+.frise i{position:absolute;top:26px;width:10px;height:10px;background:#fff;transform:translateX(-5px)}
+.frise i.j{background:var(--jaune)}.frise i.f{background:#0b0e11;border:2px solid var(--cyan)}
+.frise u{position:absolute;top:8px;font-size:12px;text-decoration:none;color:var(--texte2);transform:translateX(-4px);white-space:nowrap}
+.frise u.f{color:var(--cyan)}
+.frise u.j{color:var(--jaune)}
+.frise .nw{position:absolute;left:60%;top:6px;bottom:6px;width:2px;background:#fff}
+.frise .nw::after{content:"T+04:12";position:absolute;left:5px;bottom:-1px;font-size:11px;font-weight:700}
+.cible-planche{min-height:34px;background:#000;color:#d4dadf;font-size:12px;padding:6px 14px;display:flex;gap:18px;flex-wrap:wrap;border-top:1px solid #333}
+.cible-planche b{color:#fff}
+@media (max-width:900px){
+  html,body{height:auto}body{overflow:auto}
+  .scene{height:auto;min-height:0;display:flex;flex-direction:column;container-type:normal;overflow:visible}
+  .vue{position:relative;height:46vh;min-height:280px;overflow:hidden;container-type:size}
+  .voile{display:none}
+  .etat{position:static;margin:0;border-width:0 0 1px;flex-wrap:wrap;gap:6px 12px}
+  .chiffres{position:static;flex-wrap:wrap;border-width:0 0 1px}.chiffres div{flex:1 1 45%;border-top:1px solid var(--ligne)}
+  .vue .appel{display:none}
+  .liste .appel,.disp,.lev,.sous,.micro{position:static;transform:none;width:auto;margin:10px 14px}
+  .frise{position:relative;left:auto;right:auto;bottom:auto;margin:10px 0 0;height:78px;border-bottom:1px solid var(--ligne)}
+  .frise u{font-size:10px}.frise u:nth-of-type(1),.frise u:nth-of-type(4){display:none}.frise u:nth-of-type(6){top:46px}.frise u:nth-of-type(3){top:46px}
+  .appel::before{display:none}.liste{display:block}
+  .sous{text-align:left}.sous q{font-size:24px}.sous .c{justify-content:flex-start}
+  .lev{flex-direction:row;flex-wrap:wrap}.lev button{min-width:0;flex:1 1 45%}
+  .scene>.etat{order:1}.scene>.chiffres{order:2}.scene>.vue{order:3}.scene>.sous{order:4}.scene>.liste{order:5}.scene>.disp{order:6}.scene>.lev{order:7}.scene>.frise{order:8}
+  .lev h3{width:100%}
+  .cible-planche{display:block}.cible-planche span{display:block}
+}
+</style>
+</head>
+<body>
+<main class="scene">
+  <div class="etat" role="status"><b>ÉVACUATION</b><span>Lun. 19 oct. 2026 · 20:09:41 · T+04:12</span><span>3 perturbations</span></div>
+  <div class="chiffres" aria-label="Chiffres clés">
+    <div class="a"><small>NON SORTIS</small><strong>1 184</strong></div>
+    <div class="a"><small>DENSITÉ MAX pers./m²</small><strong>5,8</strong></div>
+    <div><small>PERS.·MIN &gt; 5/m²</small><strong>212</strong></div>
+    <div class="a"><small>VERS LA ZONE</small><strong>37</strong></div>
+  </div>
+
+  <div class="vue">
+    <div class="carte"></div><div class="voile"></div>
+    <div class="pins">
+      <div class="zone" style="left:55%;top:22%;width:17%;aspect-ratio:1"><span>TROUBLES · D2</span></div>
+      <div class="pin" style="left:36%;top:10%">Porte du Jour</div>
+      <div class="pin x" style="left:63.5%;top:31%"><span>✕ Porte Rambuteau</span></div>
+      <div class="pin" style="left:60%;top:60%">Porte Lescot</div>
+      <div class="pin x" style="left:40%;top:66%"><span>✕ Issue Berger 15</span></div>
+      <div class="appel" style="left:28%;top:16%;--h:46px"><div class="k">À VALIDER · 1 SUR 3</div><p>Sonorisation : « Quittez par la Porte du Jour »</p><small>PC sécurité · effet après 30 s</small><div class="bt"><button class="ok">Valider</button><button>Refuser</button></div></div>
+      <div class="appel" style="left:17%;top:57%;--h:46px"><div class="k">À VALIDER · 2 SUR 3</div><p>Guide-files Porte du Jour et Porte du Louvre</p><small>PC sécurité · effet après 2 min</small><div class="bt"><button class="ok">Valider</button><button>Refuser</button></div></div>
+      <div class="appel" style="left:78%;top:46%;--h:46px"><div class="k">À VALIDER · 3 SUR 3</div><p>Demander à la RATP de rouvrir un accès</p><small>Liaison RATP · effet après 5 min</small><div class="bt"><button class="ok">Valider</button><button>Refuser</button></div></div>
+    </div>
+  </div>
+
+  <section class="liste" aria-label="Propositions à valider">
+    <div class="appel"><div class="k">À VALIDER · 1 SUR 3</div><p>Sonorisation : « Quittez par la Porte du Jour »</p><small>PC sécurité · effet après 30 s</small><div class="bt"><button class="ok">Valider</button><button>Refuser</button></div></div>
+    <div class="appel"><div class="k">À VALIDER · 2 SUR 3</div><p>Guide-files Porte du Jour et Porte du Louvre</p><small>PC sécurité · effet après 2 min</small><div class="bt"><button class="ok">Valider</button><button>Refuser</button></div></div>
+    <div class="appel"><div class="k">À VALIDER · 3 SUR 3</div><p>Demander à la RATP de rouvrir un accès</p><small>Liaison RATP · effet après 5 min</small><div class="bt"><button class="ok">Valider</button><button>Refuser</button></div></div>
+  </section>
+  <div class="disp"><h3>Dispositif en place</h3><div class="on"><span>Levée de doute</span><em>en cours</em></div><div class="on"><span>Sonorisation</span><em>sollicitée</em></div><div><span>Alarme générale</span><em>prête</em></div><div><span>Issues contrôlées</span><em>prêtes</em></div><div><span>Liaison RATP</span><em>prête</em></div></div>
+  <div class="lev"><h3>Leviers</h3><button>Portes <b>7/8</b></button><button class="x">Issues <b>11/12</b></button><button class="x">Bouches <b>2/5</b></button><button>Ascenseurs <b>4/4</b></button><button>Escalators <b>9/10</b></button></div>
+
+  <div class="sous" aria-live="polite">
+    <div class="m">20:09:12 · le directeur</div>
+    <q>Ferme la porte Rambuteau et mets un agent à la Porte du Jour.</q>
+    <div class="c"><span>Porte Rambuteau fermée</span><span>Guide-files Porte du Jour</span></div>
+  </div>
+
+  <div class="frise" aria-label="Chronologie">
+    <div class="ax"></div>
+    <u style="left:3%">20:00 séance</u><i style="left:3%"></i>
+    <u class="j" style="left:17%">20:07 stations fermées</u><i class="j" style="left:17%"></i>
+    <u class="j" style="left:36%">20:08 troubles</u><i class="j" style="left:36%"></i>
+    <u style="left:50%">20:09 alerte</u><i style="left:50%"></i>
+    <div class="nw"></div>
+    <u class="f" style="left:68%">+30 s sono</u><i class="f" style="left:68%"></i>
+    <u class="f" style="left:80%">+2 min guide-files</u><i class="f" style="left:80%"></i>
+    <u class="f" style="left:92%">+5 min RATP</u><i class="f" style="left:92%"></i>
+  </div>
+</main>
+<div class="cible-planche"><span><b>Planche C · La voix d'abord</b></span><span>Police : Atkinson Hyperlegible</span><span>Deux couleurs : cyan #3BD4EC (voix et validation), jaune #FFD23F en hachures (danger, pas de rouge)</span><span>Audace : la phrase dite, en sous-titre géant, est l'interface principale</span><span>Pour : le directeur qui parle debout, à deux mètres de l'écran</span><span>Chiffres d'exemple</span></div>
+</body>
+</html>
