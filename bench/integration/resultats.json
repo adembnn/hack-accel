@@ -1,0 +1,962 @@
+{
+  "version": 1,
+  "avertissement": "modèle simplifié, non certifié ; population réduite et paramètres de démonstration (voir src/integration/LISEZMOI.md)",
+  "config": {
+    "graine": 7,
+    "backend_decision": "rules",
+    "redacteur": "rejeu (cache rempli par gabarit)",
+    "reseau": false,
+    "cle": false,
+    "salles": 6,
+    "personnes_par_salle": 100,
+    "personnes": 600,
+    "horizon_min": 10,
+    "zones_decideurs": [
+      "ugc",
+      "niveau_0",
+      "niveau_-1",
+      "niveau_-2",
+      "niveau_-3",
+      "niveau_-4"
+    ],
+    "grille_moteur": {
+      "largeur": 620,
+      "hauteur": 630,
+      "niveaux": 5,
+      "cellule_m": 1
+    },
+    "issues_reelles": [
+      {
+        "id": "metro",
+        "sorties_osm": 20,
+        "largeur_m": 50,
+        "distance_m": 181
+      },
+      {
+        "id": "marguerite_de_navarre",
+        "sorties_osm": 3,
+        "largeur_m": 7.2,
+        "distance_m": 345
+      },
+      {
+        "id": "pont_neuf",
+        "sorties_osm": 1,
+        "largeur_m": 2.4,
+        "distance_m": 356
+      },
+      {
+        "id": "jour",
+        "sorties_osm": 3,
+        "largeur_m": 7.2,
+        "distance_m": 668
+      },
+      {
+        "id": "canopee",
+        "sorties_osm": 1,
+        "largeur_m": 1.4,
+        "distance_m": 346
+      },
+      {
+        "id": "louvre",
+        "sorties_osm": 2,
+        "largeur_m": 3.8,
+        "distance_m": 444
+      },
+      {
+        "id": "rambuteau",
+        "sorties_osm": 1,
+        "largeur_m": 2.4,
+        "distance_m": 666
+      },
+      {
+        "id": "parking_turbigo",
+        "sorties_osm": 1,
+        "largeur_m": 2.4,
+        "distance_m": 679
+      }
+    ],
+    "lecons_rex": 11
+  },
+  "avant": {
+    "duree_simulee_s": 600,
+    "t90_s": null,
+    "t99_s": null,
+    "non_sortis_fin": 600,
+    "non_sortis_22h": 600,
+    "non_sortis_23h": 600,
+    "zone_danger_valeur": 0,
+    "zone_danger_note": 100,
+    "ecrasement_personnes_minutes": 0,
+    "pression_helbing_max": 0,
+    "continuite_note": 0,
+    "note_totale": 50,
+    "avertissement": "modèle simplifié, non certifié",
+    "stats": {
+      "personnes": 600,
+      "groupes": 143,
+      "changements_avis": 0,
+      "personnes_ayant_change": 0,
+      "part_ayant_change": 0,
+      "hesitations_issue_fermee": 0,
+      "tentatives_sans_issue": 0,
+      "culs_de_sac": 0
+    },
+    "plan_traduit": {
+      "mode": "rester_ouvert",
+      "portes": [],
+      "phasage_salles": [],
+      "guidage": null,
+      "messages_par_zone": [],
+      "confinement": false
+    },
+    "cpu_mouvement_ms": 65860,
+    "duree_mur_ms": 66088
+  },
+  "apres": {
+    "duree_simulee_s": 600,
+    "t90_s": null,
+    "t99_s": null,
+    "non_sortis_fin": 454,
+    "non_sortis_22h": 454,
+    "non_sortis_23h": 454,
+    "zone_danger_valeur": 0,
+    "zone_danger_note": 100,
+    "ecrasement_personnes_minutes": 0,
+    "pression_helbing_max": 0.15755392611026764,
+    "continuite_note": 24.333333333333336,
+    "note_totale": 59.988888888888894,
+    "avertissement": "modèle simplifié, non certifié",
+    "stats": {
+      "personnes": 600,
+      "groupes": 143,
+      "changements_avis": 3,
+      "personnes_ayant_change": 3,
+      "part_ayant_change": 0.005,
+      "hesitations_issue_fermee": 0,
+      "tentatives_sans_issue": 0,
+      "culs_de_sac": 0
+    },
+    "plan_traduit": {
+      "mode": "rester_ouvert",
+      "portes": [],
+      "phasage_salles": [],
+      "guidage": null,
+      "messages_par_zone": [
+        {
+          "zone": "salle-1",
+          "issue_id": null,
+          "clarte": 0.7,
+          "a_partir_de_s": 0
+        },
+        {
+          "zone": "salle-4",
+          "issue_id": null,
+          "clarte": 0.7,
+          "a_partir_de_s": 360
+        },
+        {
+          "zone": "salle-3",
+          "issue_id": null,
+          "clarte": 0.7,
+          "a_partir_de_s": 420
+        },
+        {
+          "zone": "salle-2",
+          "issue_id": null,
+          "clarte": 0.7,
+          "a_partir_de_s": 480
+        }
+      ],
+      "confinement": false
+    },
+    "cpu_mouvement_ms": 39618,
+    "duree_mur_ms": 39758
+  },
+  "comparaison": {
+    "delta_t90_s": null,
+    "delta_non_sortis_fin": -146,
+    "delta_zone_danger": 0,
+    "delta_pression_max": 0.15755392611026764,
+    "delta_note_totale": 9.988888888888894
+  },
+  "plan_choisi": {
+    "mode": "rester_ouvert",
+    "portes": {
+      "lescot": "ouverte",
+      "berger": "ouverte",
+      "rambuteau": "ouverte",
+      "pont_neuf": "ouverte",
+      "saint_eustache": "ouverte",
+      "jour": "ouverte",
+      "louvre": "ouverte",
+      "marguerite_de_navarre": "ouverte",
+      "canopee": "ouverte",
+      "parking_turbigo": "ouverte"
+    },
+    "phasage_salles": [],
+    "guidage": [],
+    "messages_par_zone": {
+      "ugc": "Le centre ferme. Rejoignez calmement la sortie indiquée.",
+      "niveau_-2": "Le centre ferme. Rejoignez calmement la sortie indiquée.",
+      "niveau_-1": "Le centre ferme. Rejoignez calmement la sortie indiquée.",
+      "niveau_0": "Le centre ferme. Rejoignez calmement la sortie indiquée."
+    },
+    "confinement": {
+      "actif": false,
+      "zones": []
+    }
+  },
+  "leviers_choisis": [
+    {
+      "minute": 1161,
+      "decideur": "prefecture",
+      "levier": "renforts_portes",
+      "valeur": {
+        "porte": "berger",
+        "effectif": 0
+      },
+      "repetitions": 10
+    },
+    {
+      "minute": 1161,
+      "decideur": "prefecture",
+      "levier": "renforts_portes",
+      "valeur": {
+        "porte": "rambuteau",
+        "effectif": 0
+      },
+      "repetitions": 10
+    },
+    {
+      "minute": 1161,
+      "decideur": "ratp",
+      "levier": "correspondances",
+      "valeur": true,
+      "repetitions": 10
+    },
+    {
+      "minute": 1161,
+      "decideur": "securite_centre",
+      "levier": "message_zone",
+      "valeur": {
+        "zone": "ugc",
+        "texte": "Le centre ferme. Rejoignez calmement la sortie indiquée."
+      },
+      "repetitions": 6
+    },
+    {
+      "minute": 1161,
+      "decideur": "directeur",
+      "levier": "mode",
+      "valeur": "rester_ouvert",
+      "repetitions": 10
+    },
+    {
+      "minute": 1161,
+      "decideur": "directeur",
+      "levier": "confinement",
+      "valeur": {
+        "actif": false,
+        "zones": []
+      },
+      "repetitions": 10
+    },
+    {
+      "minute": 1161,
+      "decideur": "directeur",
+      "levier": "porte",
+      "valeur": {
+        "porte": "berger",
+        "etat": "ouverte"
+      },
+      "repetitions": 10
+    },
+    {
+      "minute": 1161,
+      "decideur": "directeur",
+      "levier": "porte",
+      "valeur": {
+        "porte": "rambuteau",
+        "etat": "ouverte"
+      },
+      "repetitions": 10
+    },
+    {
+      "minute": 1167,
+      "decideur": "securite_centre",
+      "levier": "message_zone",
+      "valeur": {
+        "zone": "niveau_-2",
+        "texte": "Le centre ferme. Rejoignez calmement la sortie indiquée."
+      },
+      "repetitions": 1
+    },
+    {
+      "minute": 1168,
+      "decideur": "securite_centre",
+      "levier": "message_zone",
+      "valeur": {
+        "zone": "niveau_-1",
+        "texte": "Le centre ferme. Rejoignez calmement la sortie indiquée."
+      },
+      "repetitions": 1
+    },
+    {
+      "minute": 1169,
+      "decideur": "securite_centre",
+      "levier": "message_zone",
+      "valeur": {
+        "zone": "niveau_0",
+        "texte": "Le centre ferme. Rejoignez calmement la sortie indiquée."
+      },
+      "repetitions": 2
+    }
+  ],
+  "leviers_refuses": [],
+  "decisions_citees": [
+    {
+      "minute": 1161,
+      "decideur": "prefecture",
+      "leviers": [
+        "renforts_portes",
+        "renforts_portes"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1161,
+      "decideur": "ratp",
+      "leviers": [
+        "correspondances"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1161,
+      "decideur": "securite_centre",
+      "leviers": [
+        "message_zone"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1161,
+      "decideur": "directeur",
+      "leviers": [
+        "mode",
+        "confinement",
+        "porte",
+        "porte"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1162,
+      "decideur": "prefecture",
+      "leviers": [
+        "renforts_portes",
+        "renforts_portes"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1162,
+      "decideur": "ratp",
+      "leviers": [
+        "correspondances"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1162,
+      "decideur": "securite_centre",
+      "leviers": [
+        "message_zone"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1162,
+      "decideur": "directeur",
+      "leviers": [
+        "mode",
+        "confinement",
+        "porte",
+        "porte"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1163,
+      "decideur": "prefecture",
+      "leviers": [
+        "renforts_portes",
+        "renforts_portes"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1163,
+      "decideur": "ratp",
+      "leviers": [
+        "correspondances"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1163,
+      "decideur": "securite_centre",
+      "leviers": [
+        "message_zone"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1163,
+      "decideur": "directeur",
+      "leviers": [
+        "mode",
+        "confinement",
+        "porte",
+        "porte"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1164,
+      "decideur": "prefecture",
+      "leviers": [
+        "renforts_portes",
+        "renforts_portes"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1164,
+      "decideur": "ratp",
+      "leviers": [
+        "correspondances"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1164,
+      "decideur": "securite_centre",
+      "leviers": [
+        "message_zone"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1164,
+      "decideur": "directeur",
+      "leviers": [
+        "mode",
+        "confinement",
+        "porte",
+        "porte"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1165,
+      "decideur": "prefecture",
+      "leviers": [
+        "renforts_portes",
+        "renforts_portes"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1165,
+      "decideur": "ratp",
+      "leviers": [
+        "correspondances"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1165,
+      "decideur": "securite_centre",
+      "leviers": [
+        "message_zone"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1165,
+      "decideur": "directeur",
+      "leviers": [
+        "mode",
+        "confinement",
+        "porte",
+        "porte"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1166,
+      "decideur": "prefecture",
+      "leviers": [
+        "renforts_portes",
+        "renforts_portes"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1166,
+      "decideur": "ratp",
+      "leviers": [
+        "correspondances"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1166,
+      "decideur": "securite_centre",
+      "leviers": [
+        "message_zone"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1166,
+      "decideur": "directeur",
+      "leviers": [
+        "mode",
+        "confinement",
+        "porte",
+        "porte"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1167,
+      "decideur": "prefecture",
+      "leviers": [
+        "renforts_portes",
+        "renforts_portes"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1167,
+      "decideur": "ratp",
+      "leviers": [
+        "correspondances"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1167,
+      "decideur": "securite_centre",
+      "leviers": [
+        "message_zone"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1167,
+      "decideur": "directeur",
+      "leviers": [
+        "mode",
+        "confinement",
+        "porte",
+        "porte"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1168,
+      "decideur": "prefecture",
+      "leviers": [
+        "renforts_portes",
+        "renforts_portes"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1168,
+      "decideur": "ratp",
+      "leviers": [
+        "correspondances"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1168,
+      "decideur": "securite_centre",
+      "leviers": [
+        "message_zone"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1168,
+      "decideur": "directeur",
+      "leviers": [
+        "mode",
+        "confinement",
+        "porte",
+        "porte"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1169,
+      "decideur": "prefecture",
+      "leviers": [
+        "renforts_portes",
+        "renforts_portes"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1169,
+      "decideur": "ratp",
+      "leviers": [
+        "correspondances"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1169,
+      "decideur": "securite_centre",
+      "leviers": [
+        "message_zone"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1169,
+      "decideur": "directeur",
+      "leviers": [
+        "mode",
+        "confinement",
+        "porte",
+        "porte"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1170,
+      "decideur": "prefecture",
+      "leviers": [
+        "renforts_portes",
+        "renforts_portes"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1170,
+      "decideur": "ratp",
+      "leviers": [
+        "correspondances"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1170,
+      "decideur": "securite_centre",
+      "leviers": [
+        "message_zone"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    },
+    {
+      "minute": 1170,
+      "decideur": "directeur",
+      "leviers": [
+        "mode",
+        "confinement",
+        "porte",
+        "porte"
+      ],
+      "lecons_citees": [
+        "lecon:écrasement de foule:*",
+        "lecon:alerte à la bombe / évacuation préventive:*",
+        "lecon:couvre-feu préfectoral localisé après violences urbaines:*"
+      ]
+    }
+  ],
+  "note_boucle": {
+    "minute": 1170,
+    "ligne_rouge": false,
+    "non_sortis": 454,
+    "sortis_vers_zone_danger": 0,
+    "densite_max": 0.5,
+    "ecrasement_personnes_minutes": 0,
+    "pression_max": 0.158
+  },
+  "etat_final": {
+    "minute": 1170,
+    "dans_le_centre": 454,
+    "sortis": 146,
+    "sortis_vers_zone_danger": 0,
+    "densite_max": 0.5,
+    "par_zone": {
+      "ugc": {
+        "personnes": 9,
+        "densite": 0.22
+      },
+      "niveau_0": {
+        "personnes": 98,
+        "densite": 0.56
+      },
+      "niveau_-1": {
+        "personnes": 81,
+        "densite": 0.5
+      },
+      "niveau_-2": {
+        "personnes": 66,
+        "densite": 0.43
+      },
+      "niveau_-3": {
+        "personnes": 100,
+        "densite": 0.22
+      },
+      "niveau_-4": {
+        "personnes": 100,
+        "densite": 0.22
+      }
+    },
+    "debit_portes": {
+      "pont_neuf": 3,
+      "metro": 24,
+      "marguerite_de_navarre": 14,
+      "parking_turbigo": 1,
+      "canopee": 1
+    },
+    "pression_max": 0.158
+  },
+  "explication": {
+    "type": "explication",
+    "zone": null,
+    "porteur": "direction",
+    "origine": "rejeu",
+    "texte": "Plan retenu : mode rester_ouvert, 0 porte(s) fermée(s), 0 agent(s) de guidage. À 1170 minutes du jour, 146 personnes sont sorties, 454 restent dans le centre et 0 ont été dirigées vers une zone de danger. La densité maximale a atteint 0.5 pers./m² à la minute 1170. Les stations ferment à 22 h 00.",
+    "chiffres_verifies": true,
+    "chiffres_non_retrouves": 0
+  },
+  "ordres_de_service": [
+    {
+      "type": "ordre_de_service",
+      "zone": "ugc",
+      "porteur": "annonce_sonore",
+      "origine": "rejeu",
+      "texte": "Zone ugc : départ à 19 h 20 (0 agent(s) sur place, 9 personnes à faire sortir). Message : Le centre ferme. Rejoignez calmement la sortie indiquée.",
+      "chiffres_verifies": true,
+      "chiffres_non_retrouves": 0
+    },
+    {
+      "type": "ordre_de_service",
+      "zone": "niveau_0",
+      "porteur": "annonce_sonore",
+      "origine": "rejeu",
+      "texte": "Zone niveau_0 : départ à 19 h 20 (0 agent(s) sur place, 98 personnes à faire sortir). Message : Le centre ferme. Rejoignez calmement la sortie indiquée.",
+      "chiffres_verifies": true,
+      "chiffres_non_retrouves": 0
+    },
+    {
+      "type": "ordre_de_service",
+      "zone": "niveau_-1",
+      "porteur": "annonce_sonore",
+      "origine": "rejeu",
+      "texte": "Zone niveau_-1 : départ à 19 h 20 (0 agent(s) sur place, 81 personnes à faire sortir). Message : Le centre ferme. Rejoignez calmement la sortie indiquée.",
+      "chiffres_verifies": true,
+      "chiffres_non_retrouves": 0
+    },
+    {
+      "type": "ordre_de_service",
+      "zone": "niveau_-2",
+      "porteur": "annonce_sonore",
+      "origine": "rejeu",
+      "texte": "Zone niveau_-2 : départ à 19 h 20 (0 agent(s) sur place, 66 personnes à faire sortir). Message : Le centre ferme. Rejoignez calmement la sortie indiquée.",
+      "chiffres_verifies": true,
+      "chiffres_non_retrouves": 0
+    },
+    {
+      "type": "ordre_de_service",
+      "zone": "niveau_-3",
+      "porteur": "ecran",
+      "origine": "rejeu",
+      "texte": "Zone niveau_-3 : départ à 19 h 20 (0 agent(s) sur place, 100 personnes à faire sortir). Message : ",
+      "chiffres_verifies": true,
+      "chiffres_non_retrouves": 0
+    },
+    {
+      "type": "ordre_de_service",
+      "zone": "niveau_-4",
+      "porteur": "ecran",
+      "origine": "rejeu",
+      "texte": "Zone niveau_-4 : départ à 19 h 20 (0 agent(s) sur place, 100 personnes à faire sortir). Message : ",
+      "chiffres_verifies": true,
+      "chiffres_non_retrouves": 0
+    }
+  ],
+  "ecarts_constates": [
+    "portes du lot decideurs sans sortie réelle rattachée : lescot, berger, saint_eustache"
+  ],
+  "performance": {
+    "total_ms": 258350,
+    "simulations_completes": 5,
+    "cpu_mouvement_avant_ms": 65860,
+    "cpu_mouvement_apres_ms": 39618
+  }
+}

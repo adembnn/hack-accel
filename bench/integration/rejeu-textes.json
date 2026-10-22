@@ -1,0 +1,98 @@
+{
+  "b9b42e55ea1c7607dd629a0c": {
+    "type": "explication",
+    "porteur": "direction",
+    "texte": "Plan retenu : mode rester_ouvert, 0 porte(s) fermée(s), 0 agent(s) de guidage. À 1166 minutes du jour, 11 personnes sont sorties, 169 restent dans le centre et 0 ont été dirigées vers une zone de danger. La densité maximale a atteint 0.22 pers./m² à la minute 1162. Les stations ferment à 22 h 00.",
+    "origine": "gabarit"
+  },
+  "32640da65f757690eda4d64c": {
+    "type": "ordre_de_service",
+    "zone": "ugc",
+    "porteur": "annonce_sonore",
+    "texte": "Zone ugc : départ à 19 h 20 (0 agent(s) sur place, 19 personnes à faire sortir). Message : Le centre ferme. Rejoignez calmement la sortie indiquée.",
+    "origine": "gabarit"
+  },
+  "d34118259af54bcf33edf246": {
+    "type": "ordre_de_service",
+    "zone": "niveau_0",
+    "porteur": "annonce_sonore",
+    "texte": "Zone niveau_0 : départ à 19 h 20 (0 agent(s) sur place, 30 personnes à faire sortir). Message : Le centre ferme. Rejoignez calmement la sortie indiquée.",
+    "origine": "gabarit"
+  },
+  "8dffa2addf0d35d549b4759a": {
+    "type": "ordre_de_service",
+    "zone": "niveau_-1",
+    "porteur": "ecran",
+    "texte": "Zone niveau_-1 : départ à 19 h 20 (0 agent(s) sur place, 30 personnes à faire sortir). Message : ",
+    "origine": "gabarit"
+  },
+  "8bdf3435c6a17f7f507dd082": {
+    "type": "ordre_de_service",
+    "zone": "niveau_-2",
+    "porteur": "ecran",
+    "texte": "Zone niveau_-2 : départ à 19 h 20 (0 agent(s) sur place, 30 personnes à faire sortir). Message : ",
+    "origine": "gabarit"
+  },
+  "9b88765abf9cc2838a713539": {
+    "type": "ordre_de_service",
+    "zone": "niveau_-3",
+    "porteur": "ecran",
+    "texte": "Zone niveau_-3 : départ à 19 h 20 (0 agent(s) sur place, 30 personnes à faire sortir). Message : ",
+    "origine": "gabarit"
+  },
+  "1adc5abbb040b5c0fbc50513": {
+    "type": "ordre_de_service",
+    "zone": "niveau_-4",
+    "porteur": "ecran",
+    "texte": "Zone niveau_-4 : départ à 19 h 20 (0 agent(s) sur place, 30 personnes à faire sortir). Message : ",
+    "origine": "gabarit"
+  },
+  "1dadc0e5ac290ca1fb05a5e0": {
+    "type": "explication",
+    "porteur": "direction",
+    "texte": "Plan retenu : mode rester_ouvert, 0 porte(s) fermée(s), 0 agent(s) de guidage. À 1170 minutes du jour, 146 personnes sont sorties, 454 restent dans le centre et 0 ont été dirigées vers une zone de danger. La densité maximale a atteint 0.5 pers./m² à la minute 1170. Les stations ferment à 22 h 00.",
+    "origine": "gabarit"
+  },
+  "f28055d8220678209566009a": {
+    "type": "ordre_de_service",
+    "zone": "ugc",
+    "porteur": "annonce_sonore",
+    "texte": "Zone ugc : départ à 19 h 20 (0 agent(s) sur place, 9 personnes à faire sortir). Message : Le centre ferme. Rejoignez calmement la sortie indiquée.",
+    "origine": "gabarit"
+  },
+  "c2a90d515631707e5dff01bd": {
+    "type": "ordre_de_service",
+    "zone": "niveau_0",
+    "porteur": "annonce_sonore",
+    "texte": "Zone niveau_0 : départ à 19 h 20 (0 agent(s) sur place, 98 personnes à faire sortir). Message : Le centre ferme. Rejoignez calmement la sortie indiquée.",
+    "origine": "gabarit"
+  },
+  "1b221ebda44be94b9aba3bce": {
+    "type": "ordre_de_service",
+    "zone": "niveau_-1",
+    "porteur": "annonce_sonore",
+    "texte": "Zone niveau_-1 : départ à 19 h 20 (0 agent(s) sur place, 81 personnes à faire sortir). Message : Le centre ferme. Rejoignez calmement la sortie indiquée.",
+    "origine": "gabarit"
+  },
+  "7c6e206e6138de2fc59c595c": {
+    "type": "ordre_de_service",
+    "zone": "niveau_-2",
+    "porteur": "annonce_sonore",
+    "texte": "Zone niveau_-2 : départ à 19 h 20 (0 agent(s) sur place, 66 personnes à faire sortir). Message : Le centre ferme. Rejoignez calmement la sortie indiquée.",
+    "origine": "gabarit"
+  },
+  "49c9c30fe7f96d9c8a09e0de": {
+    "type": "ordre_de_service",
+    "zone": "niveau_-3",
+    "porteur": "ecran",
+    "texte": "Zone niveau_-3 : départ à 19 h 20 (0 agent(s) sur place, 100 personnes à faire sortir). Message : ",
+    "origine": "gabarit"
+  },
+  "abb4a7868e49ad5ef9601354": {
+    "type": "ordre_de_service",
+    "zone": "niveau_-4",
+    "porteur": "ecran",
+    "texte": "Zone niveau_-4 : départ à 19 h 20 (0 agent(s) sur place, 100 personnes à faire sortir). Message : ",
+    "origine": "gabarit"
+  }
+}
