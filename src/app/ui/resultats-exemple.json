@@ -1,0 +1,1005 @@
+{
+ "source": "exemple",
+ "scenario": "Exemple : lundi 19 oct. 2026, 20h07, stations fermées, troubles rue Berger",
+ "total_personnes": 3216,
+ "horizon_s": 600,
+ "interieur_estime": true,
+ "serie": [
+  {
+   "t": 0,
+   "non_sortis": 3216,
+   "densite_max": 1.5,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 0
+  },
+  {
+   "t": 30,
+   "non_sortis": 2909,
+   "densite_max": 1.9,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 5
+  },
+  {
+   "t": 60,
+   "non_sortis": 2681,
+   "densite_max": 2.4,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 9
+  },
+  {
+   "t": 90,
+   "non_sortis": 2476,
+   "densite_max": 3.2,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 14
+  },
+  {
+   "t": 120,
+   "non_sortis": 2284,
+   "densite_max": 4,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 19
+  },
+  {
+   "t": 150,
+   "non_sortis": 2102,
+   "densite_max": 4.9,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 23
+  },
+  {
+   "t": 180,
+   "non_sortis": 1927,
+   "densite_max": 5.6,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 44,
+   "vers_zone": 28
+  },
+  {
+   "t": 210,
+   "non_sortis": 1758,
+   "densite_max": 5.8,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 65,
+   "vers_zone": 32
+  },
+  {
+   "t": 240,
+   "non_sortis": 1594,
+   "densite_max": 5.6,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 85,
+   "vers_zone": 37
+  },
+  {
+   "t": 270,
+   "non_sortis": 1433,
+   "densite_max": 4.9,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 37
+  },
+  {
+   "t": 300,
+   "non_sortis": 1277,
+   "densite_max": 4,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 37
+  },
+  {
+   "t": 330,
+   "non_sortis": 1123,
+   "densite_max": 3.2,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 37
+  },
+  {
+   "t": 360,
+   "non_sortis": 972,
+   "densite_max": 2.4,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 37
+  },
+  {
+   "t": 390,
+   "non_sortis": 824,
+   "densite_max": 1.9,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 37
+  },
+  {
+   "t": 420,
+   "non_sortis": 677,
+   "densite_max": 1.5,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 37
+  },
+  {
+   "t": 450,
+   "non_sortis": 533,
+   "densite_max": 1.4,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 37
+  },
+  {
+   "t": 480,
+   "non_sortis": 391,
+   "densite_max": 1.3,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 37
+  },
+  {
+   "t": 510,
+   "non_sortis": 386,
+   "densite_max": 1.2,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 37
+  },
+  {
+   "t": 540,
+   "non_sortis": 386,
+   "densite_max": 1.2,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 37
+  },
+  {
+   "t": 570,
+   "non_sortis": 386,
+   "densite_max": 1.2,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 37
+  },
+  {
+   "t": 600,
+   "non_sortis": 386,
+   "densite_max": 1.2,
+   "densite_lieu": "Porte Lescot",
+   "personnes_min_sup5": 0,
+   "vers_zone": 37
+  }
+ ],
+ "sorties": {
+  "0": [
+   {
+    "id": "porte-jour",
+    "densite": 1.5,
+    "flux": 1.6
+   },
+   {
+    "id": "porte-berger",
+    "densite": 1.2,
+    "flux": 1.4
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 1,
+    "flux": 1.2
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 0.7,
+    "flux": 1
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 0.5,
+    "flux": 0.8
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.3,
+    "flux": 0.6
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.4
+   }
+  ],
+  "30": [
+   {
+    "id": "porte-jour",
+    "densite": 1.9,
+    "flux": 1.55
+   },
+   {
+    "id": "porte-berger",
+    "densite": 1.6,
+    "flux": 1.36
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 1.3,
+    "flux": 1.16
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 0.9,
+    "flux": 0.97
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 0.6,
+    "flux": 0.78
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.3,
+    "flux": 0.58
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.39
+   }
+  ],
+  "60": [
+   {
+    "id": "porte-jour",
+    "densite": 2.4,
+    "flux": 1.5
+   },
+   {
+    "id": "porte-berger",
+    "densite": 2,
+    "flux": 1.32
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 1.6,
+    "flux": 1.13
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 1.2,
+    "flux": 0.94
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 0.8,
+    "flux": 0.75
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.4,
+    "flux": 0.56
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.38
+   }
+  ],
+  "90": [
+   {
+    "id": "porte-jour",
+    "densite": 3.2,
+    "flux": 1.46
+   },
+   {
+    "id": "porte-berger",
+    "densite": 2.7,
+    "flux": 1.27
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 2.1,
+    "flux": 1.09
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 1.6,
+    "flux": 0.91
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 1,
+    "flux": 0.73
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.5,
+    "flux": 0.55
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.36
+   }
+  ],
+  "120": [
+   {
+    "id": "porte-jour",
+    "densite": 4,
+    "flux": 1.41
+   },
+   {
+    "id": "porte-berger",
+    "densite": 3.3,
+    "flux": 1.23
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 2.6,
+    "flux": 1.06
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 2,
+    "flux": 0.88
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 1.3,
+    "flux": 0.7
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.6,
+    "flux": 0.53
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.35
+   }
+  ],
+  "150": [
+   {
+    "id": "porte-jour",
+    "densite": 4.9,
+    "flux": 1.36
+   },
+   {
+    "id": "porte-berger",
+    "densite": 4.1,
+    "flux": 1.19
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 3.2,
+    "flux": 1.02
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 2.4,
+    "flux": 0.85
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 1.6,
+    "flux": 0.68
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.7,
+    "flux": 0.51
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.34
+   }
+  ],
+  "180": [
+   {
+    "id": "porte-jour",
+    "densite": 5.6,
+    "flux": 1.31
+   },
+   {
+    "id": "porte-berger",
+    "densite": 4.6,
+    "flux": 1.15
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 3.7,
+    "flux": 0.98
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 2.7,
+    "flux": 0.82
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 1.8,
+    "flux": 0.66
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.8,
+    "flux": 0.49
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.33
+   }
+  ],
+  "210": [
+   {
+    "id": "porte-jour",
+    "densite": 5.8,
+    "flux": 1.26
+   },
+   {
+    "id": "porte-berger",
+    "densite": 4.8,
+    "flux": 1.11
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 3.8,
+    "flux": 0.95
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 2.8,
+    "flux": 0.79
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 1.9,
+    "flux": 0.63
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.9,
+    "flux": 0.47
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.32
+   }
+  ],
+  "240": [
+   {
+    "id": "porte-jour",
+    "densite": 5.6,
+    "flux": 1.22
+   },
+   {
+    "id": "porte-berger",
+    "densite": 4.6,
+    "flux": 1.06
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 3.7,
+    "flux": 0.91
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 2.7,
+    "flux": 0.76
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 1.8,
+    "flux": 0.61
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.8,
+    "flux": 0.46
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.3
+   }
+  ],
+  "270": [
+   {
+    "id": "porte-jour",
+    "densite": 4.9,
+    "flux": 1.17
+   },
+   {
+    "id": "porte-berger",
+    "densite": 4.1,
+    "flux": 1.02
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 3.2,
+    "flux": 0.88
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 2.4,
+    "flux": 0.73
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 1.6,
+    "flux": 0.58
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.7,
+    "flux": 0.44
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.29
+   }
+  ],
+  "300": [
+   {
+    "id": "porte-jour",
+    "densite": 4,
+    "flux": 1.12
+   },
+   {
+    "id": "porte-berger",
+    "densite": 3.3,
+    "flux": 0.98
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 2.6,
+    "flux": 0.84
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 2,
+    "flux": 0.7
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 1.3,
+    "flux": 0.56
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.6,
+    "flux": 0.42
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.28
+   }
+  ],
+  "330": [
+   {
+    "id": "porte-jour",
+    "densite": 3.2,
+    "flux": 1.07
+   },
+   {
+    "id": "porte-berger",
+    "densite": 2.7,
+    "flux": 0.94
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 2.1,
+    "flux": 0.8
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 1.6,
+    "flux": 0.67
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 1,
+    "flux": 0.54
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.5,
+    "flux": 0.4
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.27
+   }
+  ],
+  "360": [
+   {
+    "id": "porte-jour",
+    "densite": 2.4,
+    "flux": 1.02
+   },
+   {
+    "id": "porte-berger",
+    "densite": 2,
+    "flux": 0.9
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 1.6,
+    "flux": 0.77
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 1.2,
+    "flux": 0.64
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 0.8,
+    "flux": 0.51
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.4,
+    "flux": 0.38
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.26
+   }
+  ],
+  "390": [
+   {
+    "id": "porte-jour",
+    "densite": 1.9,
+    "flux": 0.98
+   },
+   {
+    "id": "porte-berger",
+    "densite": 1.6,
+    "flux": 0.85
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 1.3,
+    "flux": 0.73
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 0.9,
+    "flux": 0.61
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 0.6,
+    "flux": 0.49
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.3,
+    "flux": 0.37
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.24
+   }
+  ],
+  "420": [
+   {
+    "id": "porte-jour",
+    "densite": 1.5,
+    "flux": 0.93
+   },
+   {
+    "id": "porte-berger",
+    "densite": 1.2,
+    "flux": 0.81
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 1,
+    "flux": 0.7
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 0.7,
+    "flux": 0.58
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 0.5,
+    "flux": 0.46
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.3,
+    "flux": 0.35
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.23
+   }
+  ],
+  "450": [
+   {
+    "id": "porte-jour",
+    "densite": 1.4,
+    "flux": 0.88
+   },
+   {
+    "id": "porte-berger",
+    "densite": 1.2,
+    "flux": 0.77
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 0.9,
+    "flux": 0.66
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 0.7,
+    "flux": 0.55
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 0.4,
+    "flux": 0.44
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.3,
+    "flux": 0.33
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.22
+   }
+  ],
+  "480": [
+   {
+    "id": "porte-jour",
+    "densite": 1.3,
+    "flux": 0.83
+   },
+   {
+    "id": "porte-berger",
+    "densite": 1.1,
+    "flux": 0.73
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 0.9,
+    "flux": 0.62
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 0.6,
+    "flux": 0.52
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 0.4,
+    "flux": 0.42
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.3,
+    "flux": 0.31
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.21
+   }
+  ],
+  "510": [
+   {
+    "id": "porte-jour",
+    "densite": 1.2,
+    "flux": 0.78
+   },
+   {
+    "id": "porte-berger",
+    "densite": 1,
+    "flux": 0.69
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 0.8,
+    "flux": 0.59
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 0.6,
+    "flux": 0.49
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 0.4,
+    "flux": 0.39
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.3,
+    "flux": 0.29
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.2
+   }
+  ],
+  "540": [
+   {
+    "id": "porte-jour",
+    "densite": 1.2,
+    "flux": 0.74
+   },
+   {
+    "id": "porte-berger",
+    "densite": 1,
+    "flux": 0.64
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 0.8,
+    "flux": 0.55
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 0.6,
+    "flux": 0.46
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 0.4,
+    "flux": 0.37
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.3,
+    "flux": 0.28
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.18
+   }
+  ],
+  "570": [
+   {
+    "id": "porte-jour",
+    "densite": 1.2,
+    "flux": 0.69
+   },
+   {
+    "id": "porte-berger",
+    "densite": 1,
+    "flux": 0.6
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 0.8,
+    "flux": 0.52
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 0.6,
+    "flux": 0.43
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 0.4,
+    "flux": 0.34
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.3,
+    "flux": 0.26
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.17
+   }
+  ],
+  "600": [
+   {
+    "id": "porte-jour",
+    "densite": 1.2,
+    "flux": 0.64
+   },
+   {
+    "id": "porte-berger",
+    "densite": 1,
+    "flux": 0.56
+   },
+   {
+    "id": "porte-rambuteau",
+    "densite": 0.8,
+    "flux": 0.48
+   },
+   {
+    "id": "porte-lescot",
+    "densite": 0.6,
+    "flux": 0.4
+   },
+   {
+    "id": "porte-pont-neuf",
+    "densite": 0.4,
+    "flux": 0.32
+   },
+   {
+    "id": "issue-berger-15",
+    "densite": 0.3,
+    "flux": 0.24
+   },
+   {
+    "id": "issue-louvre",
+    "densite": 0.3,
+    "flux": 0.16
+   }
+  ]
+ },
+ "avant": {
+  "non_sortis": 1184,
+  "personnes_min_sup5": 212,
+  "vers_zone": 37,
+  "temps_evacuation_s": 540
+ },
+ "apres": {
+  "non_sortis": 402,
+  "personnes_min_sup5": 64,
+  "vers_zone": 6,
+  "temps_evacuation_s": 390
+ },
+ "jalons": [
+  {
+   "t": 0,
+   "libelle": "Séance UGC",
+   "type": "fait"
+  },
+  {
+   "t": 67,
+   "libelle": "Stations fermées",
+   "type": "danger"
+  },
+  {
+   "t": 128,
+   "libelle": "Troubles Berger",
+   "type": "danger"
+  },
+  {
+   "t": 252,
+   "libelle": "Alerte donnée",
+   "type": "fait"
+  },
+  {
+   "t": 282,
+   "libelle": "Sonorisation",
+   "type": "fait"
+  },
+  {
+   "t": 372,
+   "libelle": "Guide-files",
+   "type": "fait"
+  },
+  {
+   "t": 552,
+   "libelle": "Accès RATP",
+   "type": "fait"
+  }
+ ]
+}

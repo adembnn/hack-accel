@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Poste de crise · Refuge</title>
+    <link rel="stylesheet" href="./ui.css" />
+  </head>
+  <body>
+    <div id="avertissement" role="note">
+      <strong>Simulation générée, modèle simplifié, non certifié.</strong>
+      <span id="badges"></span>
+      <span class="scenario" id="scenario"></span>
+    </div>
+    <div class="app">
+      <header class="ban" role="status" aria-label="État de la situation">
+        <div id="phase"><small>Phase</small><strong>Veille</strong></div>
+        <div><small id="dateLib">Scénario</small><strong id="horloge">T+00:00</strong></div>
+        <div class="pert" id="pert" aria-label="Perturbations en cours"></div>
+        <div id="alarme"><small>Alarme générale</small><strong>non déclenchée</strong></div>
+      </header>
+
+      <section class="dec" aria-label="Décisions et commandes">
+        <nav id="onglets" role="tablist" aria-label="Rubriques"></nav>
+        <div id="panneaux"></div>
+      </section>
+
+      <section class="vue" aria-label="Plan du site">
+        <canvas id="carte" aria-label="Plan schématique du Forum des Halles avec les sorties, bouches de métro et perturbations"></canvas>
+        <div class="mode" id="modes"></div>
+        <div class="legende" id="legende">
+          <span><b class="ouvert"></b>ouvert</span><span><b class="ferme"></b>fermé ou bloqué</span><span><b class="zone"></b>zone posée</span>
+          <span class="note">Plan schématique, positions indicatives</span>
+        </div>
+        <div class="sous" aria-live="polite" id="sous">
+          <div class="m" id="sousMeta"></div>
+          <q id="sousPhrase"></q>
+          <div class="c" id="sousPuces"></div>
+        </div>
+      </section>
+
+      <aside class="chi" aria-label="Chiffres clés et dispositif">
+        <h2>Chiffres clés <span id="badgeChiffres"></span></h2>
+        <div class="gr" id="chiffres"></div>
+        <h2>Tension</h2>
+        <div class="jauge" id="jauge" role="meter" aria-valuemin="0" aria-valuemax="6" aria-label="Densité maximale en personnes par mètre carré">
+          <div class="rail"><div class="rempli" id="jaugeRempli"></div><i class="repere o" id="repO"></i><i class="repere r" id="repR"></i></div>
+          <div class="echelle"><span>0</span><span id="lbO">orange 3</span><span id="lbR">rouge 4</span><span>6 pers./m²</span></div>
+        </div>
+        <h2>Fil d'alertes</h2>
+        <ul class="alertes" id="alertes"></ul>
+        <h2>Dispositif en place</h2>
+        <ul class="dis" id="dispoRes"></ul>
+      </aside>
+
+      <footer class="tps">
+        <div class="lev"><h2>Leviers</h2><div class="rg" id="leviers"></div></div>
+        <div class="frise" aria-label="Chronologie">
+          <div class="curs">
+            <button id="lecture" type="button" aria-label="Lecture">▶</button>
+            <input id="curseur" type="range" min="0" max="600" step="30" value="0" aria-label="Curseur de temps" />
+            <output id="curseurT">T+00:00</output>
+          </div>
+          <div class="piste" id="piste"></div>
+        </div>
+      </footer>
+    </div>
+    <script type="module" src="./ui.ts"></script>
+  </body>
+</html>
