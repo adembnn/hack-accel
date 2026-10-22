@@ -2,7 +2,6 @@
 // Tourne sous `npm run dev` (http://localhost:5173/src/app/ui/index.html) ou servi en statique (voir README.md).
 // Événements émis sur window : `contrainte` (detail = Contrainte de src/scene/contrainte.ts) et `perturbation` (F1, sans géométrie).
 // Repère : mètres, x vers l'est, z vers le sud (= y des contraintes), niveau 0 à -5.
-/* global document, window, fetch, requestAnimationFrame, performance, CustomEvent, FileReader, URLSearchParams */
 (() => {
   'use strict';
 
