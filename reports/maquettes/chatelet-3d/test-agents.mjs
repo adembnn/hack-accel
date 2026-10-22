@@ -1,7 +1,7 @@
 // Test de /api/agents : 3 lots réalistes (situation du 19 oct. : stations fermées, troubles Porte Berger).
 // Usage : PORT_MAQUETTE=8767 node test-agents.mjs   (ou URL_API=http://127.0.0.1:8767)
 // Vérifie : action de la liste, cible présente dans la perception (null pour attendre/appeler_pc), raison non vide,
-// aucune action interdite, un id par agent. Affiche jetons, ms et coût estimé (Haiku 5.5 : 0,10 $/M entrée, 0,50 $/M sortie).
+// aucune action interdite, un id par agent. Affiche jetons, ms et coût estimé (tarif = HYPOTHÈSE non vérifiée pour Haiku 5.5, 0,10 $/M entrée et 0,50 $/M sortie par défaut, modifiable côté serveur par PRIX_ENTREE_USD_M / PRIX_SORTIE_USD_M ; le coût vient des jetons réels de usage).
 // Code de sortie 0 si tout passe. Le test réel appelle Claude (payant, quelques centimes) : il demande la clé dans .env.
 const URL_API = process.env.URL_API || `http://127.0.0.1:${process.env.PORT_MAQUETTE || 8767}`;
 const ACTIONS = ['deplacer', 'guider', 'crier', 'bloquer', 'ouvrir', 'appeler_pc', 'attendre'];
@@ -77,9 +77,10 @@ for (const [i, lot] of LOTS.entries()) {
   const pb = verifier(lot, rep);
   const j = rep.jetons || {};
   const ent = j.input_tokens || 0, sor = j.output_tokens || 0, lu = j.cache_read_input_tokens || 0, ecr = j.cache_creation_input_tokens || 0;
-  const cout = (ent * 0.10 + sor * 0.50 + lu * 0.01 + ecr * 0.125) / 1e6;
+  const tf = rep.tarif_usd_par_million || { entree: 0.10, sortie: 0.50 };
+  const cout = (ent * tf.entree + sor * tf.sortie + lu * tf.entree * 0.1 + ecr * tf.entree * 1.25) / 1e6;
   jetonsTot += ent + sor + lu + ecr; coutTot += cout;
-  console.log(`lot ${i + 1} (${lot.agents.length} agents) · ${rep.modele || '?'} · ${rep.ms} ms · jetons entrée ${ent} sortie ${sor} cache lu ${lu} écrit ${ecr} · ~${cout.toFixed(5)} $ · ${pb.length ? 'ÉCHEC' : 'ok'}`);
+  console.log(`lot ${i + 1} (${lot.agents.length} agents) · ${rep.modele || '?'} · ${rep.ms} ms · jetons entrée ${ent} sortie ${sor} cache lu ${lu} écrit ${ecr} · ~${cout.toFixed(5)} $ (tarif supposé ${tf.entree}/${tf.sortie} $/M) · ${pb.length ? 'ÉCHEC' : 'ok'}`);
   rep.decisions.forEach((d) => console.log(`   ${d.id} ${d.action}${d.cible ? ' → ' + d.cible : ''}${d.message ? ' · « ' + d.message + ' »' : ''}`));
   pb.forEach((p) => console.log('   ! ' + p));
   if (pb.length) echecs++;

@@ -5,7 +5,8 @@
 // décision en cache reçoivent {decisions:[]} (agents.js applique alors ses règles). Sans clé ou si le réseau échoue : mode 'regles'.
 (function(){
  const ACTIONS=['deplacer','guider','crier','bloquer','ouvrir','appeler_pc','attendre'];
- const PRIX={entree:0.10/1e6,sortie:0.50/1e6,lecture_cache:0.01/1e6,ecriture_cache:0.125/1e6}; // Haiku 5.5, $ par jeton
+ // Tarif Haiku 5.5 = HYPOTHÈSE non vérifiée ($ par jeton), remplacée par le tarif renvoyé par le serveur (réglable côté serveur)
+ let PRIX={entree:0.10/1e6,sortie:0.50/1e6,lecture_cache:0.01/1e6,ecriture_cache:0.125/1e6};
  const CLE_STOCK='cerveau-cache-v1',MAX_CACHE=600,DELAI_MS=9000;
  const cache=new Map();
  const S={mode:'regles',appels:0,jetons:0,cout_usd:0,cache_hits:0};
@@ -72,7 +73,7 @@
     body:JSON.stringify({T:lot.T,agents:[...uniques.values()].map(a=>({id:a.id,role:a.role,perception:a.perception}))})});
    if(r.status===503){serveurOk=false;mode('regles');return {decisions};}
    if(!r.ok)throw new Error('http '+r.status);
-   const j=await r.json();S.appels++;compter(j.jetons);
+   const j=await r.json();S.appels++;if(j.tarif_usd_par_million){const t=j.tarif_usd_par_million;PRIX={entree:t.entree/1e6,sortie:t.sortie/1e6,lecture_cache:t.entree*0.1/1e6,ecriture_cache:t.entree*1.25/1e6};}compter(j.jetons);
    const parId=new Map((j.decisions||[]).filter(bonneDecision).map(d=>[d.id,d]));
    manquants.forEach(({a,k})=>{
     const d=parId.get(uniques.get(k).id);if(!d)return;
