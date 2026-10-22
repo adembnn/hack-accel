@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Régie Forum des Halles · C Strips de contrôle</title>
+<!--
+IDÉE AUDACIEUSE : tout l'écran est un tableau de strips de contrôle aérien. Chaque événement et chaque décision
+est une lame de papier ivoire (case horaire colorée, niveau, lieu, statut, une action). Les trois plans du modèle
+ne sont pas une fenêtre de texte : ce sont trois strips que l'on glisse dans la baie "À trancher", chacun ne
+montrant que son delta contre la consigne actuelle. Le strip sélectionné se relie à la carte par un fil de
+liaison, et la carte n'allume que son effet (chemins, issues fermées). Le papier clair sur salle sombre fait
+de la baie l'unique zone lisible de loin.
+POLICE : Barlow Condensed (titres, chiffres, sous-titre) + Barlow (texte), chiffres tabulaires.
+DEUX ACCENTS : ambre signal #FFB21E (attention, sélection, fil de liaison) et vert phosphore #4FD18B (proposé / décidé).
+Rouge, bleu, gris ne servent qu'au code de statut (danger, info, fait).
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c1114; --bay:#12191e; --line:#25323a; --ink:#e8eef0; --muted:#8c9ca5;
+  --paper:#efe8d4; --paper-ink:#171a1c; --paper-mute:#5c5a50; --paper-line:#cfc6ab;
+  --red:#ff5a47; --amber:#ffb21e; --green:#4fd18b; --blue:#4aa3ff; --grey:#7f8d95;
+  --good:#12784a; --bad:#b3261e;
+  --sans:'Barlow',system-ui,sans-serif; --cond:'Barlow Condensed','Arial Narrow',sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:500 14px/1.25 var(--sans);font-variant-numeric:tabular-nums;overflow:hidden}
+::selection{background:var(--amber);color:#111}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.plan:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.stage{position:relative;height:100vh;min-height:760px;min-width:1280px;display:grid;grid-template-rows:56px 1fr 104px}
+
+/* barre haute */
+.top{display:flex;align-items:stretch;border-bottom:1px solid var(--line);background:#0a0f12}
+.id{display:flex;align-items:center;gap:14px;padding:0 20px;border-right:1px solid var(--line)}
+.id b{font:700 20px var(--cond);letter-spacing:.04em;text-transform:uppercase}
+.clock{font:700 26px var(--cond);color:var(--amber);letter-spacing:.02em}
+.alarm{display:flex;align-items:center;gap:10px;padding:0 20px;background:var(--red);color:#1a0705;font:700 17px var(--cond);letter-spacing:.03em;text-transform:uppercase;white-space:nowrap}
+.alarm span{font:600 14px var(--sans);text-transform:none;letter-spacing:0}
+.nums{display:flex;margin-left:auto}
+.num{display:flex;gap:8px;padding:0 20px;border-left:1px solid var(--line);height:100%;align-items:center}
+.num strong{font:700 28px var(--cond)}
+.num em{font:500 12px var(--sans);font-style:normal;color:var(--muted);max-width:92px;line-height:1.15}
+.num.hot strong{color:var(--red)}
+.tag{display:flex;align-items:center;padding:0 18px;border-left:1px solid var(--line);font:600 13px var(--cond);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+/* corps */
+.main{display:grid;grid-template-columns:clamp(540px,38vw,620px) 1fr;min-height:0}
+.rack{background:var(--bay);border-right:1px solid var(--line);padding:12px 14px 10px 14px;display:flex;flex-direction:column;gap:10px;min-height:0;overflow:hidden}
+.bay{display:flex;flex-direction:column;gap:5px}
+.bay h2{display:flex;align-items:baseline;gap:10px;font:700 15px var(--cond);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:5px;border-bottom:1px solid var(--line)}
+.bay h2 i{font-style:normal;margin-left:auto;font:500 12px var(--sans);letter-spacing:0;text-transform:none}
+.bay.decide h2{color:var(--amber)}
+
+/* strip */
+.strip{display:grid;grid-template-columns:76px 52px 1fr auto;min-height:46px;background:var(--paper);color:var(--paper-ink);border-radius:2px;box-shadow:0 1px 0 #fff6 inset,0 3px 0 #0007,0 8px 14px -6px #000a;position:relative}
+.strip>*{padding:6px 10px;display:flex;flex-direction:column;justify-content:center;min-width:0}
+.t{font:700 19px var(--cond);color:#101010;align-items:center;letter-spacing:.01em;border-radius:2px 0 0 2px}
+.t small{font:700 10px var(--cond);letter-spacing:.1em;text-transform:uppercase;margin-top:-2px}
+.lv{font:700 17px var(--cond);border-right:1px dashed var(--paper-line);align-items:center;color:#2b2f31}
+.body{font-size:13.5px;font-weight:500;line-height:1.22;border-right:1px dashed var(--paper-line)}
+.body b{font-weight:600}
+.body .where{font:600 11px var(--cond);letter-spacing:.1em;text-transform:uppercase;color:var(--paper-mute)}
+.act{align-items:center;gap:4px;flex-direction:row;padding:6px 8px}
+.btn{border:0;border-radius:2px;padding:6px 11px;font:700 13px var(--cond);letter-spacing:.07em;text-transform:uppercase;background:#1b2226;color:#f1ece0}
+.btn:hover{background:#2c373d}
+.btn.ok{background:var(--good);color:#fff}
+.btn.ok:hover{background:#0e6a40}
+.btn.no{background:transparent;color:#2b2f31;box-shadow:inset 0 0 0 1px #8d8671}
+.btn.no:hover{background:#0001}
+.red .t{background:var(--red)} .amber .t{background:var(--amber)} .green .t{background:var(--green)} .blue .t{background:var(--blue)} .grey .t{background:#a9b3b8}
+.strip.done{background:#cfc9b6;box-shadow:0 3px 0 #0006;min-height:40px}
+.strip.done .body{color:#34373a;font-size:12.5px}
+
+/* strips de plan */
+.plan{grid-template-columns:76px 1fr auto;min-height:84px;transition:transform .25s cubic-bezier(.2,.8,.2,1);animation:slide .6s cubic-bezier(.16,1,.3,1) both}
+.plan:nth-of-type(2){animation-delay:.08s}.plan:nth-of-type(3){animation-delay:.16s}
+@keyframes slide{from{transform:translateX(120%);opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.plan{animation:none}}
+.plan .t{font-size:30px}
+.plan .body{gap:5px}
+.plan .name{font:700 18px var(--cond);letter-spacing:.02em;display:flex;gap:10px;align-items:baseline}
+.plan .name span{font:500 12px var(--sans);color:var(--paper-mute)}
+.delta{display:flex;gap:6px;flex-wrap:wrap}
+.delta span{font:600 13px var(--sans);padding:2px 7px;background:#e2dac1;border-radius:2px;white-space:nowrap}
+.delta .g{color:var(--good)} .delta .b{color:var(--bad)}
+.plan.sel{transform:translateX(16px);outline:2px solid var(--amber);outline-offset:2px;margin-right:16px}
+.plan.sel::before{content:"";position:absolute;left:-16px;top:0;bottom:0;width:16px;background:repeating-linear-gradient(135deg,#0000 0 4px,#ffb21e44 4px 6px)}
+.plan .act{flex-direction:column;align-items:stretch}
+
+/* carte */
+.mapcol{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;background:radial-gradient(ellipse at 55% 45%,#17222a 0,#0c1114 70%)}
+.map{flex:1;min-height:0;position:relative}
+.map svg{position:absolute;inset:0;width:100%;height:100%}
+.legend{position:absolute;left:18px;top:14px;display:flex;flex-direction:column;gap:6px;font:500 12px var(--sans);color:var(--muted)}
+.legend div{display:flex;align-items:center;gap:8px}
+.legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.effect{position:absolute;right:18px;top:14px;width:260px;background:#0a0f12;border:1px solid #4a3a12;padding:10px 12px;border-radius:2px}
+.effect h3{font:700 15px var(--cond);letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:6px}
+.effect li{list-style:none;font-size:12.5px;display:flex;gap:8px;padding:2px 0;color:#cfd8dc}
+.effect li b{font-weight:600;color:var(--ink)}
+.effect i{flex:none;width:18px;height:3px;margin-top:7px;display:block}
+.rail{height:58px;border-top:1px solid var(--line);position:relative;background:#0a0f12;flex:none}
+.rail svg{width:100%;height:100%;display:block}
+.leader{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+
+/* sous-titre */
+.sub{display:flex;align-items:center;gap:26px;padding:0 26px;background:#05080a;border-top:2px solid var(--amber)}
+.sub .who{font:600 13px var(--cond);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);width:150px;flex:none;line-height:1.3}
+.sub .who b{display:block;color:var(--amber);font-weight:700;font-size:15px}
+.sub q{quotes:"« " " »";font:600 54px/1 var(--cond);letter-spacing:.005em;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub .state{font:600 13px var(--sans);color:var(--green);text-align:right;flex:none;line-height:1.35}
+.sub .state em{display:block;font-style:normal;color:var(--muted);font-weight:500}
+
+@media (max-width:1400px){.num em{display:none}.sub q{font-size:46px}.alarm span{display:none}}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <header class="top">
+    <div class="id"><b>Régie · Forum des Halles</b><span class="clock">T+01:19</span></div>
+    <div class="alarm">3 problèmes <span>Métro Les Halles fermé · colis suspect niv. -1 · Porte du Louvre saturée</span></div>
+    <div class="nums">
+      <div class="num"><strong>18&#8239;420</strong><em>personnes à l'intérieur</em></div>
+      <div class="num hot"><strong>4,7</strong><em>p/m² max, mezzanine Lescot niv. -2</em></div>
+      <div class="num hot"><strong>3<small style="font-size:16px;color:var(--muted)">/11</small></strong><em>issues en tension</em></div>
+    </div>
+    <div class="tag">C · Strips de contrôle</div>
+  </header>
+
+  <div class="main">
+    <aside class="rack" aria-label="Baie de strips">
+      <section class="bay decide">
+        <h2>À trancher <i>3 plans, classés sur le pire cas</i></h2>
+        <article class="strip plan sel green" id="p1" tabindex="0">
+          <div class="t">1<small>Pire cas 3,6</small></div>
+          <div class="body"><div class="name">Vider par l'ouest <span>écart vs consigne actuelle</span></div>
+            <div class="delta"><span class="g">−853 vers les perturbations</span><span class="g">−113 non sortis à 10 min</span><span class="b">+2 agents</span></div></div>
+          <div class="act"><button class="btn ok">Valider</button><button class="btn no">Refuser</button></div>
+        </article>
+        <article class="strip plan green" id="p2" tabindex="0">
+          <div class="t">2<small>Pire cas 4,0</small></div>
+          <div class="body"><div class="name">Verrouiller Rambuteau <span>écart vs consigne actuelle</span></div>
+            <div class="delta"><span class="g">−512 vers les perturbations</span><span class="g">−64 non sortis à 10 min</span><span>0 agent</span></div></div>
+          <div class="act"><button class="btn ok">Valider</button><button class="btn no">Refuser</button></div>
+        </article>
+        <article class="strip plan green" id="p3" tabindex="0">
+          <div class="t">3<small>Pire cas 4,4</small></div>
+          <div class="body"><div class="name">Garder en place niv. -3 <span>écart vs consigne actuelle</span></div>
+            <div class="delta"><span class="g">−201 vers les perturbations</span><span class="g">−29 non sortis à 10 min</span><span class="g">−1 agent</span></div></div>
+          <div class="act"><button class="btn ok">Valider</button><button class="btn no">Refuser</button></div>
+        </article>
+      </section>
+
+      <section class="bay">
+        <h2>En cours <i>4 actifs</i></h2>
+        <article class="strip amber"><div class="t">01:19<small>Attention</small></div><div class="lv">-3</div>
+          <div class="body"><span class="where">Porte du Pont-Neuf</span>File devant l'ascenseur, accès PMR bloqué</div><div class="act"><button class="btn">Voir</button></div></article>
+        <article class="strip red"><div class="t">01:12<small>Danger</small></div><div class="lv">-2</div>
+          <div class="body"><span class="where">Porte du Louvre</span><b>En tension : 139 en file</b> · soulager par Issue ouest niveau -2 (+68 m)</div><div class="act"><button class="btn ok">Appliquer</button></div></article>
+        <article class="strip red"><div class="t">01:04<small>Danger</small></div><div class="lv">-1</div>
+          <div class="body"><span class="where">Allée Rambuteau</span>Colis suspect, périmètre de 30 m posé par la police</div><div class="act"><button class="btn">Voir</button></div></article>
+        <article class="strip blue"><div class="t">00:58<small>Info</small></div><div class="lv">0</div>
+          <div class="body"><span class="where">Métro Les Halles</span>Stations fermées par la préfecture, reflux vers le Forum</div><div class="act"><button class="btn">Voir</button></div></article>
+      </section>
+
+      <section class="bay">
+        <h2>Fait <i>3 derniers</i></h2>
+        <article class="strip done green"><div class="t">00:47<small>Décidé</small></div><div class="lv">-1</div>
+          <div class="body">3 agents postés à la Porte Lescot · validé par vous</div><div class="act"><button class="btn no">Annuler</button></div></article>
+        <article class="strip done grey"><div class="t">00:31<small>Fait</small></div><div class="lv">-2</div>
+          <div class="body">Annonce « stations fermées » diffusée en FR et EN</div><div class="act"></div></article>
+        <article class="strip done grey"><div class="t">00:20<small>Fait</small></div><div class="lv">0</div>
+          <div class="body">Filtrage à la Porte Berger, un sas sur deux</div><div class="act"></div></article>
+      </section>
+    </aside>
+
+    <section class="mapcol">
+      <div class="map" id="map">
+        <svg id="svg" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Vue isométrique du Forum des Halles, quatre niveaux empilés"></svg>
+        <div class="legend">
+          <div><i style="background:#9fd0ff"></i>Fluide, sous 2 p/m²</div>
+          <div><i style="background:var(--amber)"></i>Dense, 2 à 4 p/m²</div>
+          <div><i style="background:var(--red)"></i>Critique, au-dessus de 4</div>
+        </div>
+        <aside class="effect">
+          <h3>Effet du plan 1</h3>
+          <ul>
+            <li><i style="background:var(--green)"></i><span><b>2 chemins</b> vers Issue ouest niv. -2</span></li>
+            <li><i style="background:var(--red)"></i><span><b>Rambuteau fermée</b> dans 5 min</span></li>
+            <li><i style="background:var(--amber)"></i><span>Porte du Louvre : 139 → 71 en file</span></li>
+          </ul>
+        </aside>
+      </div>
+      <div class="rail" aria-label="Chronologie">
+        <svg viewBox="0 0 1000 58" preserveAspectRatio="none" id="rail"></svg>
+      </div>
+    </section>
+  </div>
+
+  <footer class="sub">
+    <div class="who">Dernier ordre vocal<b>Directeur · T+01:21</b></div>
+    <q>Ferme la porte Rambuteau dans 5 minutes</q>
+    <div class="state">Compris, lié au plan 1<em>en attente de votre validation</em></div>
+  </footer>
+  <svg class="leader" id="leader"></svg>
+</div>
+
+<script>
+(function(){
+  var svg=document.getElementById('svg'),h='';
+  var W=520,D=200,OX=356,K=[0.9,0.35];
+  var lv=[{n:'0',oy:70,t:'Rue · Canopée'},{n:'-1',oy:190,t:'Forum'},{n:'-2',oy:310,t:'Mezzanine'},{n:'-3',oy:430,t:'RER · Quais'}];
+  function P(x,y,l){return [K[0]*(x-y)+OX,K[1]*(x+y)+lv[l].oy]}
+  function pts(a,l){return a.map(function(p){var q=P(p[0],p[1],l);return q[0].toFixed(1)+','+q[1].toFixed(1)}).join(' ')}
+  function poly(a,l,f,s,sw){return '<polygon points="'+pts(a,l)+'" fill="'+f+'" stroke="'+(s||'none')+'" stroke-width="'+(sw||1)+'"/>'}
+  function rect(x,y,w,d,l,f,s){return poly([[x,y],[x+w,y],[x+w,y+d],[x,y+d]],l,f,s)}
+  var seed=7;function rnd(){seed=(seed*16807)%2147483647;return seed/2147483647}
+  var dots='';
+  function crowd(l,cx,cy,sx,sy,n,c){for(var i=0;i<n;i++){var x=cx+(rnd()+rnd()-1)*sx,y=cy+(rnd()+rnd()-1)*sy;x=Math.max(2,Math.min(W-2,x));y=Math.max(2,Math.min(D-2,y));var p=P(x,y,l);dots+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="2.1" fill="'+c+'"/>'}}
+  for(var l=3;l>=0;l--){
+    var a=[[0,0],[W,0],[W,D],[0,D]],p0=P(0,D,l),p1=P(W,D,l),p2=P(W,0,l),th=11;
+    h+='<g>';
+    h+='<polygon points="'+p0[0]+','+p0[1]+' '+p1[0]+','+p1[1]+' '+p1[0]+','+(p1[1]+th)+' '+p0[0]+','+(p0[1]+th)+'" fill="#0a1014"/>';
+    h+='<polygon points="'+p1[0]+','+p1[1]+' '+p2[0]+','+p2[1]+' '+p2[0]+','+(p2[1]+th)+' '+p1[0]+','+(p1[1]+th)+'" fill="#080d10"/>';
+    h+=poly(a,l,l==0?'#16251f':'#18232b',l==2?'#ffb21e':'#3b4c57',l==2?1.6:1);
+    if(l==0){h+=rect(20,24,230,150,0,'#1f3a2b');h+=rect(285,40,200,120,0,'#233039','#3b4c57');h+=rect(300,55,170,90,0,'#1a252c');}
+    if(l==1||l==2){for(var i=0;i<8;i++){h+=rect(14+i*62,10,50,66,l,'#24323b');h+=rect(14+i*62,124,50,66,l,'#24323b')}
+      h+=rect(0,86,W,28,l,'#1d2a32');}
+    if(l==3){h+=rect(10,16,W-20,40,3,'#27343d','#3b4c57');h+=rect(10,144,W-20,40,3,'#27343d','#3b4c57');h+=rect(0,78,W,44,3,'#1d2a32');}
+    h+='</g>';
+  }
+  var c0=P(150,200,0),c3=P(150,200,3);
+  h+='<line x1="'+c0[0]+'" y1="'+c0[1]+'" x2="'+c3[0]+'" y2="'+c3[1]+'" stroke="#5d717d" stroke-dasharray="3 4"/>';
+  crowd(0,380,100,70,40,26,'#9fd0ff');
+  crowd(1,250,100,200,16,70,'#9fd0ff');crowd(1,420,100,40,12,34,'#ffb21e');
+  crowd(2,70,66,26,26,70,'#ff5a47');crowd(2,300,100,150,14,60,'#ffb21e');crowd(2,430,100,30,12,46,'#ff5a47');
+  crowd(3,150,150,40,20,48,'#ffb21e');crowd(3,300,38,160,10,40,'#9fd0ff');crowd(3,300,162,160,10,36,'#9fd0ff');
+  h+=dots;
+  var dash='<animate attributeName="stroke-dashoffset" from="28" to="0" dur="1.6s" repeatCount="indefinite"/>';
+  h+='<polyline points="'+pts([[56,66],[40,100],[8,130],[0,150]],2)+'" fill="none" stroke="#4fd18b" stroke-width="3" stroke-dasharray="8 6" stroke-linecap="round">'+dash+'</polyline>';
+  h+='<polyline points="'+pts([[300,100],[150,100],[40,120],[0,150]],2)+'" fill="none" stroke="#4fd18b" stroke-width="3" stroke-dasharray="8 6" stroke-linecap="round" opacity=".85">'+dash+'</polyline>';
+  function gate(l,x,y,name,state,dx,dy,anchor){
+    var p=P(x,y,l),col=state=='closed'?'#ff5a47':state=='open'?'#4fd18b':'#ffb21e',s='';
+    s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(state=='tension'?9:7)+'" fill="#0a0f12" stroke="'+col+'" stroke-width="2.5"'+(anchor?' id="'+anchor+'"':'')+'/>';
+    if(state=='closed')s+='<path d="M'+(p[0]-4)+','+(p[1]-4)+'l8,8m0,-8l-8,8" stroke="#ff5a47" stroke-width="2.5"/>';
+    else s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="2.5" fill="'+col+'"/>';
+    if(state=='tension')s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="9" fill="none" stroke="'+col+'" stroke-width="1.5"><animate attributeName="r" values="9;20" dur="1.8s" repeatCount="indefinite"/><animate attributeName="opacity" values=".9;0" dur="1.8s" repeatCount="indefinite"/></circle>';
+    var tx=p[0]+dx,ty=p[1]+dy,wd=name.length*6.4+14;
+    s+='<rect x="'+(dx<0?tx-wd:tx)+'" y="'+(ty-11)+'" width="'+wd+'" height="19" fill="#0a0f12" stroke="'+col+'" stroke-width="1"/>';
+    s+='<text x="'+(dx<0?tx-wd+7:tx+7)+'" y="'+(ty+3)+'" fill="#e8eef0" font-family="Barlow Condensed" font-weight="600" font-size="12.5" letter-spacing=".06em">'+name.toUpperCase()+'</text>';
+    return s;
+  }
+  h+=gate(2,0,60,'Porte du Louvre','tension',-12,-4);
+  h+=gate(2,0,150,'Issue ouest','open',-12,8,'anchor');
+  h+=gate(1,330,0,'Porte Rambuteau','closed',10,-14);
+  h+=gate(3,150,200,'Porte du Pont-Neuf','tension',-8,24);
+  h+=gate(1,470,200,'Porte Lescot','open',12,18);
+  lv.forEach(function(L,i){var p=P(0,D,i);h+='<text x="'+(p[0]-34)+'" y="'+(p[1]+20)+'" text-anchor="end" fill="'+(i==2?'#ffb21e':'#8c9ca5')+'" font-family="Barlow Condensed" font-weight="700" font-size="26">'+(L.n=='0'?'0':'−'+L.n.slice(1))+'</text><text x="'+(p[0]-34)+'" y="'+(p[1]+36)+'" text-anchor="end" fill="#6d7d86" font-family="Barlow" font-size="11">'+L.t+'</text>'});
+  svg.innerHTML=h;
+
+  var r='<line x1="0" x2="1000" y1="30" y2="30" stroke="#25323a" stroke-width="2"/>';
+  r+='<rect x="760" y="22" width="240" height="16" fill="#ffb21e" opacity=".1"/><line x1="760" y1="12" x2="760" y2="48" stroke="#ffb21e" stroke-width="2"/>';
+  [[40,'#7f8d95'],[130,'#7f8d95'],[190,'#7f8d95'],[270,'#4fd18b'],[400,'#4aa3ff'],[520,'#ff5a47'],[600,'#ff5a47'],[690,'#ffb21e'],[760,'#4fd18b']].forEach(function(e){r+='<circle cx="'+e[0]+'" cy="30" r="6" fill="'+e[1]+'"/>'});
+  r+='<g font-family="Barlow Condensed" font-weight="600" font-size="12" fill="#8c9ca5"><text x="8" y="52">T+00:00</text><text x="750" y="10" fill="#ffb21e" text-anchor="end">MAINTENANT 01:19</text><text x="992" y="52" text-anchor="end">PROJECTION +10 MIN</text></g>';
+  document.getElementById('rail').innerHTML=r;
+
+  function lead(){
+    var st=document.getElementById('stage').getBoundingClientRect(),a=document.querySelector('.plan.sel').getBoundingClientRect(),b=document.getElementById('anchor').getBoundingClientRect(),
+    x1=a.right-st.left,y1=a.top+a.height/2-st.top,x2=b.left+b.width/2-st.left,y2=b.top+b.height/2-st.top;
+    document.getElementById('leader').innerHTML='<path d="M'+x1+','+y1+' H'+(x1+30)+' L'+x2+','+y2+'" fill="none" stroke="#ffb21e" stroke-width="1.6" stroke-dasharray="2 4"/><circle cx="'+x2+'" cy="'+y2+'" r="3.5" fill="#ffb21e"/>';
+  }
+  window.addEventListener('resize',lead);window.addEventListener('load',function(){setTimeout(lead,800)});
+})();
+</script>
+</body>
+</html>
