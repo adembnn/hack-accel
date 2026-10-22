@@ -70,7 +70,7 @@
   const ctl=new AbortController(),minuteur=setTimeout(()=>ctl.abort(),DELAI_MS);
   try{
    const r=await fetch('/api/agents',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,
-    body:JSON.stringify({T:lot.T,agents:[...uniques.values()].map(a=>({id:a.id,role:a.role,perception:a.perception}))})});
+    body:JSON.stringify({T:lot.T,evacuation:lot.evacuation,etat:lot.etat,agents:[...uniques.values()].map(a=>({id:a.id,role:a.role,perception:a.perception}))})});
    if(r.status===503){serveurOk=false;mode('regles');return {decisions};}
    if(!r.ok)throw new Error('http '+r.status);
    const j=await r.json();S.appels++;if(j.tarif_usd_par_million){const t=j.tarif_usd_par_million;PRIX={entree:t.entree/1e6,sortie:t.sortie/1e6,lecture_cache:t.entree*0.1/1e6,ecriture_cache:t.entree*1.25/1e6};}compter(j.jetons);

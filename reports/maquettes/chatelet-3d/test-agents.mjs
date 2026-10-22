@@ -44,6 +44,12 @@ const LOTS = [
     { id: 'c9', role: 'ratp', perception: base({ lieu: 'Les Halles RER', densite: 3.5, zone_proche: false, ordre: 'station fermée' }) },
     { id: 'c10', role: 'pmr', perception: base({ lieu: 'Porte Lescot', densite: 5.0, zone_proche: false, ascenseurs_en_service: ['Ascenseur Lescot'], ordre: null }) },
   ] },
+  { T: 20 * 60 + 1800, evacuation: true, agents: [ // 20h30 : évacuation en cours, un ascenseur en service (le filtre doit écarter l'ascenseur pour les non-pmr)
+    { id: 'd1', role: 'panique', perception: base({ lieu: 'Niveau -1', densite: 3.0, zone_proche: false, ordre: 'évacuation en cours', ascenseurs_en_service: ['Ascenseur Lescot'] }) },
+    { id: 'd2', role: 'pmr', perception: base({ lieu: 'Niveau -1', densite: 2.0, zone_proche: false, ordre: 'évacuation en cours', ascenseurs_en_service: ['Ascenseur Lescot'] }) },
+    { id: 'd3', role: 'ratp', perception: base({ lieu: 'Châtelet-Les Halles', densite: 3.0, zone_proche: false, ordre: 'station fermée' }) },
+    { id: 'd4', role: 'securite', perception: base({ lieu: 'Porte Lescot', densite: 3.0, zone_proche: false, ordre: 'évacuation en cours' }) },
+  ] },
 ];
 
 let echecs = 0, jetonsTot = 0, coutTot = 0;
@@ -61,6 +67,9 @@ const verifier = (lot, rep) => {
     if (typeof d.message !== 'string') pb.push(`${d.id}: message absent`);
     if (SANS_CIBLE.includes(d.action)) { if (d.cible != null) pb.push(`${d.id}: ${d.action} avec cible « ${d.cible} »`); }
     else if (typeof d.cible !== 'string' || !JSON.stringify(a.perception).includes(d.cible)) pb.push(`${d.id}: cible « ${d.cible} » absente de la perception`);
+    const evac = lot.evacuation || /évacu/i.test(JSON.stringify(a.perception));
+    if (evac && a.role !== 'pmr' && /ascenseur/i.test(d.cible || '')) pb.push(`${d.id}: ascenseur « ${d.cible} » pendant une évacuation (rôle ${a.role})`);
+    if (['securite', 'pompier', 'police', 'ratp', 'directeur', 'chef_de_poste'].includes(a.role) && d.action === 'attendre' && (a.perception.stations_fermees || []).length && (a.perception.sorties || []).length) pb.push(`${d.id}: personnel qui attend alors que des stations sont fermées`);
     if (INTERDITES.test(`${d.message} ${d.raison}`)) pb.push(`${d.id}: texte à action interdite : ${d.message} / ${d.raison}`);
   }
   for (const id of ids) if (!vus.has(id)) pb.push(`${id}: aucune décision`);
