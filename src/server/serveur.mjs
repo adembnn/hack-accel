@@ -8,6 +8,8 @@
 import http from 'node:http';
 import { pathToFileURL } from 'node:url';
 import * as db from './db.mjs';
+import { creerFlux } from './sse.mjs';
+import { validerRex, masquer, LIMITES } from './valider.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -18,10 +20,13 @@ function json(res, code, corps) {
 
 async function lireCorps(req) {
   let texte = '';
+  let vu = 0;
   for await (const morceau of req) {
-    texte += morceau;
-    if (texte.length > 1_000_000) throw Object.assign(new Error('corps trop gros'), { code: 413 });
+    vu += morceau.length;
+    if (vu > 1_000_000) { req.destroy(); break; }        // flux sans fin : on coupe
+    if (vu <= LIMITES.corps) texte += morceau;           // au-delà de la limite on jette, sans mémoriser
   }
+  if (vu > LIMITES.corps) throw Object.assign(new Error('corps trop gros'), { code: 413 });
   try { return texte ? JSON.parse(texte) : {}; }
   catch { throw Object.assign(new Error('JSON invalide'), { code: 400 }); }
 }
@@ -41,20 +46,18 @@ function runValide(valeur) {
 
 /** Crée le serveur (sans l'écouter) : utile aux tests. */
 export async function creerServeur(pool) {
-  const clients = new Set(); // connexions SSE ouvertes
+  const flux = creerFlux({ tampon: 200, maxClients: 100, maxBacklogOctets: 64 * 1024 });
+  const numerote = (l) => ({ ...l, id: Number(l.id) });
   const arreterEcoute = await db.ecouterTableau(pool, async (id) => {
-    if (clients.size === 0) return;
-    const lignes = await db.lireTableau(pool, { apresId: id - 1, limite: 1 });
-    for (const ligne of lignes) {
-      for (const c of clients) {
-        if (!c.run || c.run === ligne.run_id) c.res.write(`id: ${ligne.id}\nevent: tableau\ndata: ${JSON.stringify(ligne)}\n\n`);
-      }
-    }
+    try {
+      const lignes = await db.lireTableau(pool, { apresId: id - 1, limite: 1 });
+      for (const ligne of lignes) flux.publier(numerote(ligne));
+    } catch (e) { console.error('écoute du tableau :', masquer(e.message)); }
   });
 
   const serveur = http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://local');
-    const chemin = url.pathname;
+    const chemin = url.pathname.replace(/^\/(rex|lecons|enseignes)(?=\/|$)/, '/api/$1'); // /rex vaut /api/rex
     try {
       if (req.method === 'GET' && chemin === '/sante') {
         try { await db.sante(pool); return json(res, 200, { ok: true, base: 'ok' }); }
@@ -88,6 +91,45 @@ export async function creerServeur(pool) {
         return json(res, 200, await db.casSimilaires(pool, { sceneId: scene, etiquettes, limite }));
       }
 
+      if (chemin === '/api/enseignes' && req.method === 'POST') {
+        const c = await lireCorps(req);
+        exiger(c, 'id', 'sceneId', 'nom');
+        return json(res, 201, await db.enregistrerEnseigne(pool, c));
+      }
+      if (chemin === '/api/rex') {
+        if (req.method === 'POST') {
+          const c = await lireCorps(req);
+          // A1, A2, A10 : validation stricte puis marquage des textes louches, avant toute écriture.
+          const rex = await db.enregistrerRex(pool, validerRex(c));
+          return json(res, rex ? 201 : 200, rex ?? { doublon: true });
+        }
+        if (req.method === 'GET') {
+          return json(res, 200, await db.lireRex(pool, {
+            enseigneId: url.searchParams.get('enseigne'), sceneId: url.searchParams.get('scene') }));
+        }
+      }
+      if (chemin === '/api/lecons/statut' && req.method === 'POST') {
+        const c = await lireCorps(req);
+        exiger(c, 'id', 'statut');
+        runValide(c.runId);
+        return json(res, 200, await db.changerStatutLecon(pool, { id: c.id, statut: c.statut, runId: c.runId ?? null }));
+      }
+      if (chemin === '/api/lecons') {
+        if (req.method === 'POST') {
+          const c = await lireCorps(req);
+          exiger(c, 'sceneId', 'texte');
+          if (typeof c.texte !== 'string' || c.texte.length > LIMITES.texte) return json(res, 422, { erreur: 'texte invalide ou trop long' });
+          // A3 : une leçon naît toujours non vérifiée ; le statut ne se choisit pas à l'écriture.
+          return json(res, 201, await db.enregistrerLecon(pool, { ...c, statut: undefined, runValidation: undefined }));
+        }
+        if (req.method === 'GET') {
+          const scene = url.searchParams.get('scene');
+          if (!scene) return json(res, 400, { erreur: 'paramètre scene requis' });
+          const etiquettes = (url.searchParams.get('etiquettes') ?? '').split(',').filter(Boolean);
+          return json(res, 200, await db.lireLecons(pool, { sceneId: scene, etiquettes }));
+        }
+      }
+
       if (chemin === '/api/tableau') {
         if (req.method === 'POST') {
           const c = await lireCorps(req);
@@ -105,6 +147,7 @@ export async function creerServeur(pool) {
 
       if (chemin === '/api/tableau/flux' && req.method === 'GET') {
         const run = runValide(url.searchParams.get('run'));
+        if (flux.nbClients() >= 100) return json(res, 503, { erreur: 'trop de connexions au flux' });
         res.writeHead(200, {
           'content-type': 'text/event-stream; charset=utf-8',
           'cache-control': 'no-cache',
@@ -113,25 +156,36 @@ export async function creerServeur(pool) {
         res.write(': connecté\n\n');
         // Reprise : Last-Event-ID (reconnexion automatique du navigateur) ou ?apres=
         const reprise = Number(req.headers['last-event-id'] ?? url.searchParams.get('apres') ?? 0) || 0;
-        const client = { res, run };
-        clients.add(client);
-        const manquantes = await db.lireTableau(pool, { runId: run, apresId: reprise });
-        for (const l of manquantes) res.write(`id: ${l.id}\nevent: tableau\ndata: ${JSON.stringify(l)}\n\n`);
+        const client = {
+          run,
+          ecrire: (t) => res.write(t),
+          arriere: () => res.writableLength,
+          fermer: () => res.end(),
+        };
+        // Lecture en base d'abord, abonnement ensuite (synchrone) : aucun événement perdu ni doublé entre les deux.
+        const manquantes = (await db.lireTableau(pool, { runId: run, apresId: reprise })).map(numerote);
+        let desabonner;
+        try { desabonner = flux.abonner(client, reprise); }
+        catch { res.end(); return; }
+        flux.rattraper(client, [...manquantes, ...flux.depuis(reprise)].sort((a, b) => a.id - b.id));
         const battement = setInterval(() => res.write(': ping\n\n'), 15000);
-        req.on('close', () => { clearInterval(battement); clients.delete(client); });
+        req.on('close', () => { clearInterval(battement); desabonner(); });
         return;
       }
 
       json(res, 404, { erreur: 'route inconnue' });
     } catch (e) {
       if (e.code && Number.isInteger(e.code) && e.code < 500) return json(res, e.code, { erreur: e.message });
-      console.error(e);
+      // Erreurs de saisie PostgreSQL : clé étrangère absente, contrainte CHECK, texte mal formé
+      if (['23503', '23514', '22P02', '22007'].includes(e.code)) return json(res, 400, { erreur: 'donnée refusée par la base' });
+      // A17 : jamais d'objet d'erreur brut dans les journaux (il peut contenir l'URL de connexion) ; message masqué.
+      console.error('erreur serveur', req.method, chemin, e.code ?? '', masquer(e.message));
       json(res, 500, { erreur: 'erreur serveur' });
     }
   });
 
   serveur.on('close', () => {
-    for (const c of clients) c.res.end();
+    flux.fermerTout();
     arreterEcoute();
   });
   return serveur;
