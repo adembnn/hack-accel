@@ -8,14 +8,18 @@ export interface NombreTrouve {
   heure?: string;            // « 19h20 »
   decimales: number;         // décimales écrites (arrondi déclaré)
   pas?: number;              // pour k / M : pas d'arrondi déclaré (12,4 k → 100)
+  interdit?: string;         // écriture refusée d'office : ambiguë, non ASCII, anglaise ou approximative (jamais « retrouvée »)
 }
 
 const ESP = '[ \\u00a0\\u202f]';
-const MOTIFS: { re: RegExp; type: 'heure' | 'sci' | 'suffixe' | 'milliers' | 'simple' }[] = [
+const MOTIFS: { re: RegExp; type: 'heure' | 'sci' | 'suffixe' | 'ambigu' | 'milliers' | 'simple' }[] = [
   { re: new RegExp(`(\\d{1,2})${ESP}?h(?:${ESP}?(\\d{2}))?(?![\\p{L}\\d])`, 'gu'), type: 'heure' },
   { re: /-?\d+(?:[.,]\d+)?[eE][+-]?\d+/g, type: 'sci' },
-  { re: new RegExp(`-?\\d+(?:[.,]\\d+)?${ESP}?(?:k|M|millions?)(?![\\p{L}\\d])`, 'gu'), type: 'suffixe' },
-  { re: new RegExp(`-?\\d{1,3}(?:${ESP}\\d{3})+(?:,\\d+)?`, 'g'), type: 'milliers' },
+  { re: new RegExp(`-?\\d+(?:[.,]\\d+)?${ESP}?(?:k|M|millions?|milliards?)(?![\\p{L}\\d])`, 'gu'), type: 'suffixe' },
+  // « 2,000 » : virgule suivie de trois chiffres exactement, ambigu (2 ou 2 000) : refusé, jamais deviné.
+  { re: /(?<![\d.,])[1-9]\d{0,2},\d{3}(?![\d])/g, type: 'ambigu' },
+  // Milliers : espace (fine ou insécable), apostrophe, souligné ou point (« 2.000 » lu 2 000, jamais 2). « 0.125 » reste une décimale.
+  { re: new RegExp(`-?(?:[1-9]\\d{0,2}(?:${ESP}|['_.])\\d{3}(?:(?:${ESP}|['_.])\\d{3})*|\\d{1,3}(?:${ESP}\\d{3})+)(?![\\d])(?:,\\d+)?`, 'g'), type: 'milliers' },
   { re: /-?\d+(?:[.,]\d+)?/g, type: 'simple' },
 ];
 
@@ -24,6 +28,7 @@ const decimalesDe = (s: string): number => (s.includes('.') ? s.split('.')[1].le
 const UNITES: Record<string, number> = {
   zero: 0, un: 1, une: 1, deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6, sept: 7, huit: 8, neuf: 9, dix: 10, onze: 11, douze: 12,
   treize: 13, quatorze: 14, quinze: 15, seize: 16, vingt: 20, vingts: 20, trente: 30, quarante: 40, cinquante: 50, soixante: 60,
+  septante: 70, octante: 80, huitante: 80, nonante: 90,
 };
 const sansAccents = (s: string): string => s.normalize('NFD').replace(/\p{Diacritic}/gu, '');
 
@@ -32,7 +37,7 @@ function nombresEnLettres(texte: string): NombreTrouve[] {
   const sortie: NombreTrouve[] = [];
   const re = /[\p{L}]+/gu;
   const mots = [...sansAccents(texte.toLowerCase()).matchAll(re)].map((m) => ({ m: m[0], i: m.index ?? 0 }));
-  const estNombre = (w: string) => w in UNITES || w === 'cent' || w === 'cents' || w === 'mille' || w === 'million' || w === 'millions';
+  const estNombre = (w: string) => w in UNITES || w === 'cent' || w === 'cents' || w === 'mille' || w === 'million' || w === 'millions' || w === 'milliard' || w === 'milliards';
   let k = 0;
   while (k < mots.length) {
     if (!estNombre(mots[k].m)) { k++; continue; }
@@ -47,6 +52,7 @@ function nombresEnLettres(texte: string): NombreTrouve[] {
       if (w === 'cent' || w === 'cents') cur = (cur || 1) * 100;
       else if (w === 'mille') { total += (cur || 1) * 1000; cur = 0; }
       else if (w === 'million' || w === 'millions') { total += (cur || 1) * 1_000_000; cur = 0; }
+      else if (w === 'milliard' || w === 'milliards') { total += (cur || 1) * 1_000_000_000; cur = 0; }
       else if ((w === 'vingt' || w === 'vingts') && precedent === 'quatre') cur = cur - 4 + 80;
       else cur += UNITES[w];
       precedent = w;
@@ -78,15 +84,20 @@ export function extraireTousNombres(texte: string): NombreTrouve[] {
       if (type === 'sci') { sortie.push({ texte: m[0], position: a, valeur: Number(m[0].replace(',', '.')), decimales: 0 }); continue; }
       if (type === 'suffixe') {
         const mant = m[0].match(/^-?\d+(?:[.,]\d+)?/)![0].replace(',', '.');
-        const mult = /k$/.test(m[0]) ? 1000 : 1_000_000;
+        const mult = /k$/.test(m[0]) ? 1000 : /milliards?$/.test(m[0]) ? 1_000_000_000 : 1_000_000;
         sortie.push({ texte: m[0], position: a, valeur: Number(mant) * mult, decimales: 0, pas: mult / 10 ** decimalesDe(mant) });
         continue;
       }
-      const net = m[0].replace(new RegExp(ESP, 'g'), '').replace(',', '.');
+      if (type === 'ambigu') { sortie.push({ texte: m[0], position: a, valeur: null, decimales: 0, interdit: 'séparateur de milliers ambigu (2,000 : deux ou deux mille ?)' }); continue; }
+      const net = (type === 'milliers' ? m[0].replace(new RegExp(`${ESP}|['_.]`, 'g'), '') : m[0].replace(new RegExp(ESP, 'g'), '')).replace(',', '.');
       sortie.push({ texte: m[0], position: a, valeur: Number(net), decimales: decimalesDe(net) });
     }
   }
-  for (const n of nombresEnLettres(texte)) sortie.push(n);
+  for (const n of nombresEnLettres(texte)) if (libre(n.position, n.position + 1)) sortie.push(n);
   for (const m of texte.matchAll(ROMAIN)) if (m[0].length >= 2 && libre(m.index ?? 0, (m.index ?? 0) + m[0].length)) sortie.push({ texte: m[0], position: m.index ?? 0, valeur: valeurRomaine(m[0]), decimales: 0 });
+  // Écritures refusées d'office : chiffres non ASCII (pleine largeur, arabes…), nombres anglais, quantités approximatives, fractions.
+  for (const m of texte.matchAll(/[\p{Nd}\p{No}]+/gu)) if (/[^0-9]/.test(m[0]) && !/^[²³¹]+$/.test(m[0])) sortie.push({ texte: m[0], position: m.index ?? 0, valeur: null, decimales: 0, interdit: 'chiffre non ASCII (pleine largeur, arabe…)' });
+  for (const m of texte.matchAll(/\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion|dozen|half)\b/gi)) sortie.push({ texte: m[0], position: m.index ?? 0, valeur: null, decimales: 0, interdit: 'nombre écrit en anglais' });
+  for (const m of texte.matchAll(/(?<![\p{L}])(?:douzaines?|dizaines?|quinzaines?|vingtaines?|trentaines?|quarantaines?|cinquantaines?|soixantaines?|centaines?|milliers?|moiti[ée]s?|tiers|quarts?|doubles?|triples?|quadruples?)(?![\p{L}])/giu)) sortie.push({ texte: m[0], position: m.index ?? 0, valeur: null, decimales: 0, interdit: 'quantité approximative non vérifiable' });
   return sortie.sort((x, y) => x.position - y.position);
 }
