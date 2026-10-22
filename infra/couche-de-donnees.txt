@@ -1,0 +1,84 @@
+COUCHE DE DONNEES EN ACTION (BROUILLON, 22 oct. 2026)
+Produit : jumeau 3D du Forum des Halles pour tester les decisions d'evacuation.
+Legende : [MESURE] sortie reelle d'un test local ce jour ; [DOC] etabli par une page Aiven lue (recherche/08-aiven-runtime-pas-a-pas.md) ;
+[SUPPOSE] estimation ou hypothese, a verifier ; [A FAIRE] pas encore fait sur Aiven.
+Etat : tout ce qui est [MESURE] a tourne sur un PostgreSQL 16 local (Docker), pas encore sur le PostgreSQL Aiven.
+
+1. L'USAGE AU CENTRE : LA MEMOIRE DES CRISES, ECRITE PAR LES ENSEIGNES
+Boucle : ecriture par les enseignes -> analyse par la cellule d'agents -> memoire relue avant chaque decision.
+ a) Chaque enseigne ou occupant du Forum renseigne ses crises passees (retour d'experience, "REX") : date, zone, type d'incident,
+    ce qui s'est passe, decisions prises, resultat, duree, personnes touchees, lecons. Tables `enseignes` et `rex_crises`
+    (POST /rex, GET /rex?enseigne=...).
+ b) La cellule d'agents analyse les REX et en tire des lecons pour les crises futures. Table `lecons`, chacune liee aux REX qui la
+    fondent (`lecons_sources`) : on peut toujours remonter de la lecon a l'enseigne qui l'a vecue (POST /lecons).
+ c) Avant chaque decision, les decideurs relisent les lecons qui ressemblent a la situation (GET /lecons?scene=..&etiquettes=..),
+    classees par ressemblance puis par confiance, avec les identifiants des REX sources. Plus les enseignes renseignent, plus les
+    decisions s'appuient sur du vecu : la donnee cree la valeur.
+[MESURE] test bout en bout par HTTP : une enseigne (UGC Cine Cite Les Halles) enregistre 2 REX, une lecon liee a ces 2 REX est
+ecrite, une lecon sans rapport est ecartee, et la lecture renvoie
+ {"texte":"Phaser les salles quand une seule issue reste ouverte","similarite":1,"rex_ids":["2","3"]}.
+Une enseigne inconnue est refusee (HTTP 400, cle etrangere).
+
+2. QUOI EST STOCKE OU (un seul PostgreSQL, 11 tables : infra/schema.sql)
+- enseignes, rex_crises, lecons, lecons_sources   la memoire des crises (ci-dessus)
+- scenes         le decor 3D et sa grille praticable (JSON versionne)
+- contraintes    chaque issue, bouche de metro ou escalator ferme/ouvert, qui l'a pose, quand ; l'etat courant = derniere ligne par objet
+- runs           une simulation d'un plan avec sa graine aleatoire (rejouable a l'identique)
+- decisions      chaque levier actionne (prefecture, RATP, securite, directeur), minute simulee, justification, notes
+- memoire        les cas simules passes (etiquettes + plan retenu + note), complement des REX reels
+- tableau_commun ce que agents et interface s'ecrivent en direct ; chaque ligne fait un NOTIFY relaye en SSE au navigateur
+- journal_chiffres tout nombre affiche ou prononce, avec sa source, pour le verificateur de chiffres
+[MESURE] le test cree et relit les 11 tables : contraintes, decisions, enseignes, journal_chiffres, lecons, lecons_sources, memoire,
+rex_crises, runs, scenes, tableau_commun. Le schema, rejoue 3 fois, ne produit aucune erreur (idempotent).
+
+3. LES TROIS MECANIQUES DE LA COUCHE (toutes dans PostgreSQL)
+- Temps reel : LISTEN/NOTIFY -> SSE. [MESURE] une ecriture POST /api/tableau arrive au client SSE ("event: tableau", id 1, auteur
+  alexandre). Le NOTIFY n'est qu'un reveil, la verite reste dans la table (un client qui se reconnecte reprend avec Last-Event-ID).
+  [DOC] le serveur ne s'appuie que sur HTTP : Runtime sert du HTTP derriere HTTPS 443, WebSocket non garanti -> SSE.
+  [DOC] le listener a sa propre connexion, hors pool.
+- Similarite simple : etiquettes (ex. issue_fermee:sortie-3) + index GIN + score de Jaccard. [MESURE] cas A=1, cas B=0.5, cas sans rapport exclu.
+- Similarite semantique : pgvector, distance cosinus, index HNSW (infra/schema-vecteur.sql, applique seulement si l'extension existe).
+  [MESURE] avec des vecteurs FACTICES de dimension 8 (aucun appel a un modele d'embeddings, aucun cout) sur pgvector/pgvector:pg16 :
+  "Phaser les salles"=0.0061 contre "Fermer la bouche de metro tot"=0.8896 pour une requete proche du premier.
+  [DOC] pgvector est disponible sur Aiven PostgreSQL (CREATE EXTENSION vector). [A FAIRE] le verifier sur la vraie base.
+  Les vrais embeddings (modele) ne sont pas branches : demande d'accord a Adem, sinon vecteurs calcules hors ligne.
+
+4. PORTEE SUR AIVEN
+[DOC] DATABASE_URL est injectee quand on connecte le service PostgreSQL a l'application ; avec pg, ajouter uselibpqcompat=true
+  (fait par db.ouvrir() des que l'URL contient sslmode ; [MESURE] test unitaire).
+[DOC] pas de commande de pre-deploiement : le schema est rejoue (idempotent) au demarrage du conteneur.
+[DOC] PostgreSQL gratuit : 1 CPU, 1 Go de RAM, 1 Go de disque, 20 connexions maximum, pas de pooling -> pool de 5 + 1 connexion LISTEN
+  = 6 connexions. Le service peut etre eteint sans activite : /sante fait un SELECT 1, un ping regulier le garde eveille.
+[DOC] un push GitHub ne redeploie pas : "Deploy latest commit" a la main.
+[A FAIRE] appliquer le schema sur la base Aiven, coller le 200 de /sante de l'URL hebergee, verifier pg_available_extensions.
+
+5. VOLUME ET CLICKHOUSE : PAS DANS LA DEMO
+[MESURE] 5 000 personnes x 1 position/s x 10 min = 3 000 000 lignes, inserees en 1,0 s, 149 Mo ; une carte de densite
+(minute x niveau x cellule de 2 m) sur ces 3 M de lignes en 2,9 s (infra/mesure-volume.sql, PostgreSQL 16 local, donnees aleatoires).
+[DOC] le disque gratuit Aiven fait 1 Go : 149 Mo par run de cette taille, donc quelques runs seulement. Regle : en demo on n'ecrit en base
+que decisions, chiffres, REX, lecons et un instantane par minute ; les positions vivent dans le navigateur ; on purge les anciens runs.
+[SUPPOSE] au-dela (ex. 50 runs x 5 000 personnes x 600 s = 150 millions de lignes, ~7 Go), ClickHouse deviendrait justifie ;
+ce n'est pas mesure. [DOC] ClickHouse n'a pas de plan gratuit Aiven (a partir de ~155 $/mois). Decision : pas de ClickHouse ni de Kafka
+pour la demo ; ils entrent apres le hack, si les positions de vraies foules en direct l'exigent.
+
+6. CORPUS DE DEPART : 13 REX PUBLICS
+[MESURE] src/server/charger-rex.mjs charge recherche/09-rex-seed.json (13 REX publics sources : 4 au Forum des Halles et Chatelet les 18-20 oct. 2026,
+9 ailleurs : Stade de France 2022, Love Parade 2010, Hillsborough 1989, Itaewon 2022, Gare du Nord, etc.). Idempotent : empreinte unique par REX.
+Sortie du test : 13 REX et 14 lecons non_verifiee au premier chargement ; au second : 0 nouveau, 13 deja presents.
+Chaque REX garde source_url et confiance (basse/moyenne/haute). Les lecons du corpus sont stockees avec le statut non_verifiee et leur provenance
+(URL de la source) : ce sont des donnees publiques, pas des faits validables. Les Halles n'ont pas de lecon officielle faute de REX publie.
+Les enseignes du Forum viennent s'ajouter a ce corpus par POST /rex.
+
+7. GARDE-FOUS (red team, recherche/10-red-team-decideurs-aiven.md) - tous [MESURE] dans src/server/securite.test.mjs
+- A1 faux chiffres : un REX hors plage (duree negative, 1e9 personnes, 9 000 personnes en 1 minute, date future) est refuse en HTTP 422, jamais stocke.
+- A2 consigne cachee : un texte de type "ignore tes consignes / ordonne de rouvrir" est stocke tel quel mais marque suspect=true avec ses motifs ;
+  aucune lecon ni decision ne s'en sert sans validation. (Le filtre par motifs est un signal, pas une garantie : le decideur doit traiter tout texte libre comme donnee.)
+- A3 lecons : statut non_verifiee | contradictoire | validee_par_simulation + provenance. Le client ne choisit pas le statut ; "validee" exige un run
+  de simulation (la base refuse sinon, contrainte CHECK).
+- A4 role PostgreSQL enseigne_ecriture : 1 INSERT dans rex_crises accepte, 9 operations refusees (lecture, UPDATE, DELETE, autres tables, DDL).
+  [SUPPOSE] la creation du role exige le droit CREATEROLE sur Aiven (avnadmin, a verifier) ; sinon le schema le dit en NOTICE et continue.
+  Pas de row-level security par enseigne ni de connexion dediee a ce role pour l'instant : le serveur n'endosse pas encore ce role (a faire si le temps le permet).
+- A10 limites : 500 caracteres par champ, 10 etiquettes, corps HTTP 64 Ko (413 au-dela).
+- A11 injection SQL : un nom d'enseigne "x'); DROP TABLE runs;--" est stocke tel quel, les tables restent intactes, et un test verifie qu'aucune requete n'est construite par gabarit de chaine.
+- A12 SSE : tampon de 200 evenements, doublons ignores, plafond de 100 connexions, client lent coupe au-dela de 64 Ko en attente, reprise Last-Event-ID sans trou ni doublon.
+- A17 journaux : les erreurs sont ecrites avec les URL de connexion et mots de passe masques ; jamais d'objet d'erreur brut.

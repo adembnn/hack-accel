@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
     "start": "node src/app/serveur.mjs",
@@ -12,7 +14,7 @@
     "test": "vitest run",
     "build": "vite build",
     "e2e:socle": "node --test tests/e2e/socle.test.mjs",
-    "test:db": "node scripts/lot-absent.mjs db src/server",
+    "test:db": "node --test src/server/db.test.mjs src/server/securite.test.mjs src/server/vecteur.test.mjs",
     "test:decideurs": "node --test src/agents/*.test.mts",
     "test:scene": "node scripts/lot-absent.mjs scene src/scene",
     "test:motion": "node scripts/lot-absent.mjs motion src/sim/motion",
@@ -29,5 +31,8 @@
     "typescript-eslint": "^8.18.0",
     "vite": "^6.0.5",
     "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "pg": "^8.23.1"
   }
 }

@@ -1,0 +1,11 @@
+# INDICATIF : serveur de données seul. Le Dockerfile du socle (#6) fait foi et le remplace.
+FROM node:24-slim
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+COPY infra ./infra
+COPY src/server ./src/server
+ENV PORT=8080
+EXPOSE 8080
+# DATABASE_URL est injectée par Aiven Runtime (jamais écrite ici).
+CMD ["node", "src/server/serveur.mjs"]
