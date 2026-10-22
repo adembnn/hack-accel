@@ -24,6 +24,8 @@ export interface Issue {
   devient_cul_de_sac_a_s?: number;
   /** Groupe de zone pour les messages (ex. 'salle', 'niveau-3'). */
   zone: string;
+  /** Position (m) dans le repère de la scène, facultative : sert seulement à repérer les portes voisines (correction IIA). */
+  position?: { x: number; y: number };
 }
 
 export interface Scene {
@@ -106,6 +108,45 @@ export interface EtatMinute {
   densite_max_par_zone: Record<string, number>;
   sorties_saturees: string[];
   t90_s: number | null;
+}
+
+/**
+ * État résumé instantané (couture avec les décideurs, voir GLOSSARY.md). `par_zone` mélange deux familles de clés :
+ * les salles du cinéma (`salle-k` : personnes encore dedans, densité = personnes / surface de la salle) et les zones
+ * d'approche des issues (clé = `zone` de l'issue, ex. `niveau-1` : personnes en train de viser ces issues, densité = la plus
+ * forte des zones d'approche de cette zone).
+ */
+export interface EtatResume {
+  t_s: number;
+  dans_le_centre: number;
+  sortis: number;
+  /** Sortis par une issue qui débouche en zone interdite ou en cul-de-sac (station fermée). */
+  sortis_vers_zone_danger: number;
+  /** Plus forte densité (pers./m²) des zones d'approche à cet instant. */
+  densite_max: number;
+  par_zone: Record<string, { personnes: number; densite: number }>;
+  /** Débit observé par issue (pers./s) sur les 60 dernières secondes simulées. */
+  debit_portes: Record<string, number>;
+  /** Pression de Helbing maximale à cet instant (proxy du mouvement de test). */
+  pression_max: number;
+  /** Maxima depuis le début du run. */
+  densite_max_depuis_debut: number;
+  pression_max_depuis_debut: number;
+}
+
+/** Simulation pilotable pas à pas (couture avec les décideurs) : voir `creerSimulation` dans simuler.ts. */
+export interface Simulation {
+  /** Les personnes tirées (identiques pour tous les plans à graine égale). */
+  readonly personnes: readonly Personne[];
+  /** Temps simulé écoulé (s). */
+  readonly t_s: number;
+  /** Tout le monde est sorti. */
+  fini(): boolean;
+  /** Avance de dt_s secondes (par sous-pas d'au plus 1 s). Un plan différent (autre objet) remplace le précédent à partir de maintenant. */
+  pas(dt_s: number, plan: Plan): void;
+  etatResume(): EtatResume;
+  /** Journal du run jusqu'ici (minutes déjà écoulées, statistiques, grille) ; peut être appelé à tout moment. */
+  journal(): JournalRun;
 }
 
 export interface Critere {
