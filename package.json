@@ -21,7 +21,8 @@
     "test:behavior": "node --test \"src/sim/behavior/**/*.test.ts\" \"src/sim/metrics/**/*.test.ts\" \"bench/**/*.test.ts\"",
     "bench:motion": "node tools/lot-absent.mjs bench-motion src/sim/motion",
     "bench:avant-apres": "node bench/avant-apres.ts",
-    "bench:validation": "node bench/validation.ts"
+    "bench:validation": "node bench/validation.ts",
+    "test:notifications": "node --test src/notifications/*.test.mts"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
