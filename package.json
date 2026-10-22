@@ -18,7 +18,7 @@
     "test:decideurs": "node tools/lot-absent.mjs decideurs src/agents",
     "test:scene": "node tools/lot-absent.mjs scene src/scene",
     "test:motion": "node tools/lot-absent.mjs motion src/sim/motion",
-    "test:behavior": "node --test \"src/sim/behavior/**/*.test.ts\" \"src/sim/metrics/**/*.test.ts\" \"bench/**/*.test.ts\"",
+    "test:behavior": "node --test \"src/sim/behavior/**/*.test.ts\" \"src/sim/metrics/**/*.test.ts\" \"src/sim/optim/**/*.test.ts\" \"bench/**/*.test.ts\"",
     "bench:motion": "node tools/lot-absent.mjs bench-motion src/sim/motion",
     "bench:avant-apres": "node bench/avant-apres.ts",
     "bench:validation": "node bench/validation.ts",
