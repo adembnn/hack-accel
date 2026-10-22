@@ -3,7 +3,11 @@
 // Usage : node bench-sols.mjs [nombre de personnes]    (navgrid.json et scene.json doivent exister : python3 build_navgrid.py)
 import fs from 'fs'; import vm from 'vm'; import path from 'path'; import { fileURLToPath } from 'url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const N = +(process.argv[2] || 3200);
+const argEtape = (process.argv.find(a => a.startsWith('--etape=')) || '').slice(8);
+const N = +(process.argv.slice(2).find(a => /^\d+$/.test(a)) || 3200);
+// Étapes : 1 sols dessinés · 2 boutiques et façades · 3 escalators et ascenseurs · 4 mobilier.
+// Étapes livrées : sans option, seules ces étapes bloquent ; les autres sont affichées « À FAIRE ». --etape=N : ne bloque que sur l'étape N.
+const LIVREES = [1, 2, 4];
 const read = f => fs.readFileSync(path.join(HERE, f), 'utf8');
 const sb = { console, Math, atob: s => Buffer.from(s, 'base64').toString('binary'), setTimeout, Float32Array, Uint8Array, Map, Set, Object, Array, JSON, Number, Date, Error, Promise, module: undefined };
 sb.fetch = async f => ({ json: async () => JSON.parse(read(f)) });
@@ -20,7 +24,7 @@ run('SIM.on=false;simSpawn(' + N + ');SIM.mode="calme";', 'spawn');
 
 // ---- mesures (exécutées dans le contexte de la page) ----
 run(`
-const BENCH={exFacade:[],exBoutique:[],maxSansSol:0,sumSansSol:0,maxBoutique:0,sumBoutique:0,facade:0,escAxe:0,escN:0,mobilier:0,exSansSol:[],rideMax:0};
+const BENCH={exMob:[],exFacade:[],exBoutique:[],maxSansSol:0,sumSansSol:0,maxBoutique:0,sumBoutique:0,facade:0,escAxe:0,escN:0,mobilier:0,exSansSol:[],rideMax:0};
 // sol réellement dessiné : rectangles de solsFloors (mêmes que le maillage), indexés par ligne
 const DR=SIM.g.levels.map((L,l)=>{const rows=[];for(const k of [1,2,3,4,5])for(const o of solsRects(l,k))for(let r=o.r0;r<=o.r1;r++)(rows[r]=rows[r]||[]).push(o);return rows;});
 function drawnY(l,x,z){const g=SIM.g,c=(x-g.bbox[0])/g.res,r=Math.floor((z-g.bbox[1])/g.res);const rr=DR[l][r];if(!rr)return NaN;for(const o of rr)if(c>=o.c0&&c<o.c1+1)return solsY(g.levels[l],alt);return NaN;}
@@ -45,9 +49,14 @@ function trackStep(){SIM.A.forEach((a,i)=>{if(a.out||a.ride){PREV.delete(i);retu
     if(e.R.opens.some(q=>Math.hypot(q.x-x[0],q.z-x[1])<=2.1))continue;BENCH.facade++;if(BENCH.exFacade.length<4)BENCH.exFacade.push({i,ri:e.R.ri,niv:SIM.g.levels[a.l],x:+x[0].toFixed(1),z:+x[1].toFixed(1)});}}}
   PREV.set(i,{l:a.l,p:cur});});}
 function boutiquesFermees(){let n=0;SIM.A.forEach((a,i)=>{if(a.out||a.ride)return;for(const R of ROOMS){if(R.l!==a.l||!R.closed)continue;if(a.x<R.x0||a.x>R.x1||a.z<R.z0||a.z>R.z1)continue;if(pip(a.x,a.z,R.pts)){n++;if(BENCH.exBoutique.length<4)BENCH.exBoutique.push({i,niv:SIM.g.levels[a.l],x:+a.x.toFixed(1),z:+a.z.toFixed(1)});break;}}});BENCH.maxBoutique=Math.max(BENCH.maxBoutique,n);BENCH.sumBoutique+=n;}
+
+// mobilier : rectangles orientés (intérieur : grille ; niveau 0 : bancs, bornes, arbres, Vélib d'OSM)
+const MOB=[];(SIM.g.mobilier||[]).forEach(([L,x,z,rot,t])=>{if(t==='panneau')return;const h={banc:[1,.3],plante:[.6,.6],borne:[.3,.18]}[t];MOB.push({l:SIM.g.levels.indexOf(L),x,z,rot,hx:h[0],hz:h[1]});});
+const L0=SIM.g.levels.indexOf(0);SCN.bancs.forEach(([x,z])=>MOB.push({l:L0,x,z,rot:0,hx:.9,hz:.3}));SCN.bornes.forEach(([x,z])=>MOB.push({l:L0,x,z,rot:0,hx:.12,hz:.12}));SCN.arbres.forEach(([x,z])=>MOB.push({l:L0,x,z,rot:0,hx:.3,hz:.3}));SCN.velib.forEach(v=>MOB.push({l:L0,x:v.x,z:v.z,rot:0,hx:1.5,hz:.6}));
+function dansMobilier(){let n=0;SIM.A.forEach((a,i)=>{if(a.out||a.ride)return;for(const m of MOB){if(m.l!==a.l||Math.abs(a.x-m.x)>2||Math.abs(a.z-m.z)>2)continue;const px=a.x-m.x,pz=a.z-m.z,co=Math.cos(m.rot),si=Math.sin(m.rot);if(Math.abs(px*co+pz*si)<=m.hx&&Math.abs(-px*si+pz*co)<=m.hz){n++;if(BENCH.exMob.length<4)BENCH.exMob.push({i,niv:SIM.g.levels[a.l],x:+a.x.toFixed(1),z:+a.z.toFixed(1)});break;}}});BENCH.mobilier=Math.max(BENCH.mobilier,n);}
 `, 'bench-defs');
 const T0 = Date.now(); const rows = [];
-const step = (secs, label) => { const n = Math.round(secs / 0.1); for (let i = 0; i < n; i++) { run('simStep(.1);trackStep()', 's'); if (i % 50 === 49) { run('boutiquesFermees()', 'bf'); rows.push(run(`checkpoint("${label} "+SIM.T.toFixed(0)+" s")`, 'cp')); } } };
+const step = (secs, label) => { const n = Math.round(secs / 0.1); for (let i = 0; i < n; i++) { run('simStep(.1);trackStep()', 's'); if (i % 50 === 49) { run('boutiquesFermees();dansMobilier()', 'bf'); rows.push(run(`checkpoint("${label} "+SIM.T.toFixed(0)+" s")`, 'cp')); } } };
 step(30, 'calme');
 run('simAlert()', 'alert');
 step(120, 'évac');
@@ -55,15 +64,25 @@ const cs = run('casesSansSol()', 'cs'); const B = run('BENCH', 'B');
 console.log('personnes :', N, '· temps de calcul', ((Date.now() - T0) / 1000).toFixed(0), 's');
 for (const r of rows.filter((_, i) => i % 3 === 0)) console.log(' ', r.label.padEnd(12), 'actifs', String(r.n).padStart(5), 'sans sol dessiné', r.sans);
 const out = [
-  ['personnes sans sol dessiné (±0,15 m) — max sur les points de mesure', B.maxSansSol],
-  ['cases praticables sans sol dessiné', cs.bad + ' / ' + cs.tot, cs.bad],
-  ['personnes dans une boutique fermée — max sur les points de mesure', B.maxBoutique],
-  ['franchissements de façade de boutique (hors ouverture)', B.facade],
+  [1, 'personnes sans sol dessiné (±0,15 m) — max sur les points de mesure', B.maxSansSol],
+  [1, 'cases praticables sans sol dessiné', cs.bad + ' / ' + cs.tot, cs.bad],
+  [2, 'personnes dans une boutique fermée — max sur les points de mesure', B.maxBoutique],
+  [2, 'franchissements de façade de boutique (hors ouverture)', B.facade],
+  [3, 'passagers d\'escalator à plus de 0,3 m de l\'axe', 'non mesuré (étape 3 pas livrée)', null],
+  [4, 'personnes dans le mobilier — max sur les points de mesure', B.mobilier],
 ];
+const bloquant = e => argEtape ? e === +argEtape : LIVREES.includes(e);
 let ok = true;
-for (const [label, v, n] of out) { const val = n ?? v; console.log((val === 0 ? 'OK  ' : 'ECHEC'), label.padEnd(72), v); if (val !== 0) ok = false; }
+console.log(argEtape ? `Mode --etape=${argEtape} : seules les mesures de l'étape ${argEtape} bloquent.` : `Mode sans option : seules les étapes livrées (${LIVREES.join(', ')}) bloquent ; les autres s'affichent « À FAIRE ».`);
+for (const [et, label, v, n] of out) {
+  const val = n === undefined ? v : n;
+  const etat = val === null ? 'À FAIRE' : val === 0 ? 'OK' : (bloquant(et) ? 'ECHEC' : 'À FAIRE');
+  console.log(`[étape ${et}]`, etat.padEnd(7), label.padEnd(70), v, bloquant(et) ? '' : '(ne bloque pas)');
+  if (bloquant(et) && val !== 0) ok = false;
+}
+if (B.exMob.length) console.log('exemples mobilier :', JSON.stringify(B.exMob));
 if (B.exFacade.length) console.log('exemples façade :', JSON.stringify(B.exFacade));
 if (B.exBoutique.length) console.log('exemples boutique fermée :', JSON.stringify(B.exBoutique));
 if (B.exSansSol.length) console.log('exemples sans sol :', JSON.stringify(B.exSansSol.slice(0, 6)));
-console.log(ok ? 'RESULTAT : tout est à 0' : 'RESULTAT : des compteurs ne sont pas à 0');
+console.log(ok ? 'RESULTAT : les étapes bloquantes sont à 0' : 'RESULTAT : ECHEC, une étape bloquante n\'est pas à 0');
 process.exit(ok ? 0 : 1);

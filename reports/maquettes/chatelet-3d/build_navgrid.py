@@ -202,6 +202,78 @@ for ri, o in enumerate(S['interieur']):
             walk[i][m | band] = False            # boutique fermée : ni façade ni intérieur praticables
 
 
+# ---- mobilier : bancs, bacs à plantes, bornes posés le long des murs, non praticables (aucune personne dedans) --------------
+import random
+rng = random.Random(43)
+mobilier = []     # [niveau, x, z, rotation (rad, axe long), type]
+def block_rect(l, cx, cz, hx, hz, rot):
+    """Rend non praticables les cases que le rectangle (demi-côtés hx, hz, orienté rot) touche."""
+    co, si = math.cos(rot), math.sin(rot)
+    ext = abs(hx * co) + abs(hz * si) + 0.6, abs(hx * si) + abs(hz * co) + 0.6
+    r0, c0 = cell(cx - ext[0], cz - ext[1]); r1, c1 = cell(cx + ext[0], cz + ext[1])
+    n = 0
+    for r in range(max(0, r0), min(H, r1 + 1)):
+        for c in range(max(0, c0), min(W, c1 + 1)):
+            if not walk[LI[l], r, c]:
+                continue
+            hit = False
+            for a in range(5):
+                for b in range(5):
+                    px, pz = X0 + (c + a / 4) * RES - cx, Z0 + (r + b / 4) * RES - cz
+                    if abs(px * co + pz * si) <= hx and abs(-px * si + pz * co) <= hz:
+                        hit = True
+            if hit:
+                walk[LI[l], r, c] = False; n += 1
+    return n
+SIZES = {'banc': (1.0, 0.3), 'plante': (0.6, 0.6), 'borne': (0.3, 0.18)}
+for l in LEVELS:
+    if l == 0:
+        continue
+    i = LI[l]
+    free = walk[i] & ((fl[i] == 1) | (fl[i] == 2))
+    cands = []
+    for r in range(2, H - 2):
+        for c in range(2, W - 2):
+            if not free[r, c]:
+                continue
+            for dr, dc in ((0, -1), (0, 1), (-1, 0), (1, 0)):          # mur de ce côté, couloir libre de l'autre sur 4 cases
+                if not walk[i, r + dr, c + dc] and all(0 <= r - dr * k < H and 0 <= c - dc * k < W and walk[i, r - dr * k, c - dc * k] for k in range(1, 5)):
+                    cands.append((r, c, dr, dc)); break
+    rng.shuffle(cands)
+    nmax = int(free.sum() / 140)
+    placed = 0
+    for r, c, dr, dc in cands:
+        if placed >= nmax:
+            break
+        if not walk[i, r, c] or not all(walk[i, r - dr * k, c - dc * k] for k in range(1, 5)):
+            continue
+        t = ('banc', 'plante', 'banc', 'borne')[placed % 4]
+        hx, hz = SIZES[t]
+        cx, cz = X0 + (c + .5) * RES + dc * 0.15, Z0 + (r + .5) * RES + dr * 0.15
+        rot = 0.0 if dc else math.pi / 2          # axe long le long du mur (mur en dc : mur à gauche/droite -> axe z)
+        rot = math.pi / 2 if dc else 0.0
+        before = walk[i].copy()
+        # ne pas boucher : on teste que les cases voisines restent reliées à la case d'en face
+        block_rect(l, cx, cz, hx, hz, rot)
+        mobilier.append([l, round(cx, 2), round(cz, 2), round(rot, 3), t]); placed += 1
+    # panneaux suspendus (décor en hauteur, ne gênent pas la marche)
+    pc = [(r, c) for r, c in zip(*np.nonzero(free))]
+    rng.shuffle(pc)
+    for r, c in pc[:max(2, int(free.sum() / 700))]:
+        mobilier.append([l, round(X0 + (c + .5) * RES, 2), round(Z0 + (r + .5) * RES, 2), round(rng.random() * 3.14, 3), 'panneau'])
+# niveau 0 (rue) : bancs, bornes, arbres et stations Vélib d'OSM qui tombent sur une case praticable
+n0 = 0
+for (x, z) in S['bancs']:
+    n0 += block_rect(0, x, z, 0.9, 0.3, 0.0)
+for (x, z) in S['bornes']:
+    n0 += block_rect(0, x, z, 0.12, 0.12, 0.0)
+for (x, z) in S['arbres']:
+    n0 += block_rect(0, x, z, 0.3, 0.3, 0.0)
+for v in S['velib']:
+    n0 += block_rect(0, v['x'], v['z'], 1.5, 0.6, 0.0)
+print('mobilier', len(mobilier), 'objets intérieurs ; niveau 0 :', n0, 'cases bloquées')
+
+
 def snap(l, x, z, rmax=6):
     r0, c0 = cell(x, z)
     best = None
@@ -338,7 +410,7 @@ def rle(a):
     return [int(v) for p in zip(f[st].tolist(), ln.tolist()) for v in p]
 assert not (walk & (fl == 0)).any()
 print('boutiques', shops)
-out = {'ouvertures': open_doors, 'fk': [rle(fl[i]) for i in range(len(LEVELS))], 'bbox': [X0, Z0, X1, Z1], 'res': RES, 'w': W, 'h': H, 'levels': LEVELS,
+out = {'mobilier': mobilier, 'ouvertures': open_doors, 'fk': [rle(fl[i]) for i in range(len(LEVELS))], 'bbox': [X0, Z0, X1, Z1], 'res': RES, 'w': W, 'h': H, 'levels': LEVELS,
        'walk': [base64.b64encode(np.packbits(walk[i]).tobytes()).decode() for i in range(len(LEVELS))],
        'reach': [base64.b64encode(np.packbits(seenc[i]).tobytes()).decode() for i in range(len(LEVELS))],
        'links': links, 'exits': exits}

@@ -33,6 +33,20 @@ function solsRects(l, k) { // rectangles (c0, c1, r0, r1 inclus) du type k au ni
 }
 // ouvertures de façade (portes OSM, vitrines ouvertes) d'une boutique dessinée à un niveau : o._i = indice du polygone, o._L = niveau
 function solsGapsOf(o) { return SOLS.g && SOLS.g.ouvertures ? SOLS.g.ouvertures.filter(q => q.room === o._i && q.l === o._L) : null; }
+// Mobilier intérieur : position et orientation viennent de la grille (navgrid.json, clé "mobilier") ; les cases qu'il occupe y sont non praticables.
+function solsFurniture(lvSel) {
+  if (!SOLS.g || !SOLS.g.mobilier) return null;
+  const grp = new THREE.Group(), by = { banc: [], plante: [], borne: [], panneau: [] };
+  SOLS.g.mobilier.forEach(([L, x, z, rot, t]) => { if (lvSel === 'all' || L === +lvSel) by[t].push([x, solsY(L, alt), z, -rot]); });
+  const put = (arr, geo, mat, dy) => { if (!arr.length) return; const m = new THREE.InstancedMesh(geo, mat, arr.length), M = new THREE.Matrix4(), Q = new THREE.Quaternion(), E = new THREE.Euler();
+    arr.forEach((p, i) => { Q.setFromEuler(E.set(0, p[3], 0)); M.compose(new THREE.Vector3(p[0], p[1] + dy, p[2]), Q, new THREE.Vector3(1, 1, 1)); m.setMatrixAt(i, M); }); grp.add(m); };
+  put(by.banc, new THREE.BoxGeometry(2, .45, .6), new THREE.MeshStandardMaterial({ color: 0x7a5a3a, roughness: .7 }), .25);
+  put(by.plante, new THREE.CylinderGeometry(.6, .5, .8, 10), new THREE.MeshStandardMaterial({ color: 0x3d3d3d }), .4);
+  put(by.plante, new THREE.IcosahedronGeometry(.9, 0), new THREE.MeshStandardMaterial({ color: 0x4f7a3a, roughness: .9 }), 1.5);
+  put(by.borne, new THREE.BoxGeometry(.6, 1.8, .36), new THREE.MeshStandardMaterial({ color: 0x1f2328, emissive: 0x2b5d8a, emissiveIntensity: .35 }), .9);
+  put(by.panneau, new THREE.BoxGeometry(2.6, .5, .08), new THREE.MeshStandardMaterial({ color: 0x0f6b45, emissive: 0x0f9a52, emissiveIntensity: .55 }), 3);
+  return grp;
+}
 const SOLS_TEX = {
   1: () => ph('floor_tiles_06') || tileTex('#d9d0bf', 'rgba(120,105,85,.35)', 32), 2: () => ph('marble_tiles') || tileTex('#e6dfd1', 'rgba(110,95,75,.4)', 21),
   3: () => ph('large_floor_tiles_02') || tileTex('#b9a98c', 'rgba(80,65,50,.35)', 16), 4: () => tileTex('#d8d2c6', 'rgba(110,100,85,.35)', 32), 5: () => ph('marble_tiles') || tileTex('#e6dfd1', 'rgba(110,95,75,.4)', 21)
