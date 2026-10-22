@@ -41,7 +41,7 @@ input[type=range]{width:100%}
   <div class="row"><button data-c="orbit" class="on">Orbite</button><button data-c="top">Dessus</button><button data-c="cut">Coupe</button><button data-c="forum">Forum</button></div>
   <h2>Sous-sol</h2>
   <label>Niveau <select id="lvl"><option value="all">tous</option><option>0</option><option>-1</option><option>-2</option><option>-3</option><option>-4</option><option>-5</option></select></label>
-  <label style="display:block">Écarter les niveaux<input type="range" id="spread" min="1" max="4" step="0.1" value="2.2"></label>
+  <label style="display:block">Écarter les niveaux<input type="range" id="spread" min="1" max="4" step="0.1" value="1.0"></label>
   <label><input type="checkbox" id="xray" checked> Surface transparente</label>
   <h2>Évacuation · 19 oct.</h2>
   <div class="row"><button id="evacGo">Lancer l'évacuation</button><button id="evacReset">Remettre</button></div>
@@ -67,7 +67,7 @@ const STY={
  B:{bg:0xE4E5E1,wall:0xFBFBF9,wallOp:1,edge:0x2A2C2B,edgeOp:.6,floor:0x9a9d97,road:0xb9bbb5,ped:0xd2d3ce,green:0xc6d1b8,water:0xb7cbd3,indoor:0x6a6e6b,esc:0xC98A12,stairs:0x2E6DB4,lift:0x1D9E75,door:0x1D1F1E,metro:0x00995A,hyd:0xE0461F,tree:0x8fa77d,people:0x1D1F1E,ground:0xDADBD6},
  D:{bg:0xbcd3e6,wall:0xd9cdb4,wallOp:1,edge:0x6f665a,edgeOp:.35,floor:0xcfc6b6,road:0x5b5d60,ped:0xbdb7ab,green:0x7fa05a,water:0x6f97ad,indoor:0x8a7f6e,esc:0xC98A12,stairs:0x6b6f76,lift:0x5b8fb0,door:0x2b2b2b,metro:0x0b6b45,hyd:0xc0392b,tree:0x557a3a,people:0x333333,ground:0xb9b3a7},
  C:{bg:0x050505,wall:0x1d1b1a,wallOp:.55,edge:0x3b3634,edgeOp:.5,floor:0x2a2420,road:0x2c2724,ped:0x1a1715,green:0x141a12,water:0x0d1416,indoor:0x6b5a4c,esc:0xff8a3d,stairs:0xc9b29b,lift:0x9fd4ff,door:0xd8c9b8,metro:0x9fe6c2,hyd:0xff5a3a,tree:0x22301f,people:0xffd9a0,ground:0x0b0a09}};
-let S='D',SCN=null,spread=2.2,lvSel='all',xray=true;
+let S='D',SCN=null,spread=1.0,lvSel='all',xray=true;
 const host=document.getElementById('view');const rnd=new THREE.WebGLRenderer({antialias:true});rnd.setPixelRatio(Math.min(1.5,devicePixelRatio));host.appendChild(rnd.domElement);
 const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(42,1,1,8000);cam.position.set(150,170,200);const ctl=new THREE.OrbitControls(cam,rnd.domElement);ctl.target.set(-30,-20,-20);ctl.enableDamping=true;ctl.maxPolarAngle=Math.PI*.98;
 const hemi=new THREE.HemisphereLight(0xffffff,0x8a8c86,.85),sun=new THREE.DirectionalLight(0xfff1dc,.55);sun.position.set(-260,420,180);scene.add(hemi,sun);
@@ -410,5 +410,7 @@ simLoad().then(()=>{buildPerturb();(function w(){if(SCN&&PEO.length)calm();else 
 <script src="individu.js"></script>
 <script src="cerveau.js"></script>
 <script src="agents.js"></script>
+<script src="horloge.js"></script>
+<script src="mannequin.js"></script>
 </body>
 </html>
