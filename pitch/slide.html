@@ -2,45 +2,72 @@
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Refuge - slide de pitch</title>
 <style>
-:root{--bg:#0f1420;--fg:#eef2f8;--mut:#9aa6bd;--acc:#ff7a45;--card:#182033;--ok:#4cc38a}
-@media (prefers-color-scheme:light){:root{--bg:#f6f7fb;--fg:#10182b;--mut:#55617a;--card:#fff}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,sans-serif}
-main{max-width:1280px;margin:0 auto;padding:24px 16px;display:grid;gap:14px;grid-template-columns:repeat(4,1fr)}
-header{grid-column:1/-1}h1{margin:0;font-size:34px}h1 span{color:var(--acc)}
-.l{color:var(--mut);margin:4px 0 0;font-size:18px}
-section{background:var(--card);border-radius:12px;padding:16px}
-h2{margin:0 0 8px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--acc)}
-ul{margin:0;padding-left:18px}li{margin:4px 0}
-.k{display:grid;grid-template-columns:1fr 1fr;gap:8px}.k div{background:var(--bg);border-radius:8px;padding:8px}
-.k b{display:block;font-size:22px;color:var(--ok)}.k small{color:var(--mut)}
-.A_REMPLIR{color:#e0a800;font-style:italic}
-footer{grid-column:1/-1;color:var(--mut);font-size:12px}
-@media(max-width:900px){main{grid-template-columns:1fr 1fr}}@media(max-width:560px){main{grid-template-columns:1fr}}
-</style></head><body><main>
+:root{--bg:#0f1420;--fg:#eef2f8;--mut:#a9b4ca;--acc:#ff7a45;--card:#182033;--ok:#4cc38a;--bad:#ff6b6b;--warn:#f0b429;--line:#2a3550}
+@media (prefers-color-scheme:light){:root{--bg:#eceff6;--fg:#10182b;--mut:#4a566f;--acc:#c2410c;--card:#fff;--ok:#0f7b4d;--bad:#c62828;--warn:#8a5a00;--line:#cfd6e4}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--fg);font-family:system-ui,"Segoe UI",sans-serif;display:flex;align-items:center;justify-content:center;overflow:hidden}
+/* Une seule diapositive 16:9, mise à l'échelle : toutes les tailles sont en cqw (1cqw = 1 % de la largeur de la diapositive). */
+.cadre{width:min(100vw,calc(100vh*16/9));aspect-ratio:16/9;container-type:inline-size}
+.slide{width:100%;height:100%;padding:2.2cqw 2.6cqw 1.6cqw;display:grid;gap:1.1cqw;
+  grid-template-columns:1fr 1fr 1.7fr;grid-template-rows:auto auto 1fr auto auto;font-size:1.3cqw;line-height:1.3}
+header{grid-column:1/-1}
+h1{margin:0;font-size:3.1cqw;line-height:1.1}h1 span{color:var(--acc)}
+.l{color:var(--mut);margin:.5cqw 0 0;font-size:1.55cqw}
+section{background:var(--card);border:1px solid var(--line);border-radius:.9cqw;padding:1cqw 1.3cqw;min-width:0;overflow:hidden}
+h2{margin:0 0 .6cqw;font-size:1.05cqw;letter-spacing:.09em;text-transform:uppercase;color:var(--acc)}
+ul{margin:0;padding-left:1.4cqw}li{margin:.35cqw 0}
+.preuves{grid-column:3;grid-row:2/4}.pb{grid-column:1}.pr{grid-column:2}
+.k{display:grid;grid-template-columns:repeat(6,1fr);gap:.6cqw}.k div{grid-column:span 2}.k .demi{grid-column:span 3}
+.k div{background:var(--bg);border-radius:.6cqw;padding:.45cqw .8cqw;min-width:0}
+.k b{display:block;font-size:1.6cqw;line-height:1.15;color:var(--fg)}
+.k b i{font-style:normal;color:var(--mut);font-size:1.2cqw;padding:0 .2cqw}
+.k small{display:block;color:var(--mut);font-size:1.05cqw;line-height:1.25;margin-top:.15cqw}
+.bon b em,.bon b{font-style:normal}.bon b .v{color:var(--ok)}.mauvais b .v{color:var(--bad)}
+.k .large{grid-column:1/-1}
+.avert{margin:.7cqw 0 0;font-size:1.05cqw;color:var(--mut)}
+.A_REMPLIR{color:var(--warn);font-style:italic}
+.k b.A_REMPLIR{font-size:1.4cqw}
+.bas{grid-column:1/-1}
+footer{grid-column:1/-1;grid-row:5;color:var(--mut);font-size:1cqw}
+/* Écran étroit en portrait : on empile et on laisse défiler, pour rester lisible. */
+@media (max-aspect-ratio:1/1) and (max-width:700px){
+  body{display:block;overflow:auto;height:auto}
+  .cadre{width:100%;aspect-ratio:auto;container-type:normal}
+  .slide{display:block;height:auto;padding:16px;font-size:16px}
+  section{margin-top:12px;padding:12px 14px}
+  h1{font-size:26px}.l{font-size:17px}h2{font-size:13px}
+  .k b{font-size:21px}.k b i{font-size:15px}.k small,.avert,footer{font-size:13px}.k b.A_REMPLIR{font-size:17px}
+  .k{grid-template-columns:1fr 1fr}.k div,.k .demi{grid-column:span 1}.k .large{grid-column:1/-1}
+  ul{padding-left:20px}li{margin:5px 0}footer{margin-top:12px;display:block}
+}
+</style></head><body><div class="cadre"><main class="slide">
 <header><h1><span data-champ="nom">Refuge</span> : s'entraîner à la décision de crise</h1>
 <p class="l" data-champ="pitch">Un jumeau 3D du Forum des Halles où le directeur du centre teste ses décisions d'évacuation avant d'avoir à les prendre.</p></header>
-<section><h2>Problème</h2><ul>
-<li>Lundi 19 oct. 2026, vers 20 h : plus de 3 000 spectateurs évacués de l'UGC des Halles (couvre-feu préfectoral).</li>
-<li>Le directeur décide seul, vite, avec des stations fermées et des issues incertaines.</li>
+<section class="pb"><h2>Problème</h2><ul>
+<li>Lundi 19 oct. 2026, vers 20 h : plus de 3 000 spectateurs évacués de l'UGC des Halles.</li>
+<li>Le directeur décide seul, vite, stations fermées, issues incertaines.</li>
 <li>Utilisateur : directeur du centre, responsable sûreté.</li></ul></section>
-<section><h2>Produit</h2><ul>
+<section class="pr"><h2>Produit</h2><ul>
 <li>Forum 0 à -5 et rues à environ 1 km en 3D, contraintes cliquables.</li>
-<li>Foule simulée par des modèles publiés (forces sociales, choix de sortie, départ log-logistique).</li>
-<li>Quatre décideurs proposent, la simulation départage, Claude rédige l'ordre de service et chaque chiffre est vérifié.</li></ul></section>
-<section><h2>Preuves chiffrées</h2><div class="k">
-<div><b class="A_REMPLIR" data-champ="gain_ecrasement">A_REMPLIR</b><small>écrasement, avant vs après (bench/resultats.csv)</small></div>
-<div><b class="A_REMPLIR" data-champ="gain_non_sortis">A_REMPLIR</b><small>personnes non sorties, avant vs après</small></div>
-<div><b class="A_REMPLIR" data-champ="gain_zone_danger">A_REMPLIR</b><small>sorties en zone de danger</small></div>
-<div><b class="A_REMPLIR" data-champ="graines">A_REMPLIR</b><small>tirages (graines) et effectif simulé</small></div>
-<div><b class="A_REMPLIR" data-champ="citations_verifiees">A_REMPLIR</b><small>chiffres des ordres retrouvés dans la simulation</small></div>
-<div><b class="A_REMPLIR" data-champ="latence">A_REMPLIR</b><small>durée d'un plan rejoué</small></div></div></section>
-<section><h2>Couche de données Aiven</h2><ul>
+<li>Foule simulée par des modèles publiés (forces sociales, choix de sortie).</li>
+<li>Quatre décideurs proposent, la simulation départage, chaque chiffre de l'ordre est vérifié.</li></ul></section>
+<section class="preuves"><h2>Preuves : plan « décideurs » vs consigne du 19 oct.</h2><div class="k">
+<div class="large bon"><b data-champ="gain_zone_danger"><span class="v">17 718 <i>→</i> 13 374</span></b><small>zone de danger (personnes-minutes pondérées), environ -25 %. Mieux.</small></div>
+<div class="large mauvais"><b data-champ="t90"><span class="v">315 s <i>→</i> 501 s</span></b><small>temps pour évacuer 90 %, +186 s. Pire : le plan par étapes est plus lent.</small></div>
+<div><b data-champ="gain_non_sortis">0 <i>→</i> 0</b><small>non sortis à 22 h et 23 h</small></div>
+<div><b data-champ="gain_ecrasement">0 <i>→</i> 0</b><small>écrasement (plus de 5 pers./m²)</small></div>
+<div><b data-champ="graines">20 graines</b><small>tirages, mêmes pour les 2 plans ; effectif : <span class="A_REMPLIR">A_REMPLIR</span></small></div>
+<div class="demi"><b class="A_REMPLIR" data-champ="citations_verifiees">A_REMPLIR</b><small>chiffres d'ordre retrouvés</small></div>
+<div class="demi"><b class="A_REMPLIR" data-champ="latence">A_REMPLIR</b><small>durée d'un plan rejoué</small></div></div>
+<p class="avert">Scène illustrative, modèle simplifié, non certifié, pas un relevé. Source : bench/resultats.csv, IC 95 % exclut zéro pour les deux écarts.</p></section>
+<section class="bas" style="grid-column:1/3;grid-row:3"><h2>Couche de données Aiven</h2><ul>
 <li>PostgreSQL : scènes, runs, décisions, mémoire des cas passés.</li>
-<li>ClickHouse : positions des personnes, si le volume le demande <span class="A_REMPLIR">(A_REMPLIR : utilisé ou non)</span>.</li>
-<li>Déployé sur Aiven Runtime : <span class="A_REMPLIR" data-champ="url">A_REMPLIR url</span>.</li></ul></section>
-<section style="grid-column:1/-1"><h2>Route vers les premiers clients</h2><ul>
-<li>Porte d'entrée : responsables sûreté de centres commerciaux, salles de spectacle, gestionnaires de sites recevant du public.</li>
-<li>Pourquoi ils paient : l'exercice sur table remplace un bureau d'études, et laisse une trace de décision. <span class="A_REMPLIR">(A_REMPLIR : tarif, aucun prix inventé)</span></li>
-<li>Semaine prochaine : un entretien avec un responsable sûreté de centre ; un second lieu chargé depuis OpenStreetMap.</li></ul></section>
+<li>ClickHouse : positions, si le volume le demande <span class="A_REMPLIR">(A_REMPLIR : utilisé ou non)</span>.</li>
+<li>Déployé sur Aiven Runtime : <span class="A_REMPLIR" data-champ="url">A_REMPLIR url</span></li></ul></section>
+<section class="bas" style="grid-column:1/-1;grid-row:4"><h2>Route vers les premiers clients</h2><ul>
+<li>Porte d'entrée : responsables sûreté de centres commerciaux, salles de spectacle, sites recevant du public.</li>
+<li>Pourquoi ils paient : l'exercice sur table remplace un bureau d'études et laisse une trace de décision. <span class="A_REMPLIR">(A_REMPLIR : tarif)</span></li>
+<li>Semaine prochaine : un entretien avec un responsable sûreté ; un second lieu chargé depuis OpenStreetMap.</li></ul></section>
 <footer>Simulation générée, modèle simplifié, non certifié, aide à la décision. Fond de carte OpenStreetMap (ODbL).</footer>
-</main></body></html>
+</main></div></body></html>
