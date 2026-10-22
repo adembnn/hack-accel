@@ -3,7 +3,7 @@
 import type { Action, Decideur, DecideurJeu, EntreeJournal, EntreeTableau, EtatResume, Grille, Journal, Note, Scenario, Simulateur, StockageTableau } from './types.ts';
 import { ORDRE_DE_JEU } from './types.ts';
 import { appliquerActions, etatInitial, type EtatDecisions } from './leviers.ts';
-import { leconsPertinentes, type Lecon } from './rex.ts';
+import { assainirLecons, leconsPertinentes, peutChangerUnLevier, type Lecon } from './rex.ts';
 import { appliquerContrainte, detecterConflits, lirePerturbations, motsPerturbations, validerContrainte, type EvenementConflit, type EvenementContrainte } from './evenements.ts';
 import { construireQuestion, lireReponse, type ClientDecision } from './questions.ts';
 
@@ -61,6 +61,8 @@ export async function lancerBoucle(o: OptionsBoucle): Promise<Journal> {
   let etat = o.simulateur.etat();
   let derniere: Note | null = null;
   let ecrasement = 0;
+  // Leçons du REX : texte de tiers tronqué, consignes déguisées et contradictoires écartées une fois pour toutes.
+  const assainies = assainirLecons(o.lecons ?? []);
   let conflitsPrecedents: EvenementConflit[] = [];
   const attente = [...(o.contraintes ?? [])].sort((x, y) => x.minute - y.minute);
   const journal: Journal = { scenario: structuredClone(o.scenario), entrees: [] };
@@ -82,8 +84,8 @@ export async function lancerBoucle(o: OptionsBoucle): Promise<Journal> {
     }
     const mots = motsPerturbations(lirePerturbations(decisions));
     for (const d of (o.acteurs ?? ORDRE_DE_JEU)) {
-      const lecons = leconsPertinentes(o.lecons ?? [], Object.entries(etat.par_zone).filter(([, z]) => z.personnes > 0).map(([z]) => z));
-      const question = construireQuestion({ decideur: d, lecons, minute, etat, derniere_note: derniere, plan_courant: decisions.plan, decisions_des_autres: vues, perturbations: mots, conflits: conflitsPrecedents.map((c) => c.code), nouvelles_perturbations: appliquees.length > 0 });
+      const lecons = leconsPertinentes(assainies.gardees, Object.entries(etat.par_zone).filter(([, z]) => z.personnes > 0).map(([z]) => z));
+      const question = construireQuestion({ decideur: d, lecons, minute, etat, derniere_note: derniere, plan_courant: decisions.plan, decisions_des_autres: vues, lecons_validees: lecons.filter(peutChangerUnLevier).map((l) => l.id), perturbations: mots, conflits: conflitsPrecedents.map((c) => c.code), nouvelles_perturbations: appliquees.length > 0 });
       let actions: Action[] = [];
       const refusees: EntreeTableau['actions_refusees'] = [];
       try {

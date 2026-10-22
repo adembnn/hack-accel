@@ -11,7 +11,7 @@ export interface QuestionJev {
   decideur: Decideur;
   minute: number;
   consigne: string;                 // rôle et règles, en français
-  entree: { etat: EtatResume; derniere_note: Note | null; decisions_des_autres: { decideur: Decideur; actions: Action[] }[]; plan_courant: EtatDecisions['plan']; lecons: Lecon[]; perturbations: string[]; conflits: string[]; nouvelles_perturbations: boolean };
+  entree: { etat: EtatResume; derniere_note: Note | null; decisions_des_autres: { decideur: Decideur; actions: Action[] }[]; plan_courant: EtatDecisions['plan']; lecons: Lecon[]; lecons_validees: string[]; perturbations: string[]; conflits: string[]; nouvelles_perturbations: boolean };
   entree_schema: Record<string, unknown>;
   reponse_schema: Record<string, unknown>;
 }
@@ -74,7 +74,7 @@ export const SCHEMA_ENTREE: Record<string, unknown> = {
 export function construireQuestion(args: {
   decideur: Decideur; minute: number; etat: EtatResume; derniere_note: Note | null;
   plan_courant: EtatDecisions['plan']; decisions_des_autres: { decideur: Decideur; actions: Action[] }[]; lecons?: Lecon[];
-  perturbations?: string[]; conflits?: string[]; nouvelles_perturbations?: boolean;
+  lecons_validees?: string[]; perturbations?: string[]; conflits?: string[]; nouvelles_perturbations?: boolean;
 }): QuestionJev {
   return {
     version: 1,
@@ -82,7 +82,7 @@ export function construireQuestion(args: {
     decideur: args.decideur,
     minute: args.minute,
     consigne: `${ROLES[args.decideur]} ${REGLES.join(' ')}`,
-    entree: { etat: args.etat, derniere_note: args.derniere_note, decisions_des_autres: args.decisions_des_autres, plan_courant: args.plan_courant, lecons: args.lecons ?? [], perturbations: args.perturbations ?? [], conflits: args.conflits ?? [], nouvelles_perturbations: args.nouvelles_perturbations ?? false },
+    entree: { etat: args.etat, derniere_note: args.derniere_note, decisions_des_autres: args.decisions_des_autres, plan_courant: args.plan_courant, lecons: args.lecons ?? [], lecons_validees: args.lecons_validees ?? [], perturbations: args.perturbations ?? [], conflits: args.conflits ?? [], nouvelles_perturbations: args.nouvelles_perturbations ?? false },
     entree_schema: SCHEMA_ENTREE,
     reponse_schema: schemaReponse(args.decideur),
   };
