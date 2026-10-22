@@ -10,3 +10,4 @@ captures/
 
 # Données générées par le benchmark (jamais commitées, règle du dépôt)
 bench/*.csv
+bench/out/
