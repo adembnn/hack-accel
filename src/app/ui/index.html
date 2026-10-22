@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Refuge : écran de démo</title>
+<link rel="icon" href="data:,">
+<style>
+:root{--bg:#02080a;--g:#39ff88;--g2:#1f7a42;--g3:#8bd9a6;--gd:#0c4a26;--w:#eafff2;--am:#ffb000;--rd:#ff4d4d;--panel:rgba(2,12,8,.86)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--g);font:12px/1.45 ui-monospace,Menlo,Consolas,"Courier New",monospace;letter-spacing:.03em;overflow:hidden}
+main{display:grid;height:100vh;grid-template-columns:230px 1fr 300px;grid-template-rows:auto 1fr auto auto;grid-template-areas:"top top top" "left cv right" "time time time" "ban ban ban"}
+header{grid-area:top;display:flex;justify-content:space-between;gap:12px;padding:6px 12px;border-bottom:.5px solid var(--g2);flex-wrap:wrap}
+header b{color:var(--w);font-weight:500}
+.badge{border:.5px solid var(--am);color:var(--am);padding:0 6px;border-radius:3px}
+.badge.ok{border-color:var(--g);color:var(--g)}
+aside{overflow:auto;padding:8px;background:var(--panel)}
+#left{grid-area:left;border-right:.5px solid var(--g2)}
+#right{grid-area:right;border-left:.5px solid var(--g2);display:flex;flex-direction:column;gap:10px}
+h2{font-size:11px;font-weight:500;margin:10px 0 4px;color:var(--g3);text-transform:uppercase}
+h2:first-child{margin-top:0}
+button,input[type=text]{font:inherit;color:var(--g);background:rgba(2,20,10,.88);border:.5px solid var(--g2);border-radius:4px;padding:4px 8px;cursor:pointer;text-align:left}
+button:hover{background:rgba(10,60,30,.95);border-color:var(--g)}
+button.on{background:var(--gd);border-color:var(--g);color:var(--w)}
+button:focus-visible,input:focus-visible{outline:1px solid var(--w)}
+.col{display:flex;flex-direction:column;gap:4px}
+.row{display:flex;gap:4px;flex-wrap:wrap}
+.row button{padding:3px 6px}
+#cvbox{grid-area:cv;position:relative;min-width:0;min-height:0}
+canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}
+canvas:active{cursor:grabbing}
+.hud{position:absolute;pointer-events:none;background:var(--panel);border:.5px solid var(--g2);padding:4px 8px;border-radius:4px;white-space:pre}
+#hudA{left:10px;top:10px}#hudB{left:10px;bottom:10px}
+#tension{height:14px;display:grid;grid-template-columns:repeat(20,1fr);gap:2px}
+#tension i{background:#0a2a16;border:.5px solid var(--g2)}
+#tension i.on{border-color:transparent}
+#fil{flex:1;min-height:90px;overflow:auto;border:.5px solid var(--g2);padding:4px;background:var(--panel)}
+#fil div{border-left:2px solid var(--g2);padding-left:6px;margin:0 0 3px}
+#fil .alerte{border-color:var(--am);color:var(--am)}#fil .critique{border-color:var(--rd);color:var(--rd)}
+table{width:100%;border-collapse:collapse}
+td,th{padding:2px 4px;border-bottom:.5px solid #0f3b21;text-align:right;font-weight:400}
+td:first-child,th:first-child{text-align:left}
+.mieux{color:var(--g)}.pire{color:var(--rd)}
+#timebar{grid-area:time;display:flex;gap:10px;align-items:center;padding:6px 12px;border-top:.5px solid var(--g2)}
+#timebar input[type=range]{flex:1;accent-color:var(--g)}
+input[type=range]{accent-color:var(--g)}
+#ban{grid-area:ban;text-align:center;padding:4px;background:#020c06;border-top:.5px solid var(--g2);color:var(--g3);text-transform:uppercase}
+.note{color:#4fbf7d}
+#jury{width:100%}
+#fichiers{display:none}
+#fichiers.vue{display:block}
+@media(max-width:900px){main{grid-template-columns:1fr;grid-template-rows:auto 300px auto auto auto auto;grid-template-areas:"top" "cv" "left" "right" "time" "ban";overflow:auto}html,body{overflow:auto}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <span>REFUGE // FORUM DES HALLES // <b id="clk">T+00:00</b></span>
+    <span><span id="bScene" class="badge">SCÈNE : …</span> <span id="bRes" class="badge">RÉSULTATS : …</span></span>
+  </header>
+
+  <aside id="left">
+    <h2>Niveau isolé</h2>
+    <div class="row" id="niveaux"></div>
+    <h2>Geste du juré</h2>
+    <div class="col" id="menu"></div>
+    <div id="f1box" style="display:none;margin-top:6px">
+      <label for="f1">Retard d'annonce : <b id="f1v">0</b> min</label>
+      <input id="f1" type="range" min="0" max="30" step="1" value="0" style="width:100%">
+    </div>
+    <div class="row" style="margin-top:6px"><button id="bUndo">ANNULER</button><button id="bRaz">TOUT RÉINITIALISER</button></div>
+    <p class="note" id="aide">Mode : clic sur une sortie pour l'ouvrir ou la fermer.</p>
+    <h2>Vue</h2>
+    <div class="row"><button id="bTop">DESSUS</button><button id="bIso">ISO</button><button id="bAuto">[ ] ROTATION</button></div>
+    <div id="fichiers"><h2>Fichiers locaux</h2>
+      <p class="note">Ouverture en fichier statique : choisir les deux JSON.</p>
+      <label>scene.json <input type="file" id="fScene" accept=".json"></label><br>
+      <label>résultats <input type="file" id="fRes" accept=".json"></label></div>
+  </aside>
+
+  <div id="cvbox">
+    <canvas id="cv" aria-label="Vue fil de fer du Forum des Halles"></canvas>
+    <div class="hud" id="hudA"></div>
+    <div class="hud" id="hudB"></div>
+  </div>
+
+  <aside id="right">
+    <section>
+      <h2>Tension</h2>
+      <div id="tension" role="meter" aria-label="Tension" aria-valuemin="0" aria-valuemax="1"></div>
+      <div id="tensionv" class="note">—</div>
+    </section>
+    <section>
+      <h2>Consigne du juré</h2>
+      <div class="row" style="flex-wrap:nowrap">
+        <input type="text" id="jury" data-entree="jury" placeholder="annonce, ordre…" autocomplete="off">
+        <button data-action="envoyer">ENVOYER</button>
+      </div>
+      <div id="consigne" class="note"></div>
+    </section>
+    <section style="flex:1;display:flex;flex-direction:column;min-height:0">
+      <h2>Fil d'alertes <button data-action="lancer" style="float:right;padding:1px 8px">&gt; LANCER</button></h2>
+      <div id="fil" aria-live="polite"></div>
+    </section>
+    <section id="avantapres">
+      <h2>Avant / après <span id="rejeu" class="badge">REJEU</span></h2>
+      <div id="aa" class="note">Aucun résultat chargé.</div>
+    </section>
+  </aside>
+
+  <div id="timebar">
+    <button id="bPlay">&gt; LECTURE</button>
+    <input type="range" id="tt" min="0" max="0" value="0" step="1" aria-label="Curseur de temps">
+    <span id="ttv">t = 0 s</span>
+  </div>
+  <div id="ban">Simulation générée, modèle simplifié, non certifié</div>
+</main>
+<script src="ui.js"></script>
+</body>
+</html>
