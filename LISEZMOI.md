@@ -33,6 +33,20 @@ Le détail : `CLAUDE.md` (règles et boucle de travail), `GLOSSARY.md` (les mots
 - Discord `#tickets` : chaque ticket, commentaire, branche poussée, fusion (GitHub en direct).
 - Besoin de quelqu'un ? Commente son ticket, son Claude le voit à sa prochaine session.
 
+## Comment travailler : harnais d'orchestration et d'exécution, en parallèle
+
+Ta session Claude Code est l'**orchestrateur** de ce lot (modèle Opus). Elle ne code pas tout elle-même : elle découpe et fait travailler des sous-agents en parallèle, exactement comme la session d'Adem.
+
+1. **Démarrer** : `git pull`, puis `gh issue edit <n> --add-label in-progress --remove-label ready-for-agent --add-assignee @me` et `git switch -c lot/<nom>` depuis `main` à jour. Lance la boucle `/loop 5m` du LISEZMOI.
+2. **Griller d'abord** : skill `grill-with-docs` sur les coutures de ce ticket avec les lots voisins (commente leurs tickets) ; consigne les décisions en commentaire ici.
+3. **Découper** en morceaux indépendants (dossiers disjoints, une vérification par morceau). Si les morceaux ne sont pas indépendants, on ne parallélise pas.
+4. **Paralléliser** : un sous-agent par morceau, **lancés dans le même message**, chacun dans **son worktree** (`isolation: "worktree"`), chacun avec un **modèle nommé** : Sonnet pour coder, chercher, tester ; Haiku pour inventorier et extraire ; jamais Opus en sous-agent. Skills : `implement` pour un morceau, `tdd` aux coutures, `research` pour une question.
+5. **Suivre en direct** : chaque sous-agent écrit une ligne dans `avancement/<agent>.txt` (dans le scratchpad) à chaque changement de tâche (« tâche · % · temps restant ») ; l'orchestrateur les surveille avec `Monitor` (`tail -F`) et met à jour sa liste d'étapes.
+6. **Recherche web** : Keenable (`search_web_pages`, puis `fetch_page_content`), plusieurs recherches à la fois ; chaque recherche nomme la décision qu'elle débloque et tient en 200 lignes ; rapports dans `reports/`.
+7. **Avant le parallèle** : un cas réel traverse toute la chaîne (vraie donnée, vraie clé, vrai compte).
+8. **Finir** : coche chaque critère avec la sortie de commande ; `node tools/verif.mjs` vert ; `code-review` une fois ; PR avec le skill `pr` ; `node tools/fusionner.mjs`. Pousse sur GitHub à chaque étape.
+9. **Jamais** : de clé dans le chat ou dans un commit (tout vient de `.env`) ; d'appel payant à un LLM (Jev, Claude) sans l'accord d'Adem ; de modification du code d'un autre lot (un commentaire sur son ticket).
+
 ## La boucle de 5 minutes (chaque coéquipier, dans sa session Claude Code)
 Les agents se parlent par les commentaires des tickets GitHub. Pour que ça tourne tout seul, lance une fois dans ta session :
 
