@@ -12,7 +12,7 @@
     "start": "node src/app/serveur.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --exclude \"src/sim/**\" && node --test \"src/sim/**/*.test.ts\" && npm run test:memoire --silent",
     "build": "vite build",
     "e2e:socle": "node --test tests/e2e/socle.test.mjs",
     "test:db": "node --test src/server/db.test.mjs src/server/securite.test.mjs src/server/vecteur.test.mjs",
@@ -23,7 +23,9 @@
     "test:behavior": "node --test \"src/sim/**/*.test.ts\"",
     "test:foule": "node --test \"src/sim/**/*.test.ts\"",
     "bench:motion": "node scripts/lot-absent.mjs bench-motion src/sim/motion",
-    "bench:avant-apres": "node bench/avant-apres.ts"
+    "bench:avant-apres": "node bench/avant-apres.ts",
+    "demo:memoire": "node bench/memoire/demo.ts",
+    "test:memoire": "node --test \"src/memoire/*.test.mts\""
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

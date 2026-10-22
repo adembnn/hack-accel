@@ -1,0 +1,655 @@
+{
+  "source": "simulation",
+  "avertissement": "modèle simplifié, non certifié",
+  "mention": "Chiffres du REX : selon le client. Chiffres de rejeu et de mémoire : selon la simulation. Aucune affirmation de vies sauvées.",
+  "rex_corpus_ugc": {
+    "rex_id": "rex_ugc_19oct",
+    "calibration": {
+      "statut": "refusee",
+      "raison": "REX sans durée rapportée : calibration NON FAITE (paramètres par défaut conservés)"
+    }
+  },
+  "rex_demo_fictif": {
+    "rex_id": "rex_demo_fictif",
+    "avertissements": [
+      "modèle simplifié, non certifié ; scène illustrative à 6 salles, effectif réparti uniformément (le REX ne donne pas la répartition)",
+      "effectif, décisions et durée sont « selon le client » : non vérifiés"
+    ],
+    "calibration": {
+      "bornes": {
+        "echelle_delai": [
+          0.5,
+          3
+        ],
+        "suivisme_moyen": [
+          0,
+          0.2
+        ]
+      },
+      "duree_rapportee_s": 540,
+      "duree_definition": "complete",
+      "graines_entrainement": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "graines_controle": [
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108
+      ],
+      "limites": [
+        "une seule durée rapportée contraint au mieux un paramètre : le second (suivisme) n'est ajusté que si l'écart dépasse la tolérance, et reste mal identifié",
+        "la durée du client est « selon le client » et peut inclure des retards que le modèle ne représente pas (alerte, comptage, retour des familles)",
+        "calibrer sur un seul incident ne prouve pas que les paramètres valent pour un autre lieu"
+      ],
+      "params": {
+        "echelle_delai": 2.697265625,
+        "suivisme_moyen": 0.076
+      },
+      "avant": {
+        "n": 8,
+        "moyenne": 408.75,
+        "ic95": 12.15610985964025,
+        "min": 382,
+        "max": 423
+      },
+      "entrainement": {
+        "n": 8,
+        "moyenne": 534.875,
+        "ic95": 47.180411042136015,
+        "min": 454,
+        "max": 613
+      },
+      "controle": {
+        "n": 8,
+        "moyenne": 561.25,
+        "ic95": 23.733261916672074,
+        "min": 513,
+        "max": 597
+      },
+      "evaluations": 104,
+      "ecart_restant_s": 21.25,
+      "ecart_restant_pct": 3.935185185185185,
+      "statut": "calibre",
+      "raison": "écart de contrôle 3.9 % (≤ 10 %), paramètres dans leurs bornes"
+    }
+  },
+  "rejeu": {
+    "rex_id": "rex_demo_fictif",
+    "graines": [
+      301,
+      302,
+      303,
+      304,
+      305,
+      306,
+      307,
+      308,
+      309,
+      310,
+      311,
+      312,
+      313,
+      314,
+      315,
+      316,
+      317,
+      318,
+      319,
+      320
+    ],
+    "params": {
+      "echelle_delai": 2.697265625,
+      "suivisme_moyen": 0.076
+    },
+    "plan_reel": {
+      "mode": "fermer",
+      "portes": [],
+      "phasage_salles": [],
+      "guidage": null,
+      "messages_par_zone": [
+        {
+          "zone": "salle-1",
+          "issue_id": "principale",
+          "clarte": 0.5,
+          "a_partir_de_s": 0
+        },
+        {
+          "zone": "salle-2",
+          "issue_id": "principale",
+          "clarte": 0.5,
+          "a_partir_de_s": 0
+        },
+        {
+          "zone": "salle-3",
+          "issue_id": "principale",
+          "clarte": 0.5,
+          "a_partir_de_s": 0
+        },
+        {
+          "zone": "salle-4",
+          "issue_id": "principale",
+          "clarte": 0.5,
+          "a_partir_de_s": 0
+        },
+        {
+          "zone": "salle-5",
+          "issue_id": "principale",
+          "clarte": 0.5,
+          "a_partir_de_s": 0
+        },
+        {
+          "zone": "salle-6",
+          "issue_id": "principale",
+          "clarte": 0.5,
+          "a_partir_de_s": 0
+        }
+      ],
+      "confinement": false
+    },
+    "plan_decideurs": {
+      "mode": "rester_ouvert",
+      "portes": [],
+      "phasage_salles": [],
+      "guidage": null,
+      "messages_par_zone": [
+        {
+          "zone": "salle-1",
+          "issue_id": null,
+          "clarte": 0.8,
+          "a_partir_de_s": 0
+        },
+        {
+          "zone": "salle-2",
+          "issue_id": null,
+          "clarte": 0.8,
+          "a_partir_de_s": 0
+        },
+        {
+          "zone": "salle-3",
+          "issue_id": null,
+          "clarte": 0.8,
+          "a_partir_de_s": 0
+        },
+        {
+          "zone": "salle-4",
+          "issue_id": null,
+          "clarte": 0.8,
+          "a_partir_de_s": 0
+        },
+        {
+          "zone": "salle-5",
+          "issue_id": null,
+          "clarte": 0.8,
+          "a_partir_de_s": 0
+        },
+        {
+          "zone": "salle-6",
+          "issue_id": null,
+          "clarte": 0.8,
+          "a_partir_de_s": 0
+        }
+      ],
+      "confinement": false
+    },
+    "actions_decideurs": [
+      {
+        "decideur": "prefecture",
+        "levier": "renforts_portes",
+        "valeur": {
+          "porte": "berger",
+          "effectif": 0
+        }
+      },
+      {
+        "decideur": "prefecture",
+        "levier": "renforts_portes",
+        "valeur": {
+          "porte": "rambuteau",
+          "effectif": 0
+        }
+      },
+      {
+        "decideur": "ratp",
+        "levier": "correspondances",
+        "valeur": true
+      },
+      {
+        "decideur": "securite_centre",
+        "levier": "message_zone",
+        "valeur": {
+          "zone": "ugc",
+          "texte": "Le centre ferme. Rejoignez calmement la sortie indiquée."
+        }
+      },
+      {
+        "decideur": "directeur",
+        "levier": "mode",
+        "valeur": "rester_ouvert"
+      },
+      {
+        "decideur": "directeur",
+        "levier": "confinement",
+        "valeur": {
+          "actif": false,
+          "zones": []
+        }
+      },
+      {
+        "decideur": "directeur",
+        "levier": "porte",
+        "valeur": {
+          "porte": "berger",
+          "etat": "ouverte"
+        }
+      },
+      {
+        "decideur": "directeur",
+        "levier": "porte",
+        "valeur": {
+          "porte": "rambuteau",
+          "etat": "ouverte"
+        }
+      }
+    ],
+    "reel": {
+      "non_sortis_22h": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0
+      },
+      "non_sortis_23h": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0
+      },
+      "zone_danger": {
+        "n": 20,
+        "moyenne": 17753,
+        "ic95": 101.63335958988228,
+        "min": 17480,
+        "max": 18180
+      },
+      "ecrasement": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0
+      },
+      "t90_s": {
+        "n": 20,
+        "moyenne": 373.65,
+        "ic95": 1.0329175146030218,
+        "min": 369,
+        "max": 378
+      }
+    },
+    "decideurs": {
+      "non_sortis_22h": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0
+      },
+      "non_sortis_23h": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0
+      },
+      "zone_danger": {
+        "n": 20,
+        "moyenne": 16957.5,
+        "ic95": 72.35841455405388,
+        "min": 16770,
+        "max": 17260
+      },
+      "ecrasement": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0
+      },
+      "t90_s": {
+        "n": 20,
+        "moyenne": 363.35,
+        "ic95": 0.6666373174570381,
+        "min": 361,
+        "max": 366
+      }
+    },
+    "ecarts": {
+      "non_sortis_22h": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0,
+        "significatif": false,
+        "sens": "indetermine"
+      },
+      "non_sortis_23h": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0,
+        "significatif": false,
+        "sens": "indetermine"
+      },
+      "zone_danger": {
+        "n": 20,
+        "moyenne": -795.5,
+        "ic95": 129.9513149409485,
+        "min": -1320,
+        "max": -370,
+        "significatif": true,
+        "sens": "mieux"
+      },
+      "ecrasement": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0,
+        "significatif": false,
+        "sens": "indetermine"
+      },
+      "t90_s": {
+        "n": 20,
+        "moyenne": -10.3,
+        "ic95": 1.1168402583322194,
+        "min": -15,
+        "max": -5,
+        "significatif": true,
+        "sens": "mieux"
+      }
+    },
+    "critere_decisif": "zone_danger",
+    "meilleure": true,
+    "run_id": "run_7b65ff0c846e8cb9",
+    "lecon": {
+      "id": "lecon:evacuation_cinema:ugc:rex_demo_fictif",
+      "type_incident": "evacuation_cinema",
+      "zone": "ugc",
+      "frequence": 1,
+      "duree_moyenne_min": 9,
+      "duree_max_min": 9,
+      "sources": [
+        "rex_demo_fictif"
+      ],
+      "enonce": "Selon la simulation (modèle simplifié, non certifié), sur 20 graines, le plan choisi par les décideurs change la zone de danger de -795.5 (intervalle ± 130) et le délai t90 de -10 s (± 1) par rapport au plan appliqué. Durée rapportée selon le client : 9 min.",
+      "chiffres": {
+        "graines": 20,
+        "ecart_zone_danger": -795.5,
+        "ic95_zone_danger": 130,
+        "ecart_t90_s": -10,
+        "ic95_t90_s": 1,
+        "duree_rapportee_min": 9
+      },
+      "provenance": {
+        "auteur": "rejeu_contrefactuel",
+        "date": "2026-10-22",
+        "run_id": "run_7b65ff0c846e8cb9",
+        "validation": {
+          "run_id": "run_7b65ff0c846e8cb9",
+          "meilleure": true
+        }
+      },
+      "statut": "validee_par_simulation",
+      "actions_recommandees": [
+        {
+          "decideur": "prefecture",
+          "levier": "renforts_portes",
+          "valeur": {
+            "porte": "berger",
+            "effectif": 0
+          }
+        },
+        {
+          "decideur": "prefecture",
+          "levier": "renforts_portes",
+          "valeur": {
+            "porte": "rambuteau",
+            "effectif": 0
+          }
+        },
+        {
+          "decideur": "ratp",
+          "levier": "correspondances",
+          "valeur": true
+        },
+        {
+          "decideur": "securite_centre",
+          "levier": "message_zone",
+          "valeur": {
+            "zone": "ugc",
+            "texte": "Le centre ferme. Rejoignez calmement la sortie indiquée."
+          }
+        },
+        {
+          "decideur": "directeur",
+          "levier": "mode",
+          "valeur": "rester_ouvert"
+        },
+        {
+          "decideur": "directeur",
+          "levier": "confinement",
+          "valeur": {
+            "actif": false,
+            "zones": []
+          }
+        },
+        {
+          "decideur": "directeur",
+          "levier": "porte",
+          "valeur": {
+            "porte": "berger",
+            "etat": "ouverte"
+          }
+        },
+        {
+          "decideur": "directeur",
+          "levier": "porte",
+          "valeur": {
+            "porte": "rambuteau",
+            "etat": "ouverte"
+          }
+        }
+      ]
+    },
+    "motif_lecon": "écart sur zone_danger supérieur à son intervalle (-795.5 ± 130) et run run_7b65ff0c846e8cb9 enregistré",
+    "source": "simulation",
+    "avertissement": "modèle simplifié, non certifié"
+  },
+  "runs_enregistres": [
+    "run_7b65ff0c846e8cb9"
+  ],
+  "memoire": {
+    "scenario_test": "scenario_test_1800",
+    "graines": [
+      501,
+      502,
+      503,
+      504,
+      505,
+      506,
+      507,
+      508,
+      509,
+      510,
+      511,
+      512,
+      513,
+      514,
+      515,
+      516,
+      517,
+      518,
+      519,
+      520
+    ],
+    "lecons_fournies": [
+      {
+        "id": "lecon:evacuation_cinema:ugc:rex_demo_fictif",
+        "statut": "validee_par_simulation"
+      }
+    ],
+    "lecons_montrees_aux_decideurs": [
+      "lecon:evacuation_cinema:ugc:rex_demo_fictif"
+    ],
+    "lecons_validees": [
+      "lecon:evacuation_cinema:ugc:rex_demo_fictif"
+    ],
+    "sans_memoire": {
+      "non_sortis_22h": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0
+      },
+      "non_sortis_23h": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0
+      },
+      "zone_danger": {
+        "n": 20,
+        "moyenne": 9882.5,
+        "ic95": 112.79201539693592,
+        "min": 9520,
+        "max": 10370
+      },
+      "ecrasement": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0
+      },
+      "t90_s": {
+        "n": 20,
+        "moyenne": 306,
+        "ic95": 1.764246693276437,
+        "min": 301,
+        "max": 314
+      }
+    },
+    "avec_memoire": {
+      "non_sortis_22h": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0
+      },
+      "non_sortis_23h": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0
+      },
+      "zone_danger": {
+        "n": 20,
+        "moyenne": 9882.5,
+        "ic95": 112.79201539693592,
+        "min": 9520,
+        "max": 10370
+      },
+      "ecrasement": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0
+      },
+      "t90_s": {
+        "n": 20,
+        "moyenne": 306,
+        "ic95": 1.764246693276437,
+        "min": 301,
+        "max": 314
+      }
+    },
+    "effets": {
+      "non_sortis_22h": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0,
+        "significatif": false,
+        "sens": "indetermine"
+      },
+      "non_sortis_23h": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0,
+        "significatif": false,
+        "sens": "indetermine"
+      },
+      "zone_danger": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0,
+        "significatif": false,
+        "sens": "indetermine"
+      },
+      "ecrasement": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0,
+        "significatif": false,
+        "sens": "indetermine"
+      },
+      "t90_s": {
+        "n": 20,
+        "moyenne": 0,
+        "ic95": 0,
+        "min": 0,
+        "max": 0,
+        "significatif": false,
+        "sens": "indetermine"
+      }
+    },
+    "plans_differents": 0,
+    "verdict": {
+      "non_sortis_22h": "aucun_effet_detectable",
+      "non_sortis_23h": "aucun_effet_detectable",
+      "zone_danger": "aucun_effet_detectable",
+      "ecrasement": "aucun_effet_detectable",
+      "t90_s": "aucun_effet_detectable"
+    },
+    "source": "simulation",
+    "avertissement": "modèle simplifié, non certifié"
+  }
+}
