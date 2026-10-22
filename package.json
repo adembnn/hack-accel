@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "description": "Refuge : décision humaine en crise, jumeau numérique, mémoire des REX. Modèle simplifié, non certifié.",
   "engines": {
     "node": ">=20"
   },
@@ -19,9 +20,10 @@
     "test:adaptateurs": "node --test src/server/adaptateurs/adaptateurs.test.mjs",
     "test:scene": "node scripts/lot-absent.mjs scene src/scene",
     "test:motion": "node scripts/lot-absent.mjs motion src/sim/motion",
-    "test:behavior": "node scripts/lot-absent.mjs behavior src/sim/behavior",
+    "test:behavior": "node --test \"src/sim/**/*.test.ts\"",
+    "test:foule": "node --test \"src/sim/**/*.test.ts\"",
     "bench:motion": "node scripts/lot-absent.mjs bench-motion src/sim/motion",
-    "bench:avant-apres": "node scripts/lot-absent.mjs bench-avant-apres src/sim/behavior"
+    "bench:avant-apres": "node bench/avant-apres.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
