@@ -17,7 +17,7 @@ const CAS = [
   ['Ferme les trois issues côté piscine', [1, 2, 3].map(i => A('levier', { cible: `Issue côté piscine ${i}`, action: 'fermer' }))],
   ["Annonce : tout le monde sort par la porte Saint-Eustache, puis lance l'évacuation", [A('levier', { cible: 'Porte Saint-Eustache', action: 'annonce' }), A('evacuer')]],
   ['Arrête les escalators et rouvre la porte Rambuteau', [A('escalators', { action: 'arreter' }), A('levier', { cible: 'Porte Rambuteau', action: 'ouvrir' })]],
-  ["Un groupe d'une centaine de supporters arrive par la rue Saint-Denis, qu'est-ce qu'on fait ?", [A('zone_poser', { code: 'D1', lieu: 'Rue Saint-Denis' }), A('conseil')]],
+  ["Un groupe d'une centaine de supporters arrive par la rue Saint-Denis, qu'est-ce qu'on fait ?", [{ ou: [A('zone_poser', { code: 'D1', lieu: 'Rue Saint-Denis' }), A('cortege', { code: 'D1', depart: 'Rue Saint-Denis' })] }, A('conseil')]],
   ['Ferme la porte de Bagnolet', []],
   // ordres précis (lot « ordres précis »)
   ["Un cortège de 2000 personnes part de la place de la République vers le Châtelet, et des casseurs rue Saint-Denis", [A('cortege', { code: 'D1', depart: 'Place de la République', arrivee: 'Place du Châtelet', effectif: 2000 }), { ou: [A('zone_poser', { code: 'D2', lieu: 'Rue Saint-Denis' }), A('cortege', { code: 'D2', depart: 'Rue Saint-Denis' })] }]],

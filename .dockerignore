@@ -1,0 +1,17 @@
+node_modules
+dist
+.git
+.githooks
+.github
+.claude
+.env
+.env.*
+wt-*
+reports
+journal
+kickoff
+demo
+docs
+maquettes
+recherche
+*.md
