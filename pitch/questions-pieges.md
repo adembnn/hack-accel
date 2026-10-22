@@ -1,0 +1,51 @@
+# Questions pièges du jury et réponses honnêtes
+
+Règle : on ne dit rien que la simulation ou une source ne soutient pas. Deux mesures : **A** (`bench/resultats.csv`, `bench/PLANS.md`, scène illustrative de 3 000 personnes, 20 graines) et **B** (`bench/integration-adem/resultats.json`, moteur `sim.js` sur la grille du Forum, 2 000 personnes, un tirage, source : simulation). Toujours : « modèle simplifié, non certifié, scène illustrative ». Ce qui n'est pas mesuré est dit « pas encore mesuré ». Questions de fond reprises de `recherche/15-sparring-jury.md`, `18-faisabilite-qa.md`, `19` et `20`.
+
+## 1. Qui achète ?
+Premier client visé : le directeur du Westfield Forum des Halles (gestionnaire URW), dont le cinéma voisin a été évacué le 19 oct. Plus grande cible : les 24 300 lieux britanniques de 800 personnes et plus soumis à la Martyn's Law. Canal : les bureaux de contrôle et la sécurité privée, qui visitent déjà les lieux. Ce qui est vrai : aucun contrat signé, aucun prix demandé ni accepté, on dit « premier client visé » et « relation », jamais « client ». Pourquoi ils paieraient : le besoin d'exercer et de tracer est déjà obligatoire (exercice d'évacuation tous les 6 mois en France, `reports/qui-achete-synthese.md`), et personne ne relie simuler, alerter et décider en direct. Tarif : `A_REMPLIR`, à tester avec le premier client (trois formes envisagées : par site, par exercice, par enseigne), jamais un chiffre inventé. À vérifier avant de citer : titre et pouvoir de signature du directeur chez URW.
+
+## 2. Martyn's Law : de quoi parle-t-on, et à quelle date ? (date à vérifier)
+Loi britannique (Terrorism (Protection of Premises) Act 2025), sanction royale le 3 avril 2025. Elle impose aux lieux de 200 personnes et plus des procédures « raisonnablement praticables » d'évacuation, de mise à l'abri, de confinement et de communication ; au-delà de 800 personnes (environ 24 300 lieux, sur 178 900 concernés, étude d'impact du Home Office) un plan et des mesures remis au régulateur, avec une amende jusqu'à 18 M£ ou 5 % du chiffre d'affaires. **Date : « attendue au printemps 2027 » selon des sites de conseil ; le guide officiel dit seulement qu'elle sera communiquée. À vérifier sur legislation.gov.uk avant de l'affirmer.** Ce que nous ne disons pas : « conforme Martyn's Law » ou « certifié » ; la loi ne reconnaît aucun outil. Ce que nous disons : l'outil aide à répéter et à tracer les procédures qu'un lieu doit de toute façon avoir. Pas de Martyn's Law en France aujourd'hui (à confirmer par un juriste).
+
+## 3. Claude ou des règles : qui décide ?
+Ni l'un ni l'autre seul, et il faut le dire exactement. **Le plan est choisi par la simulation**, qui rejoue chaque proposition et la note. Le modèle de langage propose, explique et rédige : Claude Haiku 5.5 pour les quatre décideurs (préfecture, RATP, sécurité du centre, directeur), Claude Sonnet 5.5 pour l'explication et l'ordre de service. Un vérificateur de code rejette tout chiffre absent de la simulation. **État mesuré aujourd'hui : la mesure B a tourné avec des décideurs en règles déterministes et des textes rejoués, sans réseau ni clé ; aucun appel Claude n'est compris dans les chiffres.** Phrase de repli : « le choix revient à la simulation ; nous n'avons pas encore mesuré ce que le modèle de langage ajoute. » Ne jamais dire « Claude décide ». Comparaison avec un modèle de langage seul sans simulation : pas faite, aucune allégation de supériorité. Le directeur décide toujours ; l'outil montre le prix de chaque choix.
+
+## 4. Pourquoi pas une simulation certifiée ?
+Parce que le but n'est pas de certifier : c'est d'entraîner et de décider, vite, sur le lieu réel. Une étude certifiée est un bureau d'études agréé, des jours de modélisation et un calage sur des exercices réels ; elle ne se rejoue pas en six secondes quand une sortie se ferme. Notre modèle est simplifié, non certifié : forces sociales, choix de sortie, départ log-logistique, avec des poids tirés de laboratoires ; la scène de la mesure A est illustrative, et la mesure B tourne sur la grille du Forum avec des capacités estimées. Les modèles publiés s'écartent entre eux jusqu'à 30 % (RiMEA) : nos écarts (+14 s, +31 s) sont dans cet ordre de grandeur, donc c'est un classement de plans dans un même modèle, pas une prévision. Ce que la loi britannique demande, ce sont des procédures pratiquées, pas un logiciel agréé : nous répétons et traçons, nous ne remplaçons ni l'étude réglementaire ni le responsable d'établissement.
+
+## 5. Votre foule est-elle réaliste ?
+Elle utilise des modèles publiés (forces sociales de Helbing, choix de sortie de Lovreglio, départ log-logistique). Mais la mesure A est une scène illustrative (pas un relevé de l'UGC des Halles) avec un mouvement de test en file d'attente ; la mesure B utilise le vrai moteur sur la grille du Forum, mais les niveaux -1, -2 et -5 sont marqués estimés et rien n'est calé sur un exercice réel. Ce que nous prétendons : comparer des plans entre eux dans un même modèle.
+
+## 6. Votre benchmark montre-t-il que votre plan est meilleur ? Les deux côtés
+- Mesure B (2 000 personnes, un tirage) : sorties vers la zone de danger 73 → 4, **mais** t90 238 → 252 s (+14 s) et densité maximale 4 → 5 personnes/m² (une minute au-dessus de 5 après, zéro avant). Écrasement 0 des deux côtés. Un seul tirage : pas d'intervalle de confiance.
+- Mesure A (3 000 personnes, 20 graines) : zone de danger 17 718 → 13 374 (-24,5 %), **mais** t90 315 → 501 s (+186 s). Le meilleur de 9 plans candidats (C5) descend à 8 296 (-53 %) avec t90 346 s (+10 %), confirmé sur 20 autres graines à moins de 1 %. Aucun plan ne bat la consigne du 19 oct. sur t90, et le gain principal dépend d'une hypothèse de la grille (derrière l'issue fermée, danger 2 par personne) : si elle change, la conclusion change.
+- Non-sortis et écrasement ne départagent rien dans la scène A. Pas de note globale mise en avant (ses poids sont une hypothèse).
+Le choix entre sécurité de la zone et vitesse revient au directeur : l'outil le rend visible, il ne le tranche pas. Les seuils d'alerte sont orange 3 et rouge 4 personnes/m² ; la densité maximale de la mesure B passe de 4 à 5 : le rouge est donc atteint dans les deux cas.
+
+## 7. D'où viennent vos données, et sont-elles à jour ?
+Géométrie et rues : OpenStreetMap (ODbL) et BD TOPO ; incident d'ancrage : presse du 20 oct. 2026 (plus de 3 000 spectateurs évacués). Plans intérieurs du Forum : en partie estimés, marqués comme tels. Le flux en direct (état des stations, manifestation) n'est pas branché : les perturbations sont posées à la main par le juré ou le directeur. Pas d'extraction de géométrie Google ; Street View sert d'inspiration visuelle seulement.
+
+## 8. Une menace, c'est un attaquant simulé ?
+Non. Une personne dangereuse, un colis suspect, une fuite de gaz ou une alerte sont des **zones dangereuses ou des issues impraticables** posées sur la carte, avec leur effet sur la foule. Aucun mode opératoire, aucun attaquant optimisé : l'outil optimise la sécurité et l'évacuation.
+
+## 9. Que font les agents que la simulation ne fait pas ?
+Quatre décideurs proposent des leviers parmi un catalogue de 62 leviers, la simulation rejoue et note, un vérificateur et une red team contrôlent, Claude rédige l'ordre de service. La boucle propose-simule-note a tourné sur la vraie simulation en règles (mesure B) ; avec des appels Claude, pas encore mesurée.
+
+## 10. Pourquoi Aiven, et pourquoi la donnée est-elle au cœur ?
+PostgreSQL garde scènes, runs, décisions et mémoire des cas passés. ClickHouse : `A_REMPLIR` (utilisé ou non). URL Aiven Runtime : `A_REMPLIR` ; tant que `/sante` ne répond pas 200, on dit « base locale, même schéma ». Mesures locales, pas Aiven : 3 M de lignes en 1,0 s sur PostgreSQL local ; 1,2 M de lignes de Kafka à ClickHouse en 28 s (`recherche/18`). Amélioration par la mémoire : en place, **non mesurée**, on ne dit pas « il s'améliore ».
+
+## 11. Qu'est-ce qui est live et qu'est-ce qui est enregistré ?
+Live : le rejeu de la simulation sur graine fixe et la pose d'une perturbation (6,1 s pour 12 minutes simulées, sous Node ; pas mesuré dans un navigateur). Enregistré : les textes rédigés par le modèle (rejeu), la vidéo de secours. Une pastille LIVE / ENREGISTRÉ sur chaque scène.
+
+## 12. Un directeur l'utiliserait-il en pleine crise ?
+Pas en pleine crise aujourd'hui : l'hypothèse est l'exercice et l'entraînement, avec une trace des décisions. Le poste de crise (écran « Synoptique », propositions à valider, consignes par personne, notification sur smartphone en vrai) vise l'usage en direct après un entretien et un calage.
+
+## 13. Quelle est la route vers les premiers utilisateurs ?
+Cette semaine : un entretien avec le responsable sûreté du Forum et un chargé d'affaires d'un bureau de contrôle ; un second lieu chargé depuis OpenStreetMap. Si l'entretien révèle que le besoin est ailleurs (assurance, organisateurs, transports), nous réorientons. Risque assumé : la confiance, car personne n'achète un outil de crise non certifié sans partenaire reconnu.
+
+## 14. Quelle taille de marché ?
+Chiffres sourcés : 24 300 lieux britanniques de 800 personnes et plus, 178 900 concernés par la Martyn's Law (étude d'impact du Home Office). Environ 24 000 lieux en France et 180 000 en Europe sont des hypothèses ramenées du chiffre britannique, pas des faits publiés ; le montant en euros dépend d'un prix par lieu non testé (`A_REMPLIR`).
+
+## 15. Pourquoi pas un bureau d'études ou un logiciel existant ?
+Simuler (LEGION, Pathfinder), alerter (Everbridge), détecter (Evolv) : trois familles qui ne se parlent pas ; aucune ne sert à la fois à préparer et à décider en direct sur le jumeau du lieu. Onhys, éditeur français de simulation de foule, a été liquidé en nov. 2023 ; son logiciel est repris par Interactive 4D. Hypothèse non testée : un exercice rejoué en minutes remplace une partie d'une étude et laisse une trace de décision.

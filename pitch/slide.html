@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Refuge - slide de pitch</title>
+<style>
+:root{--bg:#0f1420;--fg:#eef2f8;--mut:#9aa6bd;--acc:#f5b83d;--card:#182033;--ok:#4cc38a;--bad:#ff4d4f}
+@media (prefers-color-scheme:light){:root{--bg:#f6f7fb;--fg:#10182b;--mut:#55617a;--card:#fff}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,sans-serif}
+main{max-width:1280px;margin:0 auto;padding:24px 16px;display:grid;gap:14px;grid-template-columns:repeat(4,1fr)}
+header{grid-column:1/-1}h1{margin:0;font-size:34px}h1 span{color:var(--acc)}
+.l{color:var(--mut);margin:4px 0 0;font-size:18px}
+section{background:var(--card);border-radius:12px;padding:16px}
+h2{margin:0 0 8px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--acc)}
+ul{margin:0;padding-left:18px}li{margin:4px 0}
+.k{display:grid;grid-template-columns:1fr 1fr;gap:8px}.k div{background:var(--bg);border-radius:8px;padding:8px}
+.k b{display:block;font-size:20px}.k .g{color:var(--ok)}.k .p{color:var(--bad)}.k small{color:var(--mut)}
+.pr{grid-column:span 2}
+.pr h3{margin:10px 0 6px;font-size:13px;color:var(--mut);font-weight:600}
+.A_REMPLIR{color:#e0a800;font-style:italic}
+.etq{display:inline-block;margin-top:8px;padding:2px 8px;border:1px solid var(--acc);border-radius:99px;color:var(--acc);font-size:12px}
+footer{grid-column:1/-1;color:var(--mut);font-size:12px}
+@media(max-width:900px){main{grid-template-columns:1fr 1fr}.pr{grid-column:1/-1}}@media(max-width:560px){main{grid-template-columns:1fr}}
+</style></head><body><main>
+<header><h1><span data-champ="nom">Refuge</span> : s'entraîner à la décision de crise</h1>
+<p class="l" data-champ="pitch">Un jumeau 3D du Forum des Halles où le directeur du centre teste ses décisions de crise avant d'avoir à les prendre, et voit ce que chacune coûte.</p></header>
+<section><h2>Problème et utilisateur</h2><ul>
+<li>Lundi 19 oct. 2026, vers 20 h : plus de 3 000 spectateurs évacués de l'UGC des Halles (couvre-feu préfectoral), selon la presse.</li>
+<li>Le directeur décide vite, avec des stations fermées et des issues incertaines.</li>
+<li>Pas seulement les manifestations : colis suspect, alarme incendie, alerte à la bombe, personne dangereuse, malaise, fuite de gaz.</li></ul></section>
+<section><h2>Produit</h2><ul>
+<li>Forum 0 à -5 et rues à environ 1 km en 3D ; une menace est une zone dangereuse, jamais un attaquant.</li>
+<li>Foule simulée par des modèles publiés ; alerte orange à 3 personnes/m², rouge à 4.</li>
+<li>Chaque personne est cliquable et reçoit sa consigne (en vrai : notification sur smartphone).</li>
+<li>Quatre décideurs sur Claude proposent, la simulation départage, un vérificateur contrôle chaque chiffre.</li></ul></section>
+<section class="pr"><h2>Preuves mesurées (les deux côtés)</h2>
+<h3>Simulation de 2 000 personnes sur la grille du Forum : consigne du 19 oct. contre plan choisi (1 tirage)</h3>
+<div class="k">
+<div><b class="g">73 → 4</b><small>sorties vers la zone de danger</small></div>
+<div><b class="p">238 → 252 s</b><small>t90 (temps pour évacuer 90 %), +14 s</small></div>
+<div><b class="p">4 → 5 pers./m²</b><small>densité maximale, une minute au-dessus de 5 après</small></div>
+<div><b>6,1 s</b><small>pour 12 minutes simulées (sous Node)</small></div></div>
+<h3>Scène illustrative de 3 000 personnes, 20 tirages, plan décideurs</h3>
+<div class="k">
+<div><b class="g">-24,5 %</b><small>zone de danger : 17 718 → 13 374 personnes-minutes pondérées</small></div>
+<div><b class="p">315 → 501 s</b><small>t90, +186 s ; aucun des 9 plans testés ne bat la consigne sur t90</small></div></div>
+<span class="etq">modèle simplifié, non certifié, scène illustrative</span></section>
+<section><h2>Couche de données Aiven</h2><ul>
+<li>PostgreSQL : scènes, runs, décisions, mémoire des cas passés.</li>
+<li>ClickHouse : positions des personnes, si le volume le demande <span class="A_REMPLIR">(A_REMPLIR : utilisé ou non)</span>.</li>
+<li>Déployé sur Aiven Runtime : <span class="A_REMPLIR" data-champ="url">A_REMPLIR url</span>.</li>
+<li>Latence de bout en bout : <span class="A_REMPLIR" data-champ="latence">A_REMPLIR</span>.</li></ul></section>
+<section style="grid-column:1/-1"><h2>Qui achète : route</h2><ul>
+<li><b>Premier client visé</b> : le directeur du Westfield Forum des Halles (gestionnaire URW). Aucun contrat signé.</li>
+<li><b>Plus grande cible</b> : les 24 300 lieux britanniques de 800 personnes et plus soumis à la Martyn's Law (obligation de procédures d'évacuation et de confinement pratiquées ; entrée en vigueur attendue en 2027, <span class="A_REMPLIR">date à vérifier</span>). L'outil aide à répéter et à tracer, il ne certifie rien.</li>
+<li><b>Canal</b> : bureaux de contrôle et sécurité privée, qui visitent déjà les lieux. Tarif : <span class="A_REMPLIR">A_REMPLIR (aucun prix n'est affiché)</span>.</li></ul></section>
+<footer>Simulation générée par IA, modèle simplifié, non certifié, scène illustrative, aide à la décision : le directeur décide. Fond de carte OpenStreetMap (ODbL). Sources : bench/integration-adem/resultats.json, bench/resultats.csv, bench/PLANS.md.</footer>
+</main></body></html>

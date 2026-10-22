@@ -1,0 +1,32 @@
+LA COUCHE DE DONNEES EN ACTION - REFUGE
+Trame a remplir avec les vraies sorties du lot aiven (src/server/, infra/). Rien n'est mesure ici : tout champ A_REMPLIR doit venir d'une commande reelle collee en preuve.
+
+1. SERVICES AIVEN UTILISES (un par un, avec la raison)
+- PostgreSQL (version : A_REMPLIR) : scenes, runs, decisions, memoire des cas passes, tableau commun. Raison : A_REMPLIR
+- ClickHouse (utilise : A_REMPLIR oui/non) : positions des personnes par pas de temps. Raison : A_REMPLIR
+- Valkey / OpenSearch / Kafka : A_REMPLIR (ne lister que ce qui tourne vraiment)
+- Aiven Runtime : URL A_REMPLIR, dernier commit deploye A_REMPLIR
+
+2. COMMENT CHAQUE SERVICE REPOND AUX CRITERES DU JURY
+- Fraicheur : A_REMPLIR (quel evenement ecrit en base, latence mesuree A_REMPLIR)
+- Echelle : lignes en base sur Aiven A_REMPLIR, Mo A_REMPLIR. Simulation mesuree (hors base) : 2 000 personnes, 12 minutes simulees en 6,1 s sous Node (bench/integration-adem/resultats.json). Mesures LOCALES, pas Aiven : 3 M de lignes en 1,0 s sur PostgreSQL local ; 1,2 M de lignes de Kafka a ClickHouse en 28 s (recherche/18-faisabilite-qa.md).
+- Ancrage : OpenStreetMap (ODbL), BD TOPO ; incident du 19 oct. (presse du 20 oct.) ; niveaux -1, -2, -5 du Forum marques estimes. Date de chargement A_REMPLIR
+- Memoire : table A_REMPLIR ; exemple d'un cas relu par l'agent : A_REMPLIR. Amelioration par la memoire : en place, NON mesuree (ne pas affirmer qu'il s'ameliore).
+
+3. SCHEMA (sortie de \d dans psql)
+A_REMPLIR
+
+4. REQUETES CLES (texte exact + temps)
+- Ecriture d'une contrainte posee par le jury : A_REMPLIR
+- Lecture de la memoire avant decision : A_REMPLIR
+- Agregats de densite (ClickHouse) : A_REMPLIR
+Sortie collee : A_REMPLIR
+
+5. VOLUMES (sortie de requetes de comptage)
+SELECT count(*) ... : A_REMPLIR
+
+6. PREUVE QUE LA DONNEE EST AU COEUR
+Test : retirer la base. Resultat observe : A_REMPLIR
+
+7. LIMITES ET PLAN B
+Base locale en conteneur, meme schema (voir demo/SCRIPT.md). Limites connues : simulation = modele simplifie, non certifie, un tirage pour la mesure de 2 000 personnes ; decideurs en regles et textes rejoues dans les mesures (aucun appel Claude mesure) ; positions des personnes non stockees en base ; URL Aiven et latence A_REMPLIR.
