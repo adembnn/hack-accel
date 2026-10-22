@@ -17,8 +17,9 @@ Chaque bloc : juré, critère, réponse en 2 phrases, preuve à montrer à l'éc
 ### Zone rouge (score 20 à 25)
 
 **Q1. « Qui paie, et à qui avez-vous parlé ? »** (A, C ; critère 1) P5 × D5 = 25
-- Réponse : « Personne n'a payé et nous n'avons aucun client signé ; [VÉRIFIER : l'entretien avec X tenu/planifié le …]. Cible : responsables sûreté de centres commerciaux et de salles recevant du public, et nous n'affichons aucun prix tant qu'un entretien ne l'a pas testé. »
-- Preuve : la slide, ligne « utilisateur » avec le nom du contact **s'il existe** (sinon la ligne « entretien à tenir cette semaine » écrite telle quelle). Jamais « validé par ».
+- Réponse : « Personne n'a payé et il n'y a pas de contrat signé. Nous avons un contact utilisateur réel [À CONFIRMER : nom, rôle, ce qu'il a dit, accord pour le citer] et une relation avec le gestionnaire du Forum des Halles, premier client visé, autour d'un « hôtel Rana » [À CONFIRMER : nom mal transcrit, nature exacte de l'accord : relation, accord oral, lettre d'intention ?]. »
+- Règle : dire « relation » ou « contact », jamais « client », « partenaire » ou « validé par » tant que Titouan n'a pas confirmé la nature de l'accord. Ne pas citer « hôtel Rana » à l'écran avant confirmation.
+- Preuve : la slide, ligne « utilisateur » avec le nom du contact s'il peut être cité ; sinon « un contact utilisateur, entretien tenu/planifié [VÉRIFIER la date] ».
 
 **Q2. « Votre plan évacue plus lentement (315 → 501 s). En quoi est-ce meilleur ? »** (D, E, A ; critère 4) P5 × D5 = 25
 - Réponse : « Il n'est pas meilleur partout : il réduit de 24,5 % le temps passé en zone de danger (17 718 → 13 374 personnes-minutes pondérées, 20 graines), mais le temps pour évacuer 90 % passe de 315 à 501 s. L'outil ne tranche pas, il rend l'arbitrage visible au directeur, qui le fait. »
@@ -83,8 +84,8 @@ Chaque bloc : juré, critère, réponse en 2 phrases, preuve à montrer à l'éc
 - Preuve : une trace de la boucle (propose, simule, note, retient) sur graine fixe ; sinon dire « enregistré ».
 
 **Q17. « Combien ça coûte, quel modèle économique ? »** (A, C ; critère 5) P5 × D3 = 15
-- Réponse : « Nous n'avons pas de tarif et nous n'en inventons pas ; la forme probable est un abonnement par site, à valider en entretien. » (« Probable » est une hypothèse : le dire.)
-- Preuve : la ligne tarif de la slide **supprimée** plutôt que `A_REMPLIR`.
+- Réponse : « Le tarif n'est pas arrêté, nous y réfléchissons ; trois formes sont envisagées (par site, par exercice, par enseigne) et nous les testons avec le premier client avant de poser un chiffre. » Voir la section 7.
+- Preuve : la ligne tarif de la slide remplacée par « modèle à valider avec le premier client », jamais `A_REMPLIR` ni un chiffre.
 
 **Q18. « Vos 90 premiers jours : comment atteignez-vous un premier utilisateur ? »** (A, C ; critère 5) P4 × D4 = 16
 - Réponse : « Un entretien avec un responsable sûreté de centre cette semaine, un second lieu chargé depuis OpenStreetMap pour montrer que l'outil n'est pas câblé sur les Halles, puis un pilote d'exercice sur table. Si l'entretien montre que le besoin est ailleurs (formation, assurance, organisateurs d'événements), nous réorientons. »
@@ -105,15 +106,17 @@ Chaque bloc : juré, critère, réponse en 2 phrases, preuve à montrer à l'éc
 - Preuve : la ligne de réglementation de `05-reglementation-erp...` (commission tous les 3 ou 5 ans selon la catégorie, source citée), rien d'autre.
 
 **Q22. « Pourquoi vous, pourquoi maintenant ? »** (A ; critère 5) P4 × D3 = 12
-- Réponse : « Pourquoi maintenant : le 19 oct., plus de 3 000 spectateurs ont été évacués de l'UGC Ciné Cité Les Halles sur couvre-feu préfectoral, avec un responsable qui décide dans un contexte de stations fermées. Pourquoi nous : [VÉRIFIER : à compléter par Titouan, voir questions]. »
-- Preuve : la dépêche presse de l'événement (source citée), pas de commentaire sur le détail minute par minute.
+- Réponse : « Pourquoi maintenant : le 19 oct., plus de 3 000 spectateurs ont été évacués de l'UGC Ciné Cité Les Halles sur couvre-feu préfectoral, avec un responsable qui décide dans un contexte de stations fermées. Pourquoi nous : des membres de l'équipe étaient présents le 19 octobre [À CONFIRMER : combien, où, ce qu'ils ont vu eux-mêmes], donc nous avons vu la décision se prendre. »
+- Règle témoin : ne dire que ce qu'ils ont vu de leurs yeux (ex. « nous y étions, nous avons vu X »), pas la chronologie ni les chiffres de la presse comme si c'était un constat personnel. Les 3 000 spectateurs restent attribués à la presse.
+- Preuve : la dépêche presse de l'événement (source citée) ; le témoignage vient de la voix, pas de la slide.
 
 **Q23. « Le juré ferme une sortie : c'est instantané ? »** (C, D ; critère 5) P3 × D4 = 12
 - Réponse : « Le rendu rejoue une simulation sur graine fixe, et le modèle de mouvement réel n'a pas atteint son budget (21,65 ms par pas en moyenne contre 8 ms visés), donc nous réduisons le nombre de personnes ou nous rejouons un calcul précalculé et nous le disons. »
 - Preuve : la démo `?demo=1` avec le présentateur qui ferme la sortie ; le nombre de personnes affiché à l'écran.
 
 **Q24. « Vos niveaux intérieurs sont-ils exacts ? »** (D ; critère 4) P3 × D4 = 12
-- Réponse : « Non : les niveaux -1 à -5 sont estimés (drapeau `estime` dans les données, testé), ascenseurs et escalators sans largeur reconnue. Un relevé de plans ou le plan de l'exploitant serait nécessaire avant tout usage réel. »
+- Réponse : « Non : la scène livrée marque encore les niveaux -1, -2 et -5 comme estimés [VÉRIFIER dans `scene` / drapeau `estime` à l'heure du pitch], ascenseurs et escalators sans largeur reconnue. Nous avons des plans et des visuels open source du Forum [À CONFIRMER : lesquels, licence, précision], mais ils ne sont pas des relevés de l'exploitant. »
+- Règle : ne pas dire « plans intérieurs réels » ni « relevés » ; ne pas déduire des plans open source qu'ils sont exacts.
 - Preuve : la couleur « estimé » sur la 3D.
 
 **Q25. « D'où viennent les poids de votre note globale (86,81 → 88,85) ? »** (E, D ; critère 4) P3 × D4 = 12
@@ -133,8 +136,8 @@ Chaque bloc : juré, critère, réponse en 2 phrases, preuve à montrer à l'éc
 - Preuve : aucune ; ne pas inventer de coût par décision.
 
 **Q29. « Qu'avez-vous construit aujourd'hui, et qu'est-ce qui existait ? »** (A, C ; critère 5) P3 × D3 = 9
-- Réponse : « [À compléter par Titouan, voir question 7.] Ce que nous pouvons dire de façon vérifiable : le dépôt, les commits et les tickets, et la recherche (corpus de 13 REX publics, réglementation, science des foules) faite avant la fenêtre de code. »
-- Preuve : l'historique git. Ne pas gonfler la part « construite aujourd'hui ».
+- Réponse : « Tout le code du dépôt a été écrit aujourd'hui, le 22 octobre [déclaré par Titouan, À CONFIRMER avec l'historique git ; la recherche, le corpus de 13 REX et la réglementation ont été rassemblés avant et pendant]. »
+- Preuve : l'historique git (dates de commits). Si un commit antérieur à 9h contient du code (pas seulement de la recherche et un plan), ne pas répéter « tout aujourd'hui ». Le premier commit visible est « Recherche et plan du hackathon ».
 
 **Q30. « Qui fait quoi dans l'équipe ? »** (A ; critère 5) P3 × D2 = 6
 - Réponse : « Quatre builders (Adem, Titouan, Sullyvan, Alexandre) : lots répartis par tickets (socle, jumeau 3D, foule, décideurs, couche de données, pitch). » Les rôles exacts sont dans `CLAUDE.md`.
@@ -164,9 +167,9 @@ Chaque bloc : juré, critère, réponse en 2 phrases, preuve à montrer à l'éc
 
 ## 3. Les 5 questions sans bonne réponse aujourd'hui, et que faire en 2 heures
 
-1. **Q4, Aiven en direct (+ Q12).** Tant que l'URL Runtime n'a pas de `/sante` à 200 et que le schéma n'est pas chargé sur la vraie base, la réponse est « local ». *En 2 h :* résoudre la couture Dockerfile du socle vers le serveur de `wt-aiven`, cliquer « Deploy latest commit », coller `curl -i /sante` et `pg_available_extensions` dans le TXT en remplaçant les `[A FAIRE]` par `[MESURE]`, puis faire écrire une ligne dans la base **visible à l'écran** pendant la démo. Si ça échoue à 13h00 : écrire « base locale, même schéma » et retirer tout bandeau Aiven.
+1. **Q4, Aiven en direct (+ Q12).** MISE À JOUR : Adem s'en occupe, l'accès « va venir » (pas encore là, d'après Titouan). Ne rien dire d'Aiven au jury tant que le `/sante` n'est pas vu. Tant que l'URL Runtime n'a pas de `/sante` à 200 et que le schéma n'est pas chargé sur la vraie base, la réponse est « local ». *En 2 h :* résoudre la couture Dockerfile du socle vers le serveur de `wt-aiven`, cliquer « Deploy latest commit », coller `curl -i /sante` et `pg_available_extensions` dans le TXT en remplaçant les `[A FAIRE]` par `[MESURE]`, puis faire écrire une ligne dans la base **visible à l'écran** pendant la démo. Si ça échoue à 13h00 : écrire « base locale, même schéma » et retirer tout bandeau Aiven.
 
-2. **Q1 (+ Q15, Q17, Q18), aucun contact utilisateur.** C'est le trou du critère 1 et du critère 5. *En 2 h :* envoyer 3 messages avant 13h00 (un responsable sûreté de centre ou de salle, un SSIAP, un exploitant de cinéma ou d'ERP via le réseau d'ESSEC/des coéquipiers), et demander 10 minutes aux mentors présents sur place (organisateurs et sponsors) sur « un directeur de centre aurait-il ce besoin ? ». Ce qu'on peut écrire ensuite : « entretien tenu le 22 oct. : [ce qu'il a dit] » ou « planifié le [date] ». Rien d'autre.
+2. **Q1 (+ Q15, Q17, Q18), contact réel mais à documenter.** MISE À JOUR : Titouan a un contact utilisateur réel et une relation avec le gestionnaire du Forum (autour d'un « hôtel Rana » [À CONFIRMER]). Le trou n'est plus « aucun contact » mais « rien de citable ». *En 2 h :* (a) obtenir de Titouan le nom, le rôle et deux phrases exactes du contact, et son accord pour être cité ; (b) fixer la nature de la relation (oral, mail, lettre d'intention) et ne l'écrire que comme telle ; (c) demander au contact une seule question de test : « quelle décision prenez-vous en premier lors d'une évacuation et avec quelles informations ? » ; (d) 10 minutes avec un mentor sûreté si disponible. Écrire ensuite « entretien tenu le 22 oct. : [ce qu'il a dit] » ou « planifié le [date] ». Rien de plus.
 
 3. **Q9, aucune comparaison à un LLM seul.** Le PDF demande une comparaison à un « naïf ou sans donnée ». *En 2 h :* sur le **même scénario** et les mêmes 20 graines, demander à un LLM (cache, crédits déjà donnés, accord d'Adem pour l'appel) de choisir un plan sans simulation, puis **évaluer ce plan dans le simulateur** (gratuit) et comparer zone de danger et t90. Annoncer le résultat quel qu'il soit, y compris si le LLM seul fait aussi bien. Si impossible : supprimer toute allégation de supériorité.
 
@@ -196,8 +199,8 @@ Durées indicatives. Phrases entre crochets = à n'écrire que si le fait est vr
 
 | Temps | Durée | Contenu | Répond à |
 |---|---|---|---|
-| 1. Accroche | 0:00 à 0:25 | « Le 19 octobre, plus de 3 000 spectateurs ont été évacués de l'UGC des Halles sur un couvre-feu. Le responsable a décidé presque seul. Nous lui donnons un jumeau où il essaie ses décisions avant de les prendre. » | Q22, Q6 (une seule phrase sourcée, pas de minute par minute) |
-| 2. Utilisateur et honnêteté | 0:25 à 0:50 | « Utilisateur : le directeur du centre, le responsable sûreté. Nous n'avons pas de client signé ; [un entretien tenu/planifié avec X]. Pas de prix affiché. Outil d'aide à la décision, non certifié. » | **Q1, Q8, Q17** |
+| 1. Accroche | 0:00 à 0:25 | « Le 19 octobre, [des membres de l'équipe y étaient : À CONFIRMER ce qu'ils ont vu, ne dire que cela]. Selon la presse, plus de 3 000 spectateurs ont été évacués de l'UGC des Halles sur un couvre-feu. Nous donnons à celui qui décide un jumeau où il essaie ses décisions avant de les prendre. » | Q22, Q6 (une phrase témoin, une phrase sourcée) |
+| 2. Utilisateur et honnêteté | 0:25 à 0:50 | « Utilisateur : le directeur du centre, le responsable sûreté. Pas de contrat signé ; nous avons un contact utilisateur [À CONFIRMER : nom/rôle citable] et une relation avec le gestionnaire du Forum [À CONFIRMER : nature]. Tarif non arrêté, à tester avec lui. Outil d'aide à la décision, non certifié. » | **Q1, Q8, Q17** |
 | 3. Démo, avec étiquette | 0:50 à 1:30 | Une sortie est fermée (le présentateur ou le juré). Le plan est rejoué ; pastille « LIVE » ou « RECORDED » à l'écran. « Géométrie réelle, capacités estimées, niveaux -1 à -5 en partie estimés. » | **Q5, Q6, Q24** |
 | 4. Preuve : on annonce le pire d'abord | 1:30 à 2:10 | « Résultat sur 20 graines : zone de danger -24,5 % (17 718 → 13 374), mais t90 plus lent de 315 à 501 s. Écrasement et non-sortis : 0 des deux côtés, ils ne distinguent rien. L'outil ne tranche pas, il montre l'arbitrage. Mouvement [simplifié / réel]. » | **Q2**, Q10, Q7 |
 | 5. Agents et données | 2:10 à 2:40 | « La simulation choisit, pas le modèle de langage. Les décideurs proposent des leviers par [règles / Jev], un vérificateur rejette tout chiffre absent de la simulation. Aiven : [décisions, chiffres, REX en direct sur PostgreSQL / base locale, même schéma]. Les positions restent dans le navigateur, après mesure. » | **Q3, Q4**, Q13, Q19, Q20 |
@@ -207,17 +210,53 @@ Règles de la scène : jamais « Jev décide » sans test de fumée ; jamais « 
 
 ---
 
-## 6. Huit questions à Titouan (faits que seul toi connais)
+## 6. Les huit questions posées à Titouan : réponses reçues (dictées, transcription approximative)
 
-1. Contact utilisateur réel : as-tu parlé (ou peux-tu parler avant 14h00) à quelqu'un qui gère la sûreté d'un centre commercial, d'un cinéma ou d'une salle ? Nom, rôle, ce qu'il a dit exactement, et acceptes-tu qu'on le cite ?
-2. Qui serait le tout premier client, selon toi, et pourquoi lui : un centre (URW, exploitant du Forum), une salle, un organisateur d'événements, un assureur ? As-tu un nom précis ?
-3. Tarif : as-tu une idée de ce que le directeur paierait (par site, par exercice, par an) et sur quoi elle repose ? Sinon on supprime la ligne tarif.
-4. Qu'as-tu personnellement vu du Forum des Halles : visité, cinéma, sorties connues ? Ce que tu as constaté (portes, escalators, niveaux) peut servir à marquer ce qui est exact ou faux dans la 3D.
-5. Le matin du 19 oct. : étais-tu sur place ou as-tu un témoin direct de l'évacuation de l'UGC ? Cela change l'accroche (témoignage vs presse).
-6. Jev : le test de fumée a-t-il été lancé, par qui, avec quel résultat ? Et Adem a-t-il autorisé des appels payants (Claude pour la comparaison de la section 3, n° 3) ?
-7. Qu'est-ce qui a été codé aujourd'hui et qu'est-ce qui existait avant 9h ? Réponds-moi avec les commits, pour que Q29 soit exacte.
-8. Aiven : qui a l'accès à la console (admin d'organisation), l'URL Runtime existe-t-elle, et quelle est la dernière sortie de `/sante` que tu as vue ? De cela dépendent Q4, Q5 et le bandeau « Aiven » de la démo.
+| # | Réponse | Effet dans ce document |
+|---|---|---|
+| 1 | Contact utilisateur réel : oui | Q1 réécrite ; nom, rôle, propos et accord de citation [À CONFIRMER] |
+| 2 | Premier client visé : « les Halles » (gestionnaire du Forum), relation/accord autour d'un « hôtel Rana » [À CONFIRMER : nom mal transcrit, nature de l'accord] | Dire « relation », pas « client » ; ne pas afficher le nom |
+| 3 | Tarif pas arrêté | Section 7 |
+| 4 | « On a tout » (plans, visuels open source) ; niveaux -1, -2, -5 encore marqués estimés dans la scène livrée | Q24 : ne pas parler de relevés |
+| 5 | Des membres présents le 19 oct. | Accroche et Q22 : témoin direct, sans exagérer |
+| 6 | Jev : « on verra » (clé, crédits Vercel, accord d'Adem) | Section 8 |
+| 7 | Tout le code du dépôt est d'aujourd'hui | Q29, à confirmer avec git |
+| 8 | Adem s'en occupe, accès à venir | Section 3 n° 1 |
 
 ---
 
-*Limite : ce fichier n'est pas une validation. Les réponses supposent l'état du dépôt à la fin de matinée du 22 oct. ; les points marqués [VÉRIFIER] doivent être re-contrôlés avec les sorties de commande avant 15h30.*
+## 7. Tarif : trois options défendables, sans chiffre
+
+Aucun prix n'existe dans le dépôt ; aucun n'est proposé ici. Chaque option est une hypothèse à tester avec le premier client.
+
+| Option | Pour | Contre | Questions à poser au premier client |
+|---|---|---|---|
+| A. Abonnement par site | Prévisible pour le gestionnaire, simple à budgéter, cohérent avec des visites de commission de sécurité périodiques | Peu lié à l'usage ; le gestionnaire paie même s'il s'exerce rarement | Qui signe un budget sûreté (centre, foncière, groupe) ? Combien de sites sont concernés ? Quelle ligne budgétaire remplace-t-on (études, exercices, formation) ? |
+| B. Par exercice / simulation | Aligné sur la valeur (un exercice rejoué, une trace de décision), entrée peu coûteuse | Revenu irrégulier ; risque de ne s'en servir que pour un exercice annuel | Combien d'exercices ou d'études par an ? Qui les facture aujourd'hui (bureau d'études, prestataire) ? Une trace de décision a-t-elle une valeur pour votre assureur ou la commission ? |
+| C. Par enseigne (locataires du centre) | Le Forum compte de nombreuses enseignes qui produisent des retours d'expérience ; la base de REX grandit avec elles | Le gestionnaire ne reverse pas forcément ; l'enseigne n'est pas l'utilisateur principal | Les enseignes sont-elles tenues de participer aux exercices ? Qui paie leur formation sûreté : elles ou le gestionnaire ? |
+
+Réponse en pitch : « Nous hésitons entre abonnement par site, paiement par exercice et une couche par enseigne ; c'est la première question que nous posons au gestionnaire. » Ne jamais annoncer un montant.
+
+---
+
+## 8. Si Jev n'est pas appelé à 14h30
+
+Statut dit par Titouan : « on verra », clé, crédits Vercel et accord d'Adem en suspens. Conduite :
+- Voix et slide : « décideurs à règles déterministes ; Jev, un modèle de probabilités typées, est branché dans le code mais n'a pas été appelé et n'est pas validé. » Rien sur « modèle de décision » ou « Jev décide ».
+- Réponse à Q3 : inchangée (la simulation choisit, un vérificateur rejette les chiffres absents ; le modèle de langage rédige).
+- Argument à ne pas perdre : la décision n'a pas besoin de Jev, le critère 2 repose sur la boucle (propose, simule, note, retient) et le vérificateur. Ne l'afficher que si la boucle a tourné sur la vraie simulation [VÉRIFIER].
+- Si le test de fumée passe avant 13h00, le dire avec la sortie à l'écran ; sinon retirer toute ligne Jev de la slide.
+
+---
+
+## 9. Les 5 questions restantes les plus importantes à Titouan
+
+1. **Contact** : quel est son nom, son rôle, qu'a-t-il dit exactement, et acceptes-tu qu'on le cite à l'écran et au jury ?
+2. **Hôtel Rana** : comment s'écrit-il vraiment, quelle est sa relation avec le gestionnaire du Forum, et l'accord est-il oral, par mail ou écrit ? Sans cela on ne peut pas dire « client » ni « partenaire ».
+3. **Témoin du 19 oct.** : qui y était, où (dans le cinéma, dehors, au Forum), et qu'a-t-il vu personnellement (sortie, foule, consigne, durée) ? Une phrase d'accroche honnête en dépend.
+4. **Plans et visuels « open source »** : lesquels précisément, quelle licence, quel niveau de précision, et qui les a validés ? C'est ce qui permet de défendre ou non Q6 et Q24.
+5. **Aiven et Jev** : quand l'accès Aiven arrive-t-il (heure) et si Adem refuse ou tarde pour Jev et pour l'appel du LLM de comparaison, acceptes-tu qu'on retire les lignes « Aiven » et « Jev » de la slide plutôt que de les laisser conditionnelles ?
+
+---
+
+*Limite : ce fichier n'est pas une validation. Les réponses supposent l'état du dépôt à la fin de matinée du 22 oct. et les propos de Titouan dictés à l'oral ; les points marqués [VÉRIFIER] ou [À CONFIRMER] doivent être re-contrôlés avant 15h30.*
