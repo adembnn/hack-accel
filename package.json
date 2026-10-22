@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
     "start": "node src/app/serveur.mjs",
@@ -16,9 +18,10 @@
     "test:decideurs": "node --test src/agents/*.test.mts",
     "test:scene": "node tools/lot-absent.mjs scene src/scene",
     "test:motion": "node tools/lot-absent.mjs motion src/sim/motion",
-    "test:behavior": "node tools/lot-absent.mjs behavior src/sim/behavior",
+    "test:behavior": "node --test \"src/sim/behavior/**/*.test.ts\" \"src/sim/metrics/**/*.test.ts\" \"bench/**/*.test.ts\"",
     "bench:motion": "node tools/lot-absent.mjs bench-motion src/sim/motion",
-    "bench:avant-apres": "node tools/lot-absent.mjs bench-avant-apres src/sim/behavior"
+    "bench:avant-apres": "node bench/avant-apres.ts",
+    "bench:validation": "node bench/validation.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
