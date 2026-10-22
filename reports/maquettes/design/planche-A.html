@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planche A · Synoptique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fond:#1f2225; --pan:#272b2f; --pan2:#2f3439; --ligne:#3b4147;
+  --texte:#e6e8ea; --texte2:#9aa2a9; --gris:#6c747b;
+  --rouge:#ff4d4f; --ambre:#f5b83d;
+  --f:'IBM Plex Sans Condensed','Arial Narrow',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--fond);color:var(--texte);font:14px/1.35 var(--f);font-variant-numeric:tabular-nums;overflow:hidden}
+.app{display:grid;height:calc(100vh - 34px);min-height:620px;grid-template-rows:auto 1fr 140px;grid-template-columns:350px 1fr 320px;grid-template-areas:"ban ban ban" "dec vue chi" "tps tps tps"}
+h2{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--texte2);padding:10px 14px 6px;display:flex;justify-content:space-between}
+h2 b{color:var(--ambre);font-weight:700}
+/* bandeau */
+.ban{grid-area:ban;display:flex;align-items:stretch;border-bottom:1px solid var(--ligne);background:var(--pan)}
+.ban>div{padding:8px 16px;border-right:1px solid var(--ligne);display:flex;flex-direction:column;justify-content:center}
+.ban small{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--texte2)}
+.ban strong{font-size:17px;font-weight:600}
+.ban .alerte{background:var(--rouge);color:#1a0b0b;border:0}
+.ban .alerte small{color:#3a1010}
+.ban .pert{flex:1;flex-direction:row;align-items:center;gap:8px;flex-wrap:wrap}
+.pert span{border:1px solid var(--rouge);color:var(--rouge);padding:2px 8px;font-weight:500;font-size:13px}
+.pert span::before{content:"▲ ";font-size:10px}
+.ban .alarme strong{color:var(--texte2)}
+/* colonne gauche */
+.dec{grid-area:dec;background:var(--pan);border-right:1px solid var(--ligne);display:flex;flex-direction:column;min-height:0;overflow:auto}
+.prop{margin:0 12px 10px;border:1px solid var(--ambre);background:#2b2820;padding:9px 11px}
+.prop .n{font-size:10px;letter-spacing:.1em;color:var(--ambre);font-weight:700}
+.prop p{font-size:15px;font-weight:500;margin:2px 0 4px}
+.prop .src{color:var(--texte2);font-size:12px;margin-bottom:8px}
+.btns{display:flex;gap:8px}
+button{font:600 13px var(--f);cursor:pointer;border:1px solid var(--gris);background:transparent;color:var(--texte);padding:7px 12px;min-height:36px}
+button.ok{background:var(--ambre);border-color:var(--ambre);color:#1d1604;flex:1}
+button:focus-visible{outline:2px solid var(--texte);outline-offset:2px}
+.journal{border-top:1px solid var(--ligne);margin-top:auto}
+.lig{padding:5px 14px;font-size:13px;color:var(--texte2);display:grid;grid-template-columns:54px 1fr;gap:6px}
+.lig time{color:var(--gris)}
+.lig q{color:var(--texte);quotes:"« " " »"}
+.lig em{font-style:normal;color:var(--texte2)}
+.micro{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--ligne)}
+.micro .p{width:12px;height:12px;border-radius:50%;background:var(--texte);box-shadow:0 0 0 4px #ffffff22}
+.micro span{color:var(--texte2);font-size:13px}
+/* vue */
+.vue{grid-area:vue;position:relative;container-type:size;overflow:hidden;background:#111}
+.carte{position:absolute;left:50%;top:50%;width:max(100cqw,160cqh);aspect-ratio:1440/900;transform:translate(-50%,-50%);background:url(fond-3d.png) center/cover;filter:grayscale(1) brightness(.62) contrast(1.05)}
+.pins{position:absolute;left:50%;top:50%;width:max(100cqw,160cqh);aspect-ratio:1440/900;transform:translate(-50%,-50%)}
+.pin{position:absolute;transform:translate(-50%,-100%);font-size:12px;font-weight:600;background:#1f2225d9;border:1px solid var(--gris);padding:2px 6px;white-space:nowrap}
+.pin.ferme{border-color:var(--rouge);color:var(--rouge)}
+.pin.ferme::before{content:"✕ "}
+.pin.ouvert::before{content:"□ ";color:var(--texte2)}
+.zone{position:absolute;border:2px dashed var(--rouge);background:repeating-linear-gradient(45deg,#ff4d4f33 0 8px,#ff4d4f10 8px 16px);border-radius:50%}
+.zone span{position:absolute;left:50%;top:-22px;transform:translateX(-50%);background:var(--rouge);color:#1a0b0b;font-weight:700;font-size:11px;padding:1px 6px;white-space:nowrap;letter-spacing:.05em}
+.legende{position:absolute;left:12px;bottom:10px;background:#1f2225e6;border:1px solid var(--ligne);padding:6px 10px;font-size:12px;color:var(--texte2);display:flex;gap:14px;flex-wrap:wrap}
+.legende b{display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:-1px}
+.mode{position:absolute;right:12px;top:10px;display:flex}
+.mode button{padding:4px 10px;min-height:30px;background:#1f2225e6;font-size:12px}
+.mode button.on{border-color:var(--texte);color:var(--texte)}
+/* colonne droite */
+.chi{grid-area:chi;background:var(--pan);border-left:1px solid var(--ligne);overflow:auto;min-height:0}
+.gr{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--ligne)}
+.gr div{padding:10px 14px;border-bottom:1px solid var(--ligne)}
+.gr div:nth-child(odd){border-right:1px solid var(--ligne)}
+.gr small{display:block;font-size:11px;color:var(--texte2);letter-spacing:.04em}
+.gr strong{font-size:30px;font-weight:600;line-height:1.1}
+.gr .sub{font-size:12px;color:var(--texte2);margin-left:6px}
+.gr .al strong{color:var(--rouge)}
+.gr .av strong{color:var(--ambre)}
+.dis{list-style:none;padding:0}
+.dis li{display:grid;grid-template-columns:14px 1fr auto;gap:10px;align-items:center;padding:7px 14px;border-top:1px solid var(--ligne);font-size:13px}
+.dis i{width:10px;height:10px;border:1.5px solid var(--gris)}
+.dis .s i{background:var(--ambre);border-color:var(--ambre)}
+.dis .e i{background:var(--texte);border-color:var(--texte)}
+.dis em{font-style:normal;color:var(--texte2);font-size:12px}
+/* bas : leviers + chronologie */
+.tps{grid-area:tps;background:var(--pan);border-top:1px solid var(--ligne);display:grid;grid-template-columns:350px 1fr;min-height:0}
+.lev{border-right:1px solid var(--ligne);padding-bottom:6px}
+.lev .rg{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:0 12px}
+.lev .rg button{padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:500;font-size:11px}
+.lev .rg b{font-size:18px;font-weight:600}
+.lev .rg .x{border-color:var(--rouge);color:var(--rouge)}
+.frise{position:relative;padding:0 18px;overflow:hidden}
+.axe{position:absolute;left:18px;right:18px;top:79px;height:2px;background:var(--gris)}
+.axe::after{content:"";position:absolute;left:62%;right:0;top:-1px;height:4px;background:repeating-linear-gradient(90deg,var(--ambre) 0 6px,transparent 6px 12px);opacity:.9}
+.maint{position:absolute;left:calc(18px + (100% - 36px)*.62);top:40px;bottom:8px;width:2px;background:var(--texte)}
+.maint span{position:absolute;top:-2px;left:6px;font-size:11px;font-weight:700;letter-spacing:.08em}
+.ev{position:absolute;top:36px;font-size:11px;color:var(--texte2);transform:translateX(-4px);white-space:nowrap}
+.ev::before{content:"";position:absolute;left:0;top:37px;width:8px;height:8px;background:var(--texte2)}
+.ev.r{color:var(--rouge)}.ev.r::before{background:var(--rouge)}
+.ev.f{color:var(--ambre)}.ev.f::before{background:transparent;border:1.5px solid var(--ambre)}
+.ev b{display:block;color:var(--texte);font-weight:500}
+.ev.b{top:84px}.ev.b::before{top:-9px}
+.cible{position:absolute;right:18px;bottom:6px;font-size:11px;color:var(--texte2)}
+.note{position:fixed;right:10px;bottom:4px;font-size:10px;color:var(--gris);display:none}
+/* pied de planche */
+.cible-planche{min-height:34px;background:#000000e6;color:#cfd3d6;font-size:12px;padding:6px 14px;z-index:5;display:flex;gap:18px;flex-wrap:wrap;border-top:1px solid var(--gris)}
+.cible-planche b{color:#fff}
+@media (max-width:900px){
+  html,body{height:auto}body{overflow:auto}
+  .app{display:flex;flex-direction:column;height:auto}
+  .vue{height:46vh;min-height:260px;order:2}
+  .ban{flex-wrap:wrap;order:1}.ban>div{border-bottom:1px solid var(--ligne);flex:1 1 auto}.ban .pert{flex:1 1 100%;order:3}.mode{display:none}
+  .gr strong{font-size:26px}
+  .dec{order:3;overflow:visible}.chi{order:4;border-left:0}.tps{order:5;display:block}
+  .lev{border-right:0;border-bottom:1px solid var(--ligne)}
+  .frise{height:150px;overflow-x:auto}
+  .frise>*{min-width:0}
+  .journal{margin-top:0}
+  .cible-planche{position:static}
+  .legende{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="ban" role="status">
+    <div class="alerte"><small>Phase</small><strong>ÉVACUATION</strong></div>
+    <div><small>Lun. 19 oct. 2026</small><strong>20:09:41 · T+04:12</strong></div>
+    <div class="pert" aria-label="Perturbations en cours"><span>Bouche Rambuteau fermée</span><span>Troubles Berger / Rambuteau</span><span>Issue rue Berger 15 bloquée</span></div>
+    <div class="alarme"><small>Alarme générale</small><strong>non déclenchée</strong></div>
+  </header>
+
+  <section class="dec" aria-label="Décisions et voix">
+    <h2>À valider <b>3</b></h2>
+    <article class="prop"><div class="n">PROPOSITION 1 · PLUS URGENTE</div><p>Message de sonorisation : « Quittez le centre par la Porte du Jour »</p><div class="src">PC sécurité · effet après 30 s · source : dispositif en place</div><div class="btns"><button class="ok">Valider</button><button>Refuser</button></div></article>
+    <article class="prop"><div class="n">PROPOSITION 2</div><p>Guide-files à la Porte du Jour et à la Porte du Louvre</p><div class="src">PC sécurité · effet après 2 min</div><div class="btns"><button class="ok">Valider</button><button>Refuser</button></div></article>
+    <article class="prop"><div class="n">PROPOSITION 3</div><p>Demander à la RATP de rouvrir un accès des stations du Forum</p><div class="src">Liaison RATP · effet après 5 min · à confirmer par téléphone</div><div class="btns"><button class="ok">Valider</button><button>Refuser</button></div></article>
+    <div class="journal">
+      <h2>Journal vocal</h2>
+      <div class="lig"><time>20:09:12</time><span><q>Ferme la porte Rambuteau et mets un agent à la Porte du Jour.</q><br><em>Compris : fermer Porte Rambuteau ; guide-files Porte du Jour.</em></span></div>
+      <div class="lig"><time>20:08:40</time><span><q>Pose une manifestation rue Berger.</q><br><em>Compris : zone de troubles D2, rue Berger.</em></span></div>
+      <div class="micro"><div class="p"></div><span>Parlez. L'outil écrit ce qu'il comprend avant d'agir.</span></div>
+    </div>
+  </section>
+
+  <section class="vue" aria-label="Vue 3D du site">
+    <div class="carte"></div>
+    <div class="pins">
+      <div class="zone" style="left:55%;top:22%;width:17%;aspect-ratio:1"><span>TROUBLES · D2</span></div>
+      <div class="pin ouvert" style="left:36%;top:10%">Porte du Jour</div>
+      <div class="pin ferme" style="left:63.5%;top:31%">Porte Rambuteau</div>
+      <div class="pin ouvert" style="left:60%;top:60%">Porte Lescot</div>
+      <div class="pin ouvert" style="left:30%;top:48%">Porte Berger</div>
+      <div class="pin ferme" style="left:40%;top:66%">Issue Berger 15</div>
+    </div>
+    <div class="mode"><button class="on">Foule</button><button>Densité</button><button>Flux vers les sorties</button></div>
+    <div class="legende"><span><b style="border:1.5px solid var(--gris)"></b>ouvert</span><span><b style="background:var(--rouge)"></b>fermé ou bloqué</span><span><b style="background:repeating-linear-gradient(45deg,var(--rouge) 0 3px,transparent 3px 6px)"></b>zone de troubles</span></div>
+  </section>
+
+  <aside class="chi" aria-label="Chiffres clés et dispositif">
+    <h2>Chiffres clés</h2>
+    <div class="gr">
+      <div class="al"><small>NON SORTIS</small><strong>1 184</strong><span class="sub">sur 3 216</span></div>
+      <div class="al"><small>DENSITÉ MAX</small><strong>5,8</strong><span class="sub">pers./m² · Porte Lescot</span></div>
+      <div class="av"><small>PERS.·MIN &gt; 5/m²</small><strong>212</strong><span class="sub">depuis T+02:30</span></div>
+      <div class="al"><small>VERS LA ZONE</small><strong>37</strong><span class="sub">sorties côté Rambuteau</span></div>
+    </div>
+    <h2>Dispositif en place</h2>
+    <ul class="dis">
+      <li class="e"><i></i><span>Levée de doute</span><em>en cours · 5 min max</em></li>
+      <li class="s"><i></i><span>Sonorisation</span><em>sollicitée</em></li>
+      <li><i></i><span>Alarme générale</span><em>prête</em></li>
+      <li><i></i><span>Issues à contrôle d'accès</span><em>prêtes</em></li>
+      <li><i></i><span>Liaison RATP</span><em>prête</em></li>
+    </ul>
+  </aside>
+
+  <footer class="tps">
+    <div class="lev"><h2>Leviers</h2>
+      <div class="rg"><button>Portes<b>7/8</b></button><button class="x">Issues<b>11/12</b></button><button class="x">Bouches<b>2/5</b></button><button>Ascens.<b>4/4</b></button><button>Escal.<b>9/10</b></button></div>
+    </div>
+    <div class="frise" aria-label="Chronologie">
+      <h2 style="padding-left:0">Chronologie <span>passé en plein, à venir en pointillés</span></h2>
+      <div class="axe"></div>
+      <div class="ev" style="left:4%"><b>20:00</b>Séance UGC</div>
+      <div class="ev r" style="left:17%"><b>20:07</b>Stations fermées</div>
+      <div class="ev r" style="left:36%"><b>20:08</b>Troubles Berger</div>
+      <div class="ev b" style="left:50%"><b>20:09</b>Alerte donnée</div>
+      <div class="ev f" style="left:70%"><b>T+04:42</b>Sonorisation</div>
+      <div class="ev f b" style="left:78%"><b>T+06:12</b>Guide-files</div>
+      <div class="ev f" style="left:90%"><b>T+09:12</b>Accès RATP</div>
+      <div class="maint"><span>MAINTENANT</span></div>
+    </div>
+  </footer>
+</div>
+<div class="cible-planche"><span><b>Planche A · Synoptique</b></span><span>Police : IBM Plex Sans Condensed</span><span>Deux couleurs : rouge #FF4D4F (danger), ambre #F5B83D (à valider)</span><span>Audace : l'écran n'a aucune couleur tant que rien ne cloche</span><span>Pour : le chef de poste, qui lit vite et valide</span><span>Chiffres d'exemple</span></div>
+</body>
+</html>
