@@ -1,0 +1,78 @@
+{
+  "1153f23b9c9d81575eefdc01": {
+    "valeur": {
+      "type": "explication",
+      "porteur": "direction",
+      "texte": "Plan retenu : mode rester_ouvert, 3 porte(s) fermée(s), 10 agent(s) de guidage. À 1172 minutes du jour, 1925 personnes sont sorties, 75 restent dans le centre et 4 ont été dirigées vers une zone de danger. La densité maximale a atteint 5 pers./m² à la minute 1161. Les stations ferment à 22 h 00.",
+      "gabarit": "Plan retenu : mode {{mode}}, {{portes_fermees}} porte(s) fermée(s), {{agents_places}} agent(s) de guidage. À {{minute_fin}} minutes du jour, {{sortis_fin}} personnes sont sorties, {{non_sortis_fin}} restent dans le centre et {{sortis_danger_fin}} ont été dirigées vers une zone de danger. La densité maximale a atteint {{densite_pic}} pers./m² à la minute {{minute_pic}}. Les stations ferment à {{heure_stations}}.",
+      "origine": "gabarit"
+    },
+    "sha256": "b2a0f692d285cefa0acc3fefec24a6e40bac867414ba74e167c5b001067b0e57"
+  },
+  "1c46378f56e9a45b14c05afb": {
+    "valeur": {
+      "type": "ordre_de_service",
+      "zone": "ugc",
+      "porteur": "agent_de_securite",
+      "texte": "Zone ugc : départ à 19 h 20 (5 agent(s) sur place, 7 personnes à faire sortir). Message : Le centre ferme. Rejoignez calmement la sortie indiquée.",
+      "gabarit": "Zone {{zone}} : départ à {{heure_depart}} ({{agents_zone}} agent(s) sur place, {{personnes_restantes}} personnes à faire sortir). Message : {{message}}",
+      "origine": "gabarit"
+    },
+    "sha256": "0545e8bc5a37ce4d706320e7eb225c695818271a69c0d55b51790926d380d413"
+  },
+  "19ba046ed76f15076edbfc06": {
+    "valeur": {
+      "type": "ordre_de_service",
+      "zone": "niveau_0",
+      "porteur": "ecran",
+      "texte": "Zone niveau_0 : départ à 19 h 20 (0 agent(s) sur place, 0 personnes à faire sortir). Message : ",
+      "gabarit": "Zone {{zone}} : départ à {{heure_depart}} ({{agents_zone}} agent(s) sur place, {{personnes_restantes}} personnes à faire sortir). Message : {{message}}",
+      "origine": "gabarit"
+    },
+    "sha256": "ee200b7a851883ca48fd000a81c70ec01ebdf0afbe689a9faaee946e5d11da8b"
+  },
+  "9bb048934cf0d56af1de0b60": {
+    "valeur": {
+      "type": "ordre_de_service",
+      "zone": "niveau_-1",
+      "porteur": "agent_de_securite",
+      "texte": "Zone niveau_-1 : départ à 19 h 20 (5 agent(s) sur place, 4 personnes à faire sortir). Message : Le centre ferme. Rejoignez calmement la sortie indiquée.",
+      "gabarit": "Zone {{zone}} : départ à {{heure_depart}} ({{agents_zone}} agent(s) sur place, {{personnes_restantes}} personnes à faire sortir). Message : {{message}}",
+      "origine": "gabarit"
+    },
+    "sha256": "ddf9cfb0318f712eb2109e3f9782ca4e15e63c9229870881b27cb86dd29ba4b4"
+  },
+  "f73043a960dc9e7faf572f32": {
+    "valeur": {
+      "type": "ordre_de_service",
+      "zone": "niveau_-2",
+      "porteur": "ecran",
+      "texte": "Zone niveau_-2 : départ à 19 h 20 (0 agent(s) sur place, 11 personnes à faire sortir). Message : ",
+      "gabarit": "Zone {{zone}} : départ à {{heure_depart}} ({{agents_zone}} agent(s) sur place, {{personnes_restantes}} personnes à faire sortir). Message : {{message}}",
+      "origine": "gabarit"
+    },
+    "sha256": "e148c446d6af04138671baeb17f0e7c29208ff852b892522bd2a4c440b5f5190"
+  },
+  "837d709ae9a7018ceac9805f": {
+    "valeur": {
+      "type": "ordre_de_service",
+      "zone": "niveau_-3",
+      "porteur": "ecran",
+      "texte": "Zone niveau_-3 : départ à 19 h 20 (0 agent(s) sur place, 11 personnes à faire sortir). Message : ",
+      "gabarit": "Zone {{zone}} : départ à {{heure_depart}} ({{agents_zone}} agent(s) sur place, {{personnes_restantes}} personnes à faire sortir). Message : {{message}}",
+      "origine": "gabarit"
+    },
+    "sha256": "0c304c90e919b2eecdba5a9c369b415e308c0f8a465814098f1437c0baada683"
+  },
+  "2059b64b1d044e373b15534a": {
+    "valeur": {
+      "type": "ordre_de_service",
+      "zone": "niveau_-4",
+      "porteur": "ecran",
+      "texte": "Zone niveau_-4 : départ à 19 h 20 (0 agent(s) sur place, 42 personnes à faire sortir). Message : ",
+      "gabarit": "Zone {{zone}} : départ à {{heure_depart}} ({{agents_zone}} agent(s) sur place, {{personnes_restantes}} personnes à faire sortir). Message : {{message}}",
+      "origine": "gabarit"
+    },
+    "sha256": "1b4c154acf8587c030558900d2a511797d5be87307a95fcc74537b3399752abd"
+  }
+}

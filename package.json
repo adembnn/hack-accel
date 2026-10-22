@@ -22,6 +22,8 @@
     "bench:motion": "node src/sim/motion/bench.ts",
     "bench:avant-apres": "node bench/avant-apres.ts",
     "demo:integration": "node src/integration/demo.ts",
+    "demo:integration-adem": "node src/integration-adem/demo.ts",
+    "test:integration-adem": "node --test src/integration-adem/*.test.ts",
     "test:integration": "node --test src/integration/*.test.ts",
     "test:lots": "node --test src/scene/*.test.ts \"src/sim/**/*.test.ts\" src/agents/*.test.mts src/integration/*.test.ts"
   },
