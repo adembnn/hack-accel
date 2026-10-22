@@ -1,7 +1,7 @@
 # Plan du MP4 de 3 minutes
 
 Source : captures de `node tools/capture.mjs --demo` (dossier `captures/`, une image par étape ; noms issus de `demo/parcours.json` : accueil, donnee-qui-arrive, agent-agit, le-jury-agit, resultat-source, route-utilisateurs). Lire les noms exacts de fichiers dans `captures/rapport.json` avant d'assembler.
-Voix : lue par Titouan, ou synthèse vocale du navigateur (aucun appel payant ; ElevenLabs non nécessaire, décision d'Adem du 22 oct.). Texte : `pitch/voix-off.md` (925 caractères, plus de A_REMPLIR). Option payante seulement avec l'accord d'Adem : `pitch/generer-voix.mjs --oui-payant`.
+Voix : lue par Titouan, ou synthèse vocale du navigateur (aucun appel payant ; ElevenLabs non nécessaire, décision d'Adem du 22 oct.). Texte : `pitch/voix-off.md` (voir comptage, plus de A_REMPLIR). Option payante seulement avec l'accord d'Adem : `pitch/generer-voix.mjs --oui-payant`.
 
 | Plan | Durée | Image | Voix (demo/SCRIPT.md) |
 |---|---|---|---|
