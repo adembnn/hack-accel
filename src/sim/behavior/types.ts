@@ -1,5 +1,14 @@
 // Types communs du lot foule-decision. Modèle simplifié, non certifié.
 
+/** Profil d'une personne à mobilité réduite (voir pmr.ts). */
+export type ProfilPmr = 'fauteuil' | 'canne' | 'autre';
+
+/**
+ * Accès d'une issue pour une personne à mobilité réduite : 'libre' (de plain-pied), 'aide' (niveau différent, escalier : seulement
+ * avec l'aide d'un agent ou d'un proche), 'interdit' (escalator : jamais). Omis = 'libre'.
+ */
+export type AccesPmr = 'libre' | 'aide' | 'interdit';
+
 export type Mode = 'rester_ouvert' | 'fermer_par_etapes' | 'fermer';
 
 /** Une issue du lieu (porte, escalator, accès métro...). */
@@ -26,6 +35,8 @@ export interface Issue {
   zone: string;
   /** Position (m) dans le repère de la scène, facultative : sert seulement à repérer les portes voisines (correction IIA). */
   position?: { x: number; y: number };
+  /** Accès pour les personnes à mobilité réduite (défaut 'libre'). */
+  acces_pmr?: AccesPmr;
 }
 
 export interface Scene {
@@ -51,13 +62,16 @@ export interface Plan {
   confinement_salles?: string[];
 }
 
-export type EtatPersonne = 'attente' | 'marche' | 'file' | 'hesite' | 'dehors';
+/** 'refuge' = en attente dans un espace d'attente sécurisé (EAS) de l'aide d'un agent ou d'un proche (personne à mobilité réduite sans issue accessible). */
+export type EtatPersonne = 'attente' | 'marche' | 'file' | 'hesite' | 'refuge' | 'dehors';
 
 export interface Personne {
   id: number;
   salle: string;
   groupe: number; // 0 = seul·e
   mobilite_reduite: boolean;
+  /** Profil de mobilité réduite (fauteuil, canne, autre) ; absent si la personne n'est pas PMR ou si le modèle PMR est désactivé. */
+  profil_pmr?: ProfilPmr;
   /** Vitesse libre voulue (m/s). */
   vitesse_m_s: number;
   /** Délai de pré-mouvement tiré (s). */
@@ -163,6 +177,8 @@ export interface Grille {
   non_sortis_22h: Critere;
   non_sortis_23h: Critere;
   non_sortis_22h_mobilite_reduite: Critere;
+  /** PMR sortis ou à l'abri en espace d'attente sécurisé à 22 h (évacuation différée, GN 8) ; n'entre pas dans le total. */
+  pmr_sortis_ou_abri_22h?: Critere;
   zone_danger: Critere; // personnes-minutes pondérées + culs-de-sac
   ecrasement: Critere; // personnes-minutes au-dessus de 5 pers/m²
   pression_helbing_max: number; // s^-2, repère 0,02

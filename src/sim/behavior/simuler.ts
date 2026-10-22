@@ -8,6 +8,19 @@ import { calculerGrille, NIVEAU_DANGER, SEJOUR_DEHORS_MIN, SEUIL_ALERTE, SEUIL_R
 import { medianePreset, multiplicateurDelai, nePartPas, PRESET_PLANCHER, tirerDelaiLogLogistique, type PreregageDepart } from './depart.ts';
 import { creerMouvementSimple, DEBIT_PAR_METRE, distanceVers } from './mouvement-simple.ts';
 import { CANAL, creerRngPersonne, type Rng } from './rng.ts';
+import {
+  CANAL_AIDE,
+  CANAL_PMR,
+  completerPmr,
+  delaiAgent,
+  delaiVoisin,
+  peutEmprunter,
+  tirerProfil,
+  tirerVitessePmr,
+  vitesseAidant,
+  vitesseAidee,
+  type OptionsPmr,
+} from './pmr.ts';
 import { SCENE_UGC, ECHEANCES_UGC } from './scene-ugc.ts';
 import {
   choisir,
@@ -35,8 +48,14 @@ export interface OptionsSimulation {
    * 55 % un jour de semaine, 70 % un samedi [lu] ; aucune mesure pour un soir de cinéma (le samedi est le proxy). À balayer 0,55 / 0,7 / 0,85.
    */
   part_groupes?: number;
-  /** Part de personnes à mobilité réduite (défaut 4 %, hypothèse à sourcer). */
+  /** Part de personnes à mobilité réduite (défaut 4 %, hypothèse : fourchette de 4 % à 8 % dans reports/maths-6-mobilite-reduite.md). */
   part_mobilite_reduite?: number;
+  /**
+   * Mobilité réduite (pmr.ts) : profils (fauteuil, canne, autre) avec leur vitesse, issues interdites ou à aide, attente en espace
+   * d'attente sécurisé (état `refuge`) puis aide d'un agent de guidage ou d'un proche du même groupe. `{ actif: false }` rend l'ancien
+   * comportement (PMR à 0,6 m/s, mêmes issues que tout le monde).
+   */
+  pmr?: OptionsPmr;
   /** Choix de sortie : θ, suivisme (dont la variante « surpris »), forme du coût, correction des portes voisines. */
   choix?: Partial<ParamsChoix>;
   /** Changement d'avis : constante, coefficients de Haghani, période, déclencheur de vitesse. */
@@ -86,7 +105,8 @@ export function creerPopulation(graine: number, opts: OptionsSimulation = {}): P
   const rngGroupes = creerRngPersonne(graine, -1, CANAL.groupes);
   const parSalleDefaut = opts.personnes_par_salle ?? 500;
   const lambda = lambdaGroupes(opts.part_groupes ?? 0.7);
-  const partPmr = opts.part_mobilite_reduite ?? 0.04;
+  const pmrP = completerPmr(opts.pmr);
+  const partPmr = pmrP.part ?? opts.part_mobilite_reduite ?? 0.04;
   const choix = completerChoix(opts.choix);
   const preset = opts.depart ?? PRESET_PLANCHER;
   const gens: Personne[] = [];
@@ -111,12 +131,21 @@ export function creerPopulation(graine: number, opts: OptionsSimulation = {}): P
         const uSecours = r.next();
         const uConfiance = r.next();
         const pmr = uPmr < partPmr;
+        // profil et vitesse des PMR sur leur propre flux : aucun tirage des autres personnes n'est décalé
+        let profil: Personne['profil_pmr'];
+        let vitessePmr = 0.6;
+        if (pmr && pmrP.actif) {
+          const rp = creerRngPersonne(graine, id, CANAL_PMR);
+          profil = tirerProfil(rp.next(), pmrP.profils);
+          vitessePmr = tirerVitessePmr(rp, profil);
+        }
         membres.push({
           id,
           salle,
           groupe: gid,
           mobilite_reduite: pmr,
-          vitesse_m_s: pmr ? 0.6 : Math.min(1.6, Math.max(0.8, vitesse)),
+          ...(profil ? { profil_pmr: profil } : {}),
+          vitesse_m_s: pmr ? vitessePmr : Math.min(1.6, Math.max(0.8, vitesse)),
           delai_s: delai,
           suivisme,
           connait_secours: uSecours < 0.25,
@@ -154,6 +183,7 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
   const chgP = completerChangement(opts.changement);
   const [hesMin, hesMax] = opts.hesitation_s ?? [5, 30];
   const personnes = creerPopulation(graine, opts);
+  const pmrP = completerPmr(opts.pmr);
   const n = personnes.length;
   mouvement.init(scene, personnes);
 
@@ -189,7 +219,7 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
   const restantParSalle = new Map(parSalle);
 
   // --- états ---
-  type Phase = 'attente' | 'marche' | 'hesite' | 'dehors';
+  type Phase = 'attente' | 'marche' | 'hesite' | 'refuge' | 'dehors';
   const phase: Phase[] = personnes.map(() => 'attente');
   const cible: (string | null)[] = personnes.map(() => null);
   const reprise: number[] = personnes.map(() => 0); // fin d'hésitation ou prochaine tentative
@@ -205,6 +235,20 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
   const derniereSortie = new Map(issuesId.map((id) => [id, -Infinity]));
   const sortiesT = new Map<string, number[]>(issuesId.map((id) => [id, []]));
   const intentions: Intention[] = personnes.map((p) => ({ id: p.id, sortie_cible: null, vitesse_voulue_m_s: p.vitesse_m_s, groupe: p.groupe, etat: 'attente' }));
+  // --- mobilité réduite (pmr.ts) ---
+  const vit = personnes.map((p) => p.vitesse_m_s); // vitesse courante : change quand une PMR est aidée (et pour son aidant)
+  const estPmr = personnes.map((p) => pmrP.actif && p.profil_pmr !== undefined);
+  const aidee: boolean[] = personnes.map(() => false);
+  const aideT: number[] = personnes.map(() => Infinity); // instant prévu de l'aide, tant que la personne est au refuge
+  const aideSource: ('agent' | 'voisin' | null)[] = personnes.map(() => null);
+  const abriDebut: number[] = personnes.map(() => Infinity);
+  const abriFin: number[] = personnes.map(() => Infinity);
+  const aidantsDistincts = new Set<number>();
+  let aidesAgent = 0;
+  let aidesVoisin = 0;
+  const fluxAide = new Map<number, [number, number]>(); // deux tirages par PMR, faits une seule fois : agent puis proche
+  const membresGroupe = new Map<number, number[]>();
+  for (const p of personnes) if (p.groupe) membresGroupe.set(p.groupe, [...(membresGroupe.get(p.groupe) ?? []), p.id]);
   const groupeCible = new Map<number, string>(); // le premier du groupe qui décide donne la cible (cohésion)
   let changements = 0;
   let hesitations = 0;
@@ -215,6 +259,8 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
     n,
     t_sortie_s: new Array(n).fill(Infinity),
     mobilite_reduite: personnes.map((p) => p.mobilite_reduite),
+    pmr_abri_debut_s: abriDebut,
+    pmr_abri_fin_s: abriFin,
     danger_personnes_minutes: 0,
     culs_de_sac: 0,
     sorties_sures: 0,
@@ -272,7 +318,7 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
 
   const attenteMin = (id: string, en_plus: number) => ((ciblant.get(id) ?? 0) + en_plus) / debit.get(id)! / 60;
   /** Marche restante estimée (m) de la personne vers son issue visée (ligne droite à vitesse voulue, comme le mouvement de test). */
-  const resteM = (i: number, tt: number) => Math.max(0, resteInitial[i] - personnes[i].vitesse_m_s * (tt - debutMarche[i]));
+  const resteM = (i: number, tt: number) => Math.max(0, resteInitial[i] - vit[i] * (tt - debutMarche[i]));
   const viser = (i: number, id: string, tt: number) => {
     phase[i] = 'marche';
     cible[i] = id;
@@ -296,6 +342,7 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
       if (id === exclure) continue;
       const fermee = !ouv[id];
       if (fermee && memoireFermee[i].has(id)) continue; // déjà vue fermée : exclue
+      if (estPmr[i] && !peutEmprunter(issue.get(id)!.acces_pmr, aidee[i])) continue; // escalator, ou escalier sans aide
       // fermée et annoncée par un message ou le personnel : exclue ; fermée mais seulement visible : poids « fumée » du logit
       if (fermee && (msg !== undefined || guide[i])) continue;
       const sait = fermee && issue.get(id)!.visible;
@@ -304,7 +351,7 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
       if (guide[i] && plan!.guidage?.issue_id === id) consigne += p.confiance;
       out.push({
         id,
-        marche_min: issue.get(id)!.distance_m / (p.vitesse_m_s * 60),
+        marche_min: issue.get(id)!.distance_m / (vit[i] * 60),
         connue: issue.get(id)!.porte_entree || p.connait_secours,
         fermee_connue: sait,
         part_foule: (ciblant.get(id) ?? 0) / totalCible,
@@ -314,6 +361,55 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
       });
     }
     return out;
+  };
+
+  // --- refuge et aide (mobilité réduite) ---
+  /** Un proche du même groupe, pas PMR, encore dans le centre (candidat à l'entraide). */
+  const voisinDispo = (i: number): number | null => {
+    if (!pmrP.entraide || !personnes[i].groupe) return null;
+    for (const j of membresGroupe.get(personnes[i].groupe) ?? []) if (j !== i && !estPmr[j] && phase[j] !== 'dehors') return j;
+    return null;
+  };
+  /** Instant de la première aide possible (agent de guidage du plan, ou proche) ; Infinity s'il n'y en a pas. */
+  const planifierAide = (i: number, tt: number) => {
+    let u = fluxAide.get(i);
+    if (!u) {
+      const r = creerRngPersonne(graine, i, CANAL_AIDE);
+      u = [r.next(), r.next()];
+      fluxAide.set(i, u);
+    }
+    const personnel = plan?.guidage?.personnel ?? 0;
+    const tAgent = personnel > 0 ? tt + delaiAgent(u[0], personnel, pmrP) : Infinity;
+    // le proche aide une fois qu'il est lui-même parti de sa place (hypothèse : il ne s'occupe de l'autre qu'après son départ)
+    const j = voisinDispo(i);
+    const tVoisin = j !== null ? Math.max(tt, departT[j]) + delaiVoisin(u[1], pmrP) : Infinity;
+    aideT[i] = Math.min(tAgent, tVoisin);
+    aideSource[i] = aideT[i] === Infinity ? null : tVoisin <= tAgent ? 'voisin' : 'agent';
+  };
+  const entrerRefuge = (i: number, tt: number) => {
+    phase[i] = 'refuge';
+    cible[i] = null;
+    if (abriDebut[i] === Infinity) abriDebut[i] = tt;
+    abriFin[i] = Infinity;
+    planifierAide(i, tt);
+    reprise[i] = tt + 10; // nouvel essai (issue accessible rouverte, plan qui change)
+  };
+  /** L'aide arrive : la personne devient « aidée » (escaliers permis, fauteuil poussé) et son aidant marche à sa vitesse. */
+  const recevoirAide = (i: number): boolean => {
+    let aidant: number | null = null;
+    if (aideSource[i] === 'voisin') {
+      aidant = voisinDispo(i);
+      if (aidant === null) return false; // le proche est sorti entre-temps : on replanifie
+      aidantsDistincts.add(aidant);
+      aidesVoisin++;
+    } else {
+      aidesAgent++;
+    }
+    aidee[i] = true;
+    vit[i] = vitesseAidee(personnes[i].profil_pmr!, vit[i]);
+    if (aidant !== null) vit[aidant] = vitesseAidant(vit[aidant], vit[i]);
+    aideT[i] = Infinity;
+    return true;
   };
 
   /** Une étape de h secondes (h <= 1). */
@@ -331,12 +427,13 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
         // décision de partir : choix de sortie ; en groupe, on suit la cible du premier qui a décidé
         let c: string | null = null;
         const gc = p.groupe ? groupeCible.get(p.groupe) : undefined;
-        if (gc && ouv[gc] && !memoireFermee[i].has(gc)) c = gc;
+        if (gc && ouv[gc] && !memoireFermee[i].has(gc) && (!estPmr[i] || peutEmprunter(issue.get(gc)!.acces_pmr, aidee[i]))) c = gc;
         else {
           c = choisir(candidats(i, t, ouv), p.suivisme, fluxChoix(i), choixP);
           if (c && p.groupe) groupeCible.set(p.groupe, c);
         }
         if (c) viser(i, c, t);
+        else if (estPmr[i]) entrerRefuge(i, t); // aucune issue utilisable : attente en espace d'attente sécurisé
         else {
           reprise[i] = t + 10;
           tentatives_vaines++;
@@ -345,9 +442,27 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
         // nouveau choix en excluant les issues vues fermées
         const c = choisir(candidats(i, t, ouv), p.suivisme, fluxChoix(i), choixP);
         if (c) viser(i, c, t);
+        else if (estPmr[i]) entrerRefuge(i, t);
         else {
           reprise[i] = t + 10;
           tentatives_vaines++;
+        }
+      } else if (phase[i] === 'refuge') {
+        // l'aide arrive (agent ou proche), puis la personne choisit une issue, escaliers permis ; sinon, tous les 10 s, elle
+        // regarde si une issue utilisable s'est ouverte, et replanifie l'aide si le plan a changé (guidage ajouté)
+        if (t >= aideT[i] && recevoirAide(i)) {
+          abriFin[i] = t;
+          const c = choisir(candidats(i, t, ouv), p.suivisme, fluxChoix(i), choixP);
+          if (c) viser(i, c, t);
+          else entrerRefuge(i, t); // même aidée, rien d'ouvert : retour en attente
+        } else if (t >= reprise[i]) {
+          reprise[i] = t + 10;
+          if (aideT[i] === Infinity || aideSource[i] === 'voisin') planifierAide(i, t);
+          const c = choisir(candidats(i, t, ouv), p.suivisme, fluxChoix(i), choixP);
+          if (c) {
+            abriFin[i] = t;
+            viser(i, c, t);
+          }
         }
       } else if (phase[i] === 'marche' && cible[i] && !aChange[i] && revision) {
         // changement d'avis (Haghani et Sarvi 2019), une fois au plus par personne (garde-fou contre le va-et-vient)
@@ -374,8 +489,9 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
         }
       }
 
-      it.etat = phase[i] === 'marche' ? 'marche' : phase[i] === 'hesite' ? 'hesite' : 'attente';
+      it.etat = phase[i] === 'marche' ? 'marche' : phase[i] === 'hesite' ? 'hesite' : phase[i] === 'refuge' ? 'refuge' : 'attente';
       it.sortie_cible = phase[i] === 'marche' ? cible[i] : null;
+      it.vitesse_voulue_m_s = vit[i];
     }
 
     const r = mouvement.pas(h, t, intentions, ouv);
@@ -482,6 +598,8 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
 
     journal(): JournalRun {
       const personnesQuiOntChange = aChange.filter(Boolean).length;
+      const pmrIds = personnes.filter((p) => p.mobilite_reduite).map((p) => p.id);
+      const pmrSortis = pmrIds.filter((i) => Number.isFinite(mes.t_sortie_s[i]));
       return {
         plan: plan ?? PLAN_NEUTRE,
         graine,
@@ -498,6 +616,14 @@ export function creerSimulation(scene: Scene, graine: number, opts: OptionsSimul
           hesitations_issue_fermee: hesitations,
           tentatives_sans_issue: tentatives_vaines,
           culs_de_sac: mes.culs_de_sac,
+          // mobilité réduite : temps moyen = instant de sortie moyen des PMR déjà sortis (0 si aucun) ; aidants = proches distincts + aides d'agents
+          pmr_total: pmrIds.length,
+          pmr_sortis: pmrSortis.length,
+          pmr_en_refuge: pmrIds.filter((i) => phase[i] === 'refuge').length,
+          pmr_temps_moyen_s: pmrSortis.length ? pmrSortis.reduce((a, i) => a + mes.t_sortie_s[i], 0) / pmrSortis.length : 0,
+          pmr_aides_agent: aidesAgent,
+          pmr_aides_voisin: aidesVoisin,
+          aidants: aidantsDistincts.size + aidesAgent,
         },
       };
     },

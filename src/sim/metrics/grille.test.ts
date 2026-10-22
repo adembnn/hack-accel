@@ -68,3 +68,18 @@ test('le non-sorti pèse plus que l’écrasement dans le total (ordre de la gri
   assert.ok(pasSortis.total < ecrase.total);
   assert.match(pasSortis.avertissement, /non certifié/);
 });
+
+test('PMR sortis ou à l’abri en espace d’attente sécurisé à 22 h : l’abri compte comme sécurisé, mais pas dans le total', () => {
+  const pasSorties = { t_sortie_s: [10, 20, 30, 40, 50, 60, 70, 80, 9000, Infinity] }; // les personnes 8 et 9 sont PMR
+  const sansAbri = calculerGrille(base(pasSorties));
+  assert.equal(sansAbri.pmr_sortis_ou_abri_22h!.valeur, 2);
+  assert.equal(sansAbri.pmr_sortis_ou_abri_22h!.valeur, sansAbri.non_sortis_22h_mobilite_reduite.valeur);
+  const debut = new Array(10).fill(600);
+  const tousAbrites = calculerGrille(base({ ...pasSorties, pmr_abri_debut_s: debut, pmr_abri_fin_s: new Array(10).fill(Infinity) }));
+  assert.equal(tousAbrites.pmr_sortis_ou_abri_22h!.valeur, 0);
+  assert.equal(tousAbrites.pmr_sortis_ou_abri_22h!.note, 100);
+  const reparti = calculerGrille(base({ ...pasSorties, pmr_abri_debut_s: debut, pmr_abri_fin_s: [...new Array(8).fill(Infinity), 6000, Infinity] })); // la personne 8 a quitté l'abri avant 22 h sans être sortie
+  assert.equal(reparti.pmr_sortis_ou_abri_22h!.valeur, 1);
+  assert.equal(tousAbrites.non_sortis_22h_mobilite_reduite.valeur, 2); // l'ancien critère ne change pas
+  assert.equal(tousAbrites.total, sansAbri.total);
+});
