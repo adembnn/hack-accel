@@ -123,7 +123,7 @@
      <div class="num" id="rc-n-ex"><strong>–</strong><em>issues en tension</em></div>
      <div class="num"><strong id="rc-n-out">–</strong><em>sorties</em></div>
     </div>
-    <div class="tools"><button class="tb" id="rc-go">Évacuer</button><button class="tb" id="rc-reset">Remettre</button><button class="tb" id="rc-old">Ancienne vue</button></div>`, 'rc-top');
+    <div class="tools"><button class="tb" id="rc-go">Évacuer</button><button class="tb" id="rc-reset">Remettre</button><button class="tb" id="rc-vue">Vue ▾</button><button class="tb" id="rc-old">Ancienne vue</button></div>`, 'rc-top');
   const rack = mk(`<section class="bay decide" id="rc-b1"></section><section class="bay" id="rc-b2"></section><section class="bay" id="rc-b3"></section>`, 'rc-rack');
   const eff = mk('', 'rc-eff');
   const bot = mk(`<div id="rc-tl"></div><div id="rc-sub">
@@ -406,7 +406,56 @@
     const d = $('dirTxt'); if (!d) return; d.value = e.target.value.trim(); e.target.value = '';
     d.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
   });
-  $('rc-mic').onclick = () => { const m = $('dirMic'); if (m && !m.disabled) m.click(); else $('rc-in').focus(); };
+  // Voix : le micro de directeur.js reste la seule reconnaissance ; ici on rend visible son état, la phrase entendue en
+  // direct et la réponse. Bouton « Parler » ou touche V (hors champ de saisie) pour commencer / arrêter.
+  const vst = document.createElement('style');
+  vst.textContent = `#rc-mic{font-size:16px!important;padding:10px 18px!important;background:#FFB21E!important;color:#111!important;font-weight:700!important;letter-spacing:.04em}
+  #rc-mic.on{background:#E0461F!important;color:#fff!important;animation:rcpulse 1s infinite}
+  @keyframes rcpulse{50%{box-shadow:0 0 0 8px rgba(224,70,31,.25)}} #rc-q.ecoute{font-style:italic;opacity:.85}`;
+  document.head.appendChild(vst);
+  const micBtn = $('rc-mic'), m0 = $('dirMic');
+  micBtn.textContent = m0 && !m0.disabled ? '🎙 PARLER (V)' : 'Micro indisponible : tapez l’ordre';
+  const parler = () => { const m = $('dirMic'); if (m && !m.disabled) m.click(); else $('rc-in').focus(); };
+  micBtn.onclick = parler;
+  addEventListener('keydown', (e) => {
+    if ((e.key === 'v' || e.key === 'V') && !e.ctrlKey && !e.metaKey && !e.altKey && !/INPUT|TEXTAREA/.test(document.activeElement?.tagName || '')) { e.preventDefault(); parler(); }
+  });
+  // Sélecteur de vue : relaie les commandes d'origine de la page (style A fil de fer « holographique », B argile,
+  // C thermique, D Paris ; jour / nuit ; caméra ; niveau ; écartement), cachées en mode strips.
+  const pv = document.createElement('div'); pv.id = 'rc-vuep';
+  pv.style.cssText = 'position:fixed;top:60px;right:12px;z-index:60;display:none;background:#14181d;border:1px solid #FFB21E;border-radius:6px;padding:10px 12px;font:600 13px Barlow Condensed,system-ui,sans-serif;color:#eee;min-width:300px';
+  const ligne = (titre, items) => `<div style="margin:6px 0 2px;color:#FFB21E;letter-spacing:.06em">${titre}</div><div style="display:flex;flex-wrap:wrap;gap:4px">${items}</div>`;
+  const bt = (attr, txt) => `<button class="tb" ${attr} style="padding:5px 9px">${txt}</button>`;
+  pv.innerHTML = ligne('STYLE', bt('data-vs="A"', 'Holographique (fil de fer)') + bt('data-vs="B"', 'Argile') + bt('data-vs="C"', 'Thermique') + bt('data-vs="D"', 'Paris texturé'))
+    + ligne('MOMENT', bt('data-vm="dayBtn"', 'Jour') + bt('data-vm="nightBtn"', 'Nuit · 19 oct. 20 h'))
+    + ligne('CAMÉRA', bt('data-vc="orbit"', 'Orbite') + bt('data-vc="top"', 'Dessus') + bt('data-vc="cut"', 'Coupe') + bt('data-vc="forum"', 'Forum'))
+    + ligne('NIVEAU', ['all', '0', '-1', '-2', '-3', '-4', '-5'].map((n) => bt(`data-vl="${n}"`, n === 'all' ? 'Tous' : n)).join(''))
+    + `<div style="margin-top:8px">ÉCARTER LES NIVEAUX <input id="rc-spread" type="range" min="1" max="4" step="0.1" value="1" style="width:140px;vertical-align:middle"></div>`;
+  document.body.appendChild(pv);
+  $('rc-vue').onclick = () => { pv.style.display = pv.style.display === 'none' ? 'block' : 'none'; };
+  pv.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    try {
+      if (b.dataset.vs) document.querySelector(`button[data-s="${b.dataset.vs}"]`)?.click();
+      if (b.dataset.vm) $(b.dataset.vm)?.click();
+      if (b.dataset.vc) document.querySelector(`button[data-c="${b.dataset.vc}"]`)?.click();
+      if (b.dataset.vl) { const s = $('lvl'); if (s) { s.value = b.dataset.vl; s.dispatchEvent(new Event('change', { bubbles: true })); s.dispatchEvent(new Event('input', { bubbles: true })); } }
+    } catch (x) { console.warn('vue', x); }
+  });
+  $('rc-spread').addEventListener('input', (e) => { const s = $('spread'); if (s) { s.value = e.target.value; s.dispatchEvent(new Event('input', { bubbles: true })); s.dispatchEvent(new Event('change', { bubbles: true })); } });
+  let ecoutait = false;
+  setInterval(() => {
+    const m = $('dirMic'), d = $('dirTxt'); if (!m) return;
+    const on = m.classList.contains('on');
+    micBtn.classList.toggle('on', on);
+    if (on) {
+      micBtn.textContent = '● J’ÉCOUTE… (V pour arrêter)';
+      const t = d && d.value.trim();
+      $('rc-q').textContent = t ? `« ${t} »` : '« … parlez »'; $('rc-q').className = 'ecoute';
+      $('rc-who').textContent = 'Directeur · en direct';
+    } else if (ecoutait) micBtn.textContent = '🎙 PARLER (V)';
+    ecoutait = on;
+  }, 150);
   $('rc-go').onclick = () => { const b = $('evacGo'); if (b) b.click(); };
   $('rc-reset').onclick = () => { const b = $('evacReset'); if (b) b.click(); };
   $('rc-old').onclick = () => afficher(false);
