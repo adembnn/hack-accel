@@ -32,6 +32,17 @@
     }),
   };
 
+  // Textures photo CC0 (Poly Haven, textures/) et photo aérienne IGN (data/ortho.jpg, recuperer_ortho.py)
+  const TL = new THREE.TextureLoader();
+  const PH = (n, enc = true) => { const t = TL.load('textures/' + n + '.jpg', () => { needsFrame = 1; }); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = maxAni; if (enc) t.encoding = THREE.sRGBEncoding; return t; };
+  let needsFrame = 0;
+  const IMG = {enduit: PH('enduit'), parquet: PH('parquet'), terrazzo: PH('terrazzo'), beton: PH('beton'), deck: PH('deck'), bois: PH('bardage_bois'), herbe: PH('herbe'), parking: PH('parking'), dalles: PH('dalles')};
+  let ORTHO = null, OB = {x0: -750, x1: 750, z0: -750, z1: 750};
+  const orthoTex = TL.load('data/ortho.jpg', t => { ORTHO = t; t.encoding = THREE.sRGBEncoding; t.anisotropy = maxAni; if (SCN) rebuild(); }, undefined, () => {});
+  fetch('data/ortho.json').then(r => r.json()).then(j => Object.assign(OB, j)).catch(() => {});
+  const ouv = (x, z) => [(x - OB.x0) / (OB.x1 - OB.x0), 1 - (z - OB.z0) / (OB.z1 - OB.z0)];
+  rnd.outputEncoding = THREE.sRGBEncoding; rnd.toneMapping = THREE.ACESFilmicToneMapping; rnd.toneMappingExposure = 1.05;
+
   function ribbon(pts, hw, y, ext) {
     const P = [], U = [];
     for (let i = 0; i < pts.length - 1; i++) {
@@ -61,6 +72,14 @@
 
   buildGround = function () {
     G.surface.clear(); G.rues.clear();
+    if (ORTHO) {
+      const ph = new THREE.Mesh(new THREE.PlaneGeometry(OB.x1 - OB.x0, OB.z1 - OB.z0), new THREE.MeshLambertMaterial({map: ORTHO}));
+      ph.rotation.x = -Math.PI / 2; ph.position.set((OB.x0 + OB.x1) / 2, 0, (OB.z0 + OB.z1) / 2); ph.receiveShadow = true; G.surface.add(ph);
+      const out = new THREE.Mesh(new THREE.RingGeometry(1061, 2600, 4, 1, Math.PI / 4), new THREE.MeshLambertMaterial({color: 0xD8D6D0}));
+      out.rotation.x = -Math.PI / 2; out.position.y = -.05; G.surface.add(out);
+      G.arbres.visible = false; // les arbres sont sur la photo
+      return;
+    }
     const base = new THREE.Mesh(new THREE.PlaneGeometry(2600, 2200), new THREE.MeshLambertMaterial({color: 0xE3E0D9, map: T.card}));
     T.card.repeat.set(200, 170); base.rotation.x = -Math.PI / 2; base.position.y = -.05; base.receiveShadow = true; G.surface.add(base);
     const mGrass = new THREE.MeshLambertMaterial({map: T.grass}), mPar = new THREE.MeshLambertMaterial({map: T.parvis}), mWalk = new THREE.MeshLambertMaterial({map: T.walk});
@@ -95,22 +114,22 @@
       if (arena && SCN.reel) return; // l'Arena est construite par buildReel d'après le vrai plan
       for (let i = 0; i < pts.length; i++) {
         const [a, c] = [pts[i], pts[(i + 1) % pts.length]], L = Math.hypot(c[0] - a[0], c[1] - a[1]);
-        const u0 = acc / (arena ? 16 : 6), u1 = (acc + L) / (arena ? 16 : 6); acc += L;
-        const v0 = arena ? 0 : y0 / 6, v1 = arena ? 1 : h / 6;
+        const u0 = acc / (arena ? 16 : 4), u1 = (acc + L) / (arena ? 16 : 4); acc += L;
+        const v0 = arena ? 0 : y0 / 4, v1 = arena ? 1 : h / 4;
         o.wp.push(a[0], y0, a[1], c[0], y0, c[1], c[0], h, c[1], a[0], y0, a[1], c[0], h, c[1], a[0], h, a[1]);
         o.wu.push(u0, v0, u1, v0, u1, v1, u0, v0, u1, v1, u0, v1); bOwner[arena ? 1 : 0].push(bi, bi);
         o.ep.push(a[0], h, a[1], c[0], h, c[1]); if (L > 6) o.ep.push(a[0], y0, a[1], a[0], h, a[1]);
       }
       if (arena) return; // maquette ouverte : toit de l'Arena retiré pour voir l'intérieur
       let tri = []; try { tri = THREE.ShapeUtils.triangulateShape(pts.map(([x, z]) => new THREE.Vector2(x, z)), []); } catch (e) {}
-      tri.forEach(t => t.forEach(i => o.rp.push(pts[i][0], h, pts[i][1])));
+      tri.forEach(t => t.forEach(i => { o.rp.push(pts[i][0], h, pts[i][1]); o.ru = o.ru || []; o.ru.push(...ouv(pts[i][0], pts[i][1])); }));
     });
     T.card.repeat.set(1, 1);
     B.forEach((o, k) => {
       const wg = new THREE.BufferGeometry(); wg.setAttribute('position', new THREE.Float32BufferAttribute(o.wp, 3)); wg.setAttribute('uv', new THREE.Float32BufferAttribute(o.wu, 2)); wg.computeVertexNormals();
-      const w = new THREE.Mesh(wg, new THREE.MeshLambertMaterial(k ? {map: T.facade, side: THREE.DoubleSide} : {color: 0xF3F1EC, map: T.card, side: THREE.DoubleSide}));
+      const w = new THREE.Mesh(wg, new THREE.MeshLambertMaterial(k ? {map: T.facade, side: THREE.DoubleSide} : {color: 0xF6F3EC, map: IMG.enduit, side: THREE.DoubleSide}));
       w.castShadow = true; w.receiveShadow = true; w.userData.kind = 'bat'; w.userData.owner = k; G.batiments.add(w); pick.push(w);
-      if (o.rp.length) { const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.Float32BufferAttribute(o.rp, 3)); rg.computeVertexNormals(); const r = new THREE.Mesh(rg, new THREE.MeshLambertMaterial({color: 0xE6E3DC, side: THREE.DoubleSide})); r.castShadow = true; r.receiveShadow = true; G.batiments.add(r); }
+      if (o.rp.length) { const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.Float32BufferAttribute(o.rp, 3)); rg.computeVertexNormals(); if (ORTHO) rg.setAttribute('uv', new THREE.Float32BufferAttribute(o.ru, 2)); const r = new THREE.Mesh(rg, new THREE.MeshLambertMaterial(ORTHO ? {map: ORTHO, side: THREE.DoubleSide} : {color: 0xE6E3DC, side: THREE.DoubleSide})); r.castShadow = true; r.receiveShadow = true; G.batiments.add(r); }
       const eg = new THREE.BufferGeometry(); eg.setAttribute('position', new THREE.Float32BufferAttribute(o.ep, 3));
       G.batiments.add(new THREE.LineSegments(eg, new THREE.LineBasicMaterial({color: k ? 0x3a3c3e : 0x8a877f, transparent: true, opacity: k ? .8 : .45})));
     });
@@ -162,7 +181,7 @@
   }
   function courtTexture(kind) { // tracé de terrain dessiné : basket (28 x 15) ou hand/futsal (40 x 20)
     return tex(1024, 548, (x, w, h) => {
-      for (let r = 0; r < h; r += 12) for (let c = -(r % 48); c < w; c += 48) { const k = 214 + Math.random() * 22; x.fillStyle = `rgb(${k},${k * .8 | 0},${k * .55 | 0})`; x.fillRect(c, r, 47, 11); }
+      const im = IMG.parquet.image; if (im && im.complete) { for (let i = 0; i < w; i += 256) for (let j = 0; j < h; j += 256) x.drawImage(im, i, j, 256, 256); } else { x.fillStyle = '#d6a978'; x.fillRect(0, 0, w, h); }
       x.strokeStyle = '#f7f5f0'; x.lineWidth = 5; x.strokeRect(10, 10, w - 20, h - 20); x.beginPath(); x.moveTo(w / 2, 10); x.lineTo(w / 2, h - 10); x.stroke();
       x.beginPath(); x.arc(w / 2, h / 2, kind === 'basket' ? 66 : 60, 0, 7); x.stroke();
       if (kind === 'basket') { x.fillStyle = 'rgba(30,60,140,.55)'; [[10, h / 2 - 90, 210, 180], [w - 220, h / 2 - 90, 210, 180]].forEach(r => { x.fillRect(...r); x.strokeRect(...r); });
@@ -187,8 +206,9 @@
       P.push(a0[0], hb, a0[1], b0[0], hb, b0[1], b0[0], h, b0[1], a0[0], hb, a0[1], b0[0], h, b0[1], a0[0], h, a0[1]);
       const sa = lerp(a0, a1, .55), sb = lerp(b0, b1, .55); L.push(sa[0], h + .45, sa[1], sb[0], h + .45, sb[1]);
     }
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.computeVertexNormals();
-    const grp = new THREE.Group(); const m = new THREE.Mesh(g, cm({color: 0xb7b2a8})); m.castShadow = m.receiveShadow = true;
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
+    const UVt = []; for (let i = 0; i < P.length; i += 3) UVt.push((P[i] + P[i + 1]) / 3, P[i + 2] / 3); g.setAttribute('uv', new THREE.Float32BufferAttribute(UVt, 2)); g.computeVertexNormals();
+    const grp = new THREE.Group(); const m = new THREE.Mesh(g, cm({map: IMG.beton})); m.castShadow = m.receiveShadow = true;
     m.userData.info = {type: 'Tribune', nom: t.n, places: '≈ ' + t.places, rangs: t.rows, source: t.e ? 'estimé d\'après la coupe AA (NP2F)' : 'plan NP2F calé sur OSM'}; pick.push(m); grp.add(m);
     // rangées de sièges noirs (sièges en plastique recyclé noir)
     const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.Float32BufferAttribute(L, 3));
@@ -200,12 +220,12 @@
     G.reel.clear(); const R = SCN.reel; if (!R) return;
     const fp = pairs(SCN.batiments.find(b => /Adidas Arena/i.test(b.n || '')).p);
     // parking (-1, estimé) et dalle du rez-de-chaussée
-    const park = slab(q2(R.volume_haut ? R.parking : R.parking), R.parking_y, cm({map: T2.parking}), 6); park.userData.lvl = -1; G.reel.add(park);
-    G.reel.add(slab(fp, .03, cm({map: T2.terrazzo}), 5));
+    const park = slab(q2(R.volume_haut ? R.parking : R.parking), R.parking_y, cm({map: IMG.parking}), 6); park.userData.lvl = -1; G.reel.add(park);
+    G.reel.add(slab(fp, .03, cm({map: IMG.dalles, color: 0xEDEAE4}), 3));
     // murs du plan, épais, enduits, coupés en noir sur le dessus comme un plan d'architecte
-    G.reel.add(walls(R.murs.map(q2), 0, R.hauteur_rdc, cm({map: T2.plaster}), cm({color: 0x2a2826}), 3));
+    G.reel.add(walls(R.murs.map(q2), 0, R.hauteur_rdc, cm({map: IMG.enduit, color: 0xF4F1EA}), cm({color: 0x2a2826}), 3));
     // aire de jeu et terrains
-    G.reel.add(quadMesh(R.aire, .06, T2.parquet)); T2.parquet.repeat.set(4, 6);
+    G.reel.add(quadMesh(R.aire, .06, IMG.parquet)); IMG.parquet.repeat.set(6, 8);
     G.reel.add(quadMesh(R.basket, .08, courtTexture('basket')));
     G.reel.add(quadMesh(R.gymnase, .06, courtTexture('hand')));
     // tribunes
@@ -213,9 +233,10 @@
     // socle vitré à lames de bois (0 → 11,5 m), terrasse plantée, volume aluminium (11,5 → 26 m)
     G.reel.add(walls([fp], 0, R.terrasse_y, cm({map: T2.glass, transparent: true, opacity: .85, depthWrite: false}), null, 8));
     const vh = q2(R.volume_haut);
-    G.reel.add(slab(fp, R.terrasse_y, cm({map: T2.deck}), 4, [vh]));
+    G.reel.add(slab(fp, R.terrasse_y, cm({map: IMG.deck}), 4, [vh]));
     G.reel.add(walls([vh], R.terrasse_y, R.haut_y, cm({map: T2.alu}), null, 8));
-    const roof = slab(vh, R.haut_y, cm({map: T.grass}), 8); roof.userData.roof = 1; roof.visible = false; G.reel.add(roof);
+    const roof = slab(vh, R.haut_y, cm(ORTHO ? {map: ORTHO} : {map: IMG.herbe}), 8);
+    if (ORTHO) { const uv = roof.geometry.attributes.uv, pos = roof.geometry.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, ...ouv(pos.getX(i), pos.getZ(i))); } roof.userData.roof = 1; roof.visible = false; G.reel.add(roof);
     // étiquettes
     const lab = (t, x, y, z) => { // étiquette dimensionnée sur son texte, cachée quand le toit est posé
       const c = document.createElement('canvas'), k = c.getContext('2d'); k.font = '600 44px system-ui,sans-serif'; const w = Math.ceil(k.measureText(t).width) + 28;
