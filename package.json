@@ -12,13 +12,13 @@
     "test": "vitest run",
     "build": "vite build",
     "e2e:socle": "node --test tests/e2e/socle.test.mjs",
-    "test:db": "node scripts/lot-absent.mjs db src/server",
-    "test:decideurs": "node scripts/lot-absent.mjs decideurs src/agents",
-    "test:scene": "node scripts/lot-absent.mjs scene src/scene",
-    "test:motion": "node scripts/lot-absent.mjs motion src/sim/motion",
-    "test:behavior": "node scripts/lot-absent.mjs behavior src/sim/behavior",
-    "bench:motion": "node scripts/lot-absent.mjs bench-motion src/sim/motion",
-    "bench:avant-apres": "node scripts/lot-absent.mjs bench-avant-apres src/sim/behavior"
+    "test:db": "node tools/lot-absent.mjs db src/server",
+    "test:decideurs": "node tools/lot-absent.mjs decideurs src/agents",
+    "test:scene": "node tools/lot-absent.mjs scene src/scene",
+    "test:motion": "node tools/lot-absent.mjs motion src/sim/motion",
+    "test:behavior": "node tools/lot-absent.mjs behavior src/sim/behavior",
+    "bench:motion": "node tools/lot-absent.mjs bench-motion src/sim/motion",
+    "bench:avant-apres": "node tools/lot-absent.mjs bench-avant-apres src/sim/behavior"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
