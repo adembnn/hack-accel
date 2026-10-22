@@ -5,7 +5,7 @@
 //  - question oui/non = `noul` (pas `boolean` : `boolean` est le nom de l'autre API HTTP /v1/evaluate, non utilisée ici) ;
 //  - réponse : { model, answers: { cle: { type, noul | choice+probabilities+confidence | score+... } }, usage, provider_metadata }.
 // Aucun appel réseau n'est fait par ce fichier tant qu'on n'appelle pas envoyer() sur un transport payant autorisé.
-import type { Decideur } from './types.ts';
+import type { DecideurJeu } from './types.ts';
 import { DECIDEURS } from './types.ts';
 import type { ClientDecision } from './questions.ts';
 import {
@@ -108,7 +108,7 @@ export function backendDepuisEnv(env: Record<string, string | undefined> = proce
 
 // Quatre clients de décision (un par décideur). rules : aucun réseau. jev-* : cache d'abord, appel payant seulement sur absence,
 // et seulement si autorise_payant ; toute erreur (401, 429, délai…) retombe sur les règles dans ClientJev.
-export function creerClientsDecision(o: OptionsSelecteur = {}): Record<Decideur, ClientDecision> & { backend: Backend } {
+export function creerClientsDecision(o: OptionsSelecteur = {}): Record<DecideurJeu, ClientDecision> & { backend: Backend } {
   const env = o.env ?? process.env;
   const backend = backendDepuisEnv(env);
   let transport: TransportJev;
@@ -119,7 +119,7 @@ export function creerClientsDecision(o: OptionsSelecteur = {}): Record<Decideur,
       : new TransportHttpJev({ autorise_payant: o.autorise_payant === true, env, fetchImpl: o.fetchImpl });
     transport = o.cache ? new TransportEnregistreurJev(new TransportRejeuJev(o.cache), payant) : payant;
   }
-  const clients = {} as Record<Decideur, ClientDecision>;
+  const clients = {} as Record<DecideurJeu, ClientDecision>;
   for (const d of DECIDEURS) clients[d] = new ClientJev({ transport, effectif_securite: o.effectif_securite });
   return Object.assign(clients, { backend });
 }

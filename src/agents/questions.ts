@@ -11,7 +11,7 @@ export interface QuestionJev {
   decideur: Decideur;
   minute: number;
   consigne: string;                 // rôle et règles, en français
-  entree: { etat: EtatResume; derniere_note: Note | null; decisions_des_autres: { decideur: Decideur; actions: Action[] }[]; plan_courant: EtatDecisions['plan']; lecons: Lecon[] };
+  entree: { etat: EtatResume; derniere_note: Note | null; decisions_des_autres: { decideur: Decideur; actions: Action[] }[]; plan_courant: EtatDecisions['plan']; lecons: Lecon[]; perturbations: string[]; conflits: string[]; nouvelles_perturbations: boolean };
   entree_schema: Record<string, unknown>;
   reponse_schema: Record<string, unknown>;
 }
@@ -22,7 +22,9 @@ const ROLES: Record<Decideur, string> = {
   prefecture: 'Tu es la préfecture de police de Paris. Tu fixes l\'heure et le périmètre du couvre-feu et tu demandes des renforts ou la fermeture des stations.',
   ratp: 'Tu es la RATP. Tu fixes l\'heure de fermeture des stations Châtelet / Les Halles (au plus tard 22 h) et les sorties ouvertes.',
   securite_centre: 'Tu es le responsable sécurité du Forum des Halles. Tu places des agents et diffuses des annonces par zone, sans jamais déclencher l\'alarme générale.',
-  directeur: 'Tu es le directeur du Forum des Halles. Tu choisis le mode (rester ouvert, fermer par étapes, fermer), les portes, le phasage des salles et le confinement.',
+  directeur: "Tu es le directeur du Forum des Halles. Tu choisis le mode (rester ouvert, fermer par étapes, fermer), les portes, le phasage des salles et le confinement.",
+  ugc: "Tu es l'exploitant du cinéma UGC (27 salles). Tu décides seul de l'arrêt des séances, de la vidange par vagues et des annonces en salle.",
+  bspp: "Tu es la brigade des sapeurs-pompiers de Paris. Tu n'agis que sur incident : poste de secours, levée de doute, évacuation médicale.",
 };
 
 const REGLES = [
@@ -42,7 +44,7 @@ export function schemaReponse(decideur: Decideur): Record<string, unknown> {
     properties: {
       actions: {
         type: 'array',
-        maxItems: 6,
+        maxItems: 64,
         items: {
           oneOf: leviers.map((l) => ({
             type: 'object',
@@ -72,6 +74,7 @@ export const SCHEMA_ENTREE: Record<string, unknown> = {
 export function construireQuestion(args: {
   decideur: Decideur; minute: number; etat: EtatResume; derniere_note: Note | null;
   plan_courant: EtatDecisions['plan']; decisions_des_autres: { decideur: Decideur; actions: Action[] }[]; lecons?: Lecon[];
+  perturbations?: string[]; conflits?: string[]; nouvelles_perturbations?: boolean;
 }): QuestionJev {
   return {
     version: 1,
@@ -79,7 +82,7 @@ export function construireQuestion(args: {
     decideur: args.decideur,
     minute: args.minute,
     consigne: `${ROLES[args.decideur]} ${REGLES.join(' ')}`,
-    entree: { etat: args.etat, derniere_note: args.derniere_note, decisions_des_autres: args.decisions_des_autres, plan_courant: args.plan_courant, lecons: args.lecons ?? [] },
+    entree: { etat: args.etat, derniere_note: args.derniere_note, decisions_des_autres: args.decisions_des_autres, plan_courant: args.plan_courant, lecons: args.lecons ?? [], perturbations: args.perturbations ?? [], conflits: args.conflits ?? [], nouvelles_perturbations: args.nouvelles_perturbations ?? false },
     entree_schema: SCHEMA_ENTREE,
     reponse_schema: schemaReponse(args.decideur),
   };
@@ -95,8 +98,8 @@ export function lireReponse(decideur: Decideur, brut: unknown): { actions: Actio
     if (!trouverLevier(decideur, a.levier)) { erreurs.push(`actions[${i}] : levier « ${a.levier} » hors du menu de ${decideur}`); continue; }
     actions.push({ decideur, levier: a.levier, valeur: a.valeur });
   }
-  if (actions.length > 6) erreurs.push('plus de 6 actions');
-  return { actions: actions.slice(0, 6), erreurs };
+  if (actions.length > 64) erreurs.push('plus de 64 actions');
+  return { actions: actions.slice(0, 64), erreurs };
 }
 
 // Client de décision injecté : Jev en production, un décideur déterministe en test.
