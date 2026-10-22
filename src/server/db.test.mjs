@@ -57,7 +57,7 @@ test('le schéma est idempotent (appliqué trois fois sans erreur)', { skip: !di
   const r = await pool.query(
     `SELECT table_name FROM information_schema.tables WHERE table_schema='public' ORDER BY 1`);
   assert.deepEqual(r.rows.map((x) => x.table_name),
-    ['contraintes', 'decisions', 'journal_chiffres', 'memoire', 'runs', 'scenes', 'tableau_commun']);
+    ['contraintes', 'decisions', 'enseignes', 'journal_chiffres', 'lecons', 'lecons_sources', 'memoire', 'rex_crises', 'runs', 'scenes', 'tableau_commun']);
   console.log('# tables :', r.rows.map((x) => x.table_name).join(', '));
 });
 
@@ -149,4 +149,32 @@ test('tableau commun : une écriture arrive en direct par SSE', async (t) => {
   req.destroy();
   const lu = await appel('GET', '/api/tableau?apres=0');
   assert.ok(lu.corps.length >= 1);
+});
+
+test('REX des enseignes -> leçons -> relues avant décision (bout en bout par HTTP)', async (t) => {
+  if (!disponible) return t.skip('pas de base');
+  const inconnue = await appel('POST', '/rex', { enseigneId: 'inconnue', dateIncident: '2026-10-19', typeIncident: 'x', description: 'y' });
+  assert.equal(inconnue.code, 400,'une enseigne inconnue est refusée par la clé étrangère');
+  assert.equal((await appel('POST', '/enseignes', { id: 'ugc', sceneId: 'forum', nom: 'UGC Ciné Cité Les Halles', zone: 'niveau -3' })).code, 201);
+  const r1 = await appel('POST', '/rex', { enseigneId: 'ugc', dateIncident: '2026-10-19', typeIncident: 'evacuation',
+    description: 'Couvre-feu, évacuation de 3 000 spectateurs par une seule issue', decisionsPrises: 'Sorties ouvertes en une fois',
+    resultat: 'Bouchon à la sortie 3', dureeMinutes: 35, personnesTouchees: 3000, leconsEnseigne: 'Phaser les salles',
+    etiquettes: ['issue_fermee:sortie-3', 'evacuation'] });
+  assert.equal(r1.code, 201);
+  const r2 = await appel('POST', '/rex', { enseigneId: 'ugc', dateIncident: '2026-03-02', typeIncident: 'panique',
+    description: 'Mouvement de foule', etiquettes: ['evacuation'] });
+  const liste = await appel('GET', '/rex?enseigne=ugc');
+  assert.equal(liste.corps.length, 2);
+  assert.equal(liste.corps[0].id, r1.corps.id, 'le plus récent d\'abord');
+
+  const l = await appel('POST', '/lecons', { sceneId: 'forum', texte: 'Phaser les salles quand une seule issue reste ouverte',
+    etiquettes: ['issue_fermee:sortie-3', 'evacuation'], confiance: 0.8, rexIds: [r1.corps.id, r2.corps.id] });
+  assert.equal(l.code, 201);
+  await appel('POST', '/lecons', { sceneId: 'forum', texte: 'sans rapport', etiquettes: ['manifestation:rivoli'] });
+  const lues = await appel('GET', '/lecons?scene=forum&etiquettes=issue_fermee:sortie-3,evacuation');
+  assert.equal(lues.code, 200);
+  assert.deepEqual(lues.corps.map((x) => x.texte), ['Phaser les salles quand une seule issue reste ouverte']);
+  assert.equal(lues.corps[0].rex_ids.length, 2);
+  assert.equal(lues.corps[0].similarite, 1);
+  console.log('# leçon relue :', JSON.stringify({ texte: lues.corps[0].texte, similarite: lues.corps[0].similarite, rex_ids: lues.corps[0].rex_ids }));
 });
