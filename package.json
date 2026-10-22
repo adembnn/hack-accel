@@ -9,7 +9,7 @@
     "dev": "vite",
     "start": "node src/app/serveur.mjs",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit --allowImportingTsExtensions",
     "test": "vitest run",
     "test:scene": "node --test src/scene/*.test.ts",
     "generer": "node src/scene/generer.ts",
