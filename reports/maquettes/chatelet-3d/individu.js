@@ -219,6 +219,9 @@
    why=r.dist<b.dist-1?`${fact[0]} ${pen.join(' et ')||'cumule des pénalités'} (${ec} m équivalents de plus).`:`Plus courte que ${r.nom} de ${Math.round(r.dist-b.dist)} m${pen.length?' et sans pénalité de zone ni de foule':''} (score ${ec} m équivalents plus bas).`;}
   return `<div class="m">Score = distance + zone à éviter (${PEN_ZONE}) + zone posée + foule + ascenseur (${PEN_ASC}) ; porte fermée exclue</div>`+[b,...alt2].map(r=>`<div>${l(r)}</div>`).join('')+`<div style="margin-top:3px">${why}</div>`;}
  let C=null,routeT=0,openSig='';
+// Le personnel (a.role : sécurité, police) reçoit l'ordre sur sa radio ou son téléphone de service ; la personne guidée reçoit la consigne parlée de l'agent le plus proche, à moins de 10 m.
+ const ROLE=r=>({securite:'agent de sécurité',sécurité:'agent de sécurité',police:'policier',policier:'policier',pompier:'pompier'}[r]||String(r));
+ function agentProche(a){let best=null,bd=1e9;for(const b of SIM.A){if(b===a||b.out||!b.role||b.ride||b.l!==a.l)continue;const d=Math.hypot(b.x-a.x,b.z-a.z);if(d<bd){bd=d;best=b;}}return best?{b:best,d:bd}:null;}
  function sigOuv(){return SIM.groups.map(G=>G.open?1:0).join('')+SIM.g.links.reduce((s,k)=>s+(k.open?'':'x'),'')+(typeof ZONES!=='undefined'?ZONES.length:0);}
  function majFiche(force){if(sel<0)return;if(SIM.A[sel]!==selA){deselect();return;}const a=selA,i=cellOf(a),g=SIM.g;
   const c=C=consigne(a),G=a.t>=0?SIM.groups[a.t]:null,d=G&&i>=0?SIM.F[a.t][i]*g.res:null;
@@ -232,9 +235,12 @@
   $('indWhy').innerHTML=(c.A?alternatives(c.A):'')+`<div class="m" style="margin-top:4px">Choix du modèle de foule pour cette personne</div>`+pourquoi(a).map(s=>`<div>· ${s}</div>`).join('');
   const recu=!!a.consigne&&OBEI.has(a);
   // téléphone : notification (résumé) + écran de guidage (étapes, l'étape en cours avance pendant la marche)
-  $('indMsg').textContent=c.A?`Évacuez par ${c.A.best.nom} : ${Math.round(c.A.d/5)*5||5} m, ~${dur(c.Z.t)}. ${P0.all.length} étapes.`:c.txt;
-  $('indGd').innerHTML=c.A&&P0?`<div class="cu2">Étape ${Math.min(P0.cur+1,P0.all.length)}/${P0.all.length}</div><div class="cut">${P0.all[Math.min(P0.cur,P0.all.length-1)].txt}</div>${P0.all.map((s,j)=>`<div class="sp ${j<P0.cur?'dn':j===P0.cur?'cu':''}">${s.n}. ${s.txt}</div>`).join('')}`:'';
-  $('indCap').textContent=recu?`Reçue à ${tt(a.consigne.T)} · guidage en cours`:'Aperçu (non envoyé)';
+  const staff=!!a.role,ag=staff?null:agentProche(a),pres=ag&&ag.d<=10;
+  const aff=staff||pres;
+  $('indMsg').textContent=staff?(c.A?`Ordre reçu (radio de service) : guidez la foule vers ${c.A.best.nom}. ${P0.all.length} étapes à donner.`:c.txt):!ag?"Aucun agent de sécurité ni policier dans la simulation : personne pour transmettre la consigne.":pres?`Consigne reçue de : ${ROLE(ag.b.role)} (à ${Math.round(ag.d)} m). `+(c.A?`« Sortez par ${c.A.best.nom}, ${P0.all.length} étapes. »`:c.txt):`Consigne non reçue : ${ROLE(ag.b.role)} le plus proche à ${Math.round(ag.d)} m (il faut être à moins de 10 m).`;
+  if(false)$('indMsg').textContent=c.A?`Évacuez par ${c.A.best.nom} : ${Math.round(c.A.d/5)*5||5} m, ~${dur(c.Z.t)}. ${P0.all.length} étapes.`:c.txt;
+  $('indGd').innerHTML=c.A&&P0&&aff?`<div class="cu2">Étape ${Math.min(P0.cur+1,P0.all.length)}/${P0.all.length}</div><div class="cut">${P0.all[Math.min(P0.cur,P0.all.length-1)].txt}</div>${P0.all.map((s,j)=>`<div class="sp ${j<P0.cur?'dn':j===P0.cur?'cu':''}">${s.n}. ${s.txt}</div>`).join('')}`:'';
+  $('indCap').textContent=staff?'Radio / téléphone de service du personnel':recu?`Consigne de l'agent · envoyée à ${tt(a.consigne.T)}`:'Aperçu (non envoyé)';
   $('indWhen').textContent=recu?'envoyée':'aperçu';
   const now=new Date();$('indTm').textContent=p2(now.getHours())+':'+p2(now.getMinutes());$('indDt').textContent=tt(SIM.T)+' · alerte '+(SIM.mode==='evac'?'en cours':'pas lancée');
   const dir=c.arrow;if(dir&&Math.hypot(dir[0],dir[1])>.2){const br=Math.atan2(dir[0],-dir[1])*180/Math.PI;$('indAr').style.transform=`rotate(${br.toFixed(0)}deg)`;
