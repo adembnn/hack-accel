@@ -1,0 +1,344 @@
+<!doctype html>
+<!--
+IDEE AUDACIEUSE : le mur est la hiérarchie. Aucune alerte n'est une carte ou un bandeau : la tuile caméra en tension
+« s'allume » elle-même (cadre rouge/ambre à coins de visée, halos des personnes qui rougissent, légende qui vire),
+et la colonne de décision à droite reste sobre, sans aucune couleur tant que rien n'est à trancher.
+Police : Schibsted Grotesk (texte) + Martian Mono (uniquement les incrustations caméra et l'horodatage = mesure).
+Deux accents : rouge alarme #ff4a3d et ambre #ffb020 (vert/bleu/gris = codes d'état de la frise uniquement).
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1600">
+<title>D · Mur d'écrans — Régie Forum des Halles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0d10; --panel:#12151a; --line:#232830; --txt:#e8ebef; --dim:#8b94a1; --faint:#5b6470;
+  --red:#ff4a3d; --amb:#ffb020; --grn:#46d39a; --blu:#5aa8ff; --gry:#6c7580;
+  --sans:'Schibsted Grotesk',system-ui,sans-serif; --mono:'Martian Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-variant-numeric:tabular-nums;overflow:auto}
+::selection{background:var(--amb);color:#000}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--amb);outline-offset:2px}
+.frame{width:1600px;min-width:1280px;height:900px;display:grid;grid-template-columns:1fr 340px;grid-template-rows:36px 1fr;margin:0 auto;position:relative}
+/* barre haute */
+.top{grid-column:1/3;display:flex;align-items:center;gap:20px;padding:0 14px;border-bottom:1px solid var(--line);font-size:13px;color:var(--dim)}
+.top b{color:var(--txt);font-weight:600}
+.top .live{display:flex;align-items:center;gap:6px;color:var(--red);font-weight:600;letter-spacing:.04em}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block}
+.top .sp{flex:1}
+.top .clock{font-family:var(--mono);font-size:12px;color:var(--txt)}
+.tag{font-size:11px;padding:2px 8px;border:1px solid var(--line);border-radius:3px;color:var(--dim)}
+/* mur + frise */
+.left{display:grid;grid-template-rows:1fr 74px;min-height:0}
+.wall{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:3px;padding:3px;background:#05060800;min-height:0}
+.tile{position:relative;background:#0e1115;overflow:hidden;border:1px solid var(--line);min-height:0}
+.tile svg.scene{position:absolute;inset:0;width:100%;height:100%;display:block}
+.map{grid-column:1/3;grid-row:1/3}
+.tile.red{border:2px solid var(--red);box-shadow:inset 0 0 0 1px #000,inset 0 0 38px -6px rgba(255,74,61,.45)}
+.tile.amb{border:2px solid var(--amb);box-shadow:inset 0 0 0 1px #000,inset 0 0 30px -8px rgba(255,176,32,.35)}
+.tile .brk{position:absolute;width:14px;height:14px;border:0 solid currentColor;z-index:3}
+.tile.red{color:var(--red)} .tile.amb{color:var(--amb)}
+.brk.a{left:6px;top:6px;border-width:2px 0 0 2px}.brk.b{right:6px;top:6px;border-width:2px 2px 0 0}
+.brk.c{left:6px;bottom:30px;border-width:0 0 2px 2px}.brk.d{right:6px;bottom:30px;border-width:0 2px 2px 0}
+.osd{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;padding:7px 12px;font-family:var(--mono);font-size:10px;color:#cfd5dc;z-index:2;text-shadow:0 1px 2px #000}
+.rec{display:flex;align-items:center;gap:5px;color:#ff6a5e;font-weight:500}
+.rec i{width:7px;height:7px;border-radius:50%;background:var(--red)}
+.cap{position:absolute;left:0;right:0;bottom:0;height:24px;display:flex;align-items:center;gap:8px;padding:0 10px;background:rgba(6,8,10,.88);border-top:1px solid #1c2128;font-size:12px;z-index:2;white-space:nowrap}
+.cap .n{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.cap .nm{font-weight:600}
+.cap .pp{margin-left:auto;font-family:var(--mono);font-size:11px}
+.cap .pp.r{color:var(--red)}.cap .pp.a{color:var(--amb)}.cap .pp.g{color:var(--grn)}
+.tile.red .cap{background:rgba(70,10,8,.9)} .tile.amb .cap{background:rgba(60,40,0,.9)}
+.badge{position:absolute;right:10px;bottom:34px;z-index:3;font-size:11px;font-weight:700;letter-spacing:.05em;padding:3px 7px;border-radius:2px;color:#000}
+.badge.r{background:var(--red)}.badge.a{background:var(--amb)}
+/* carte 3D */
+.map .osd{font-family:var(--sans);font-size:12px}
+.layers{position:absolute;left:12px;top:34px;z-index:3;display:flex;flex-direction:column;gap:2px}
+.layers button{background:rgba(10,12,15,.8);border:1px solid var(--line);padding:3px 9px;font-size:11px;text-align:left;border-radius:2px;min-width:92px;color:var(--dim)}
+.layers button.on{color:var(--txt);border-color:#3a424d}
+.layers button.red{color:var(--red)}
+.legend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim)}
+.ramp{width:90px;height:6px;border-radius:2px;background:linear-gradient(90deg,#46d39a,#c9d84a,#ffb020,#ff4a3d)}
+.legend svg{width:150px;height:26px}
+/* frise */
+.timeline{border-top:1px solid var(--line);padding:8px 14px 6px;position:relative;background:var(--panel)}
+.timeline .lab{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:3px}
+.timeline .lab b{color:var(--txt);font-weight:600}
+.track{position:relative;height:26px;background:#0b0d10;border:1px solid var(--line)}
+.ev{position:absolute;top:0;bottom:0;width:3px;margin-left:-1px}
+.ev.r{background:var(--red)}.ev.a{background:var(--amb)}.ev.g{background:var(--grn)}.ev.b{background:var(--blu)}.ev.k{background:var(--gry)}
+.ev.t{height:26px}
+.ev.big{width:5px}
+.now{position:absolute;top:-5px;bottom:-5px;width:2px;background:#fff}
+.evl{position:absolute;top:30px;font-size:10px;color:var(--dim);white-space:nowrap;transform:translateX(-4px)}
+.evl.r{color:#ff8277}.evl.a{color:#ffc65a}.evl.g{color:#7ee0b6}
+.scale{position:absolute;left:0;right:0;top:0;bottom:0;background:repeating-linear-gradient(90deg,transparent 0 59px,#1b2027 59px 60px)}
+/* colonne décisions */
+.side{border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.side h2{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between;align-items:baseline;padding:14px 16px 8px}
+.side h2 span{font-family:var(--mono);font-size:11px;color:var(--txt);letter-spacing:0}
+.dec{padding:10px 16px 12px;border-top:1px solid var(--line)}
+.dec .q{font-size:14px;font-weight:600;line-height:1.3;margin-bottom:4px}
+.dec .why{font-size:12.5px;color:var(--dim);line-height:1.4;margin-bottom:9px}
+.dec .why b{color:var(--txt);font-weight:500}
+.dec .btns{display:flex;gap:6px}
+.btn{padding:6px 12px;border:1px solid #38404b;background:transparent;border-radius:3px;font-size:12.5px;font-weight:600}
+.btn.ok{background:var(--txt);color:#0b0d10;border-color:var(--txt)}
+.btn:hover{border-color:var(--txt)}
+.dec .meta{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint);align-self:center}
+.rec3 .it{border-top:1px solid var(--line);padding:9px 16px}
+.rec3 .it summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:18px 1fr auto;gap:6px;align-items:baseline;font-size:13px;line-height:1.35}
+.rec3 summary::-webkit-details-marker{display:none}
+.rec3 .k{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+.rec3 .d{font-family:var(--mono);font-size:11px;color:var(--grn);white-space:nowrap}
+.rec3 .d.w{color:var(--amb)}
+.rec3 .more{margin:7px 0 2px 24px;font-size:12px;color:var(--dim);line-height:1.45}
+.rec3 .more .btns{margin-top:8px;display:flex;gap:6px}
+.done{flex:1;overflow:hidden;border-top:1px solid var(--line)}
+.done li{list-style:none;display:grid;grid-template-columns:52px 1fr;gap:6px;padding:5px 16px;font-size:12px;color:var(--dim);line-height:1.35}
+.done li time{font-family:var(--mono);font-size:10.5px;color:var(--faint);padding-top:1px}
+.done li s{text-decoration:none;color:var(--dim)}
+.side .foot{padding:8px 16px;border-top:1px solid var(--line);font-size:11px;color:var(--faint);display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+<div class="frame">
+
+<header class="top">
+  <span class="live"><i class="dot"></i>DIRECT</span>
+  <span><b>Forum des Halles</b> · Paris 1er</span>
+  <span>Stations fermées par la préfecture : Les Halles, Châtelet (ligne 4)</span>
+  <span class="sp"></span>
+  <span>Chef de quart <b>S. Marchand</b></span>
+  <span class="clock">T+01:19 · 17:42:08</span>
+  <span class="tag">D · Mur d'écrans</span>
+</header>
+
+<div class="left">
+<main class="wall" id="wall">
+
+  <!-- CARTE 3D -->
+  <section class="tile map red" aria-label="Carte 3D du Forum">
+    <svg class="scene" viewBox="0 0 630 540" preserveAspectRatio="xMidYMid slice" id="map">
+      <defs>
+        <radialGradient id="hr"><stop offset="0" stop-color="#ff4a3d" stop-opacity=".85"/><stop offset="1" stop-color="#ff4a3d" stop-opacity="0"/></radialGradient>
+        <radialGradient id="ha"><stop offset="0" stop-color="#ffb020" stop-opacity=".7"/><stop offset="1" stop-color="#ffb020" stop-opacity="0"/></radialGradient>
+        <radialGradient id="hg"><stop offset="0" stop-color="#46d39a" stop-opacity=".45"/><stop offset="1" stop-color="#46d39a" stop-opacity="0"/></radialGradient>
+        <linearGradient id="bgm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#10141a"/><stop offset="1" stop-color="#0a0c10"/></linearGradient>
+        <marker id="arw" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L7,4 L0,8 z" fill="#46d39a"/></marker>
+      </defs>
+      <rect width="630" height="540" fill="url(#bgm)"/>
+      <g id="levels"></g>
+    </svg>
+    <div class="osd"><span class="rec"><i></i>VUE 3D · 5 niveaux</span><span>Temps réel · modèle recalé 17:42:05</span></div>
+    <div class="layers" role="group" aria-label="Niveaux affichés">
+      <button class="on">Tous les niveaux</button>
+      <button>Niveau 0</button><button>Niveau -1</button><button>Niveau -2</button>
+      <button class="red on">Niveau -3</button><button>Niveau -4</button>
+    </div>
+    <div class="cap">
+      <span class="n">VUE</span><span class="nm">Forum des Halles · 4 218 personnes présentes</span>
+      <span class="legend" style="margin-left:auto">0,5<span class="ramp"></span>4+ p/m²</span>
+    </div>
+  </section>
+
+  <!-- N-3 -->
+  <section class="tile red" data-d="r" data-n="46"><svg class="scene" viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice"></svg>
+    <i class="brk a"></i><i class="brk b"></i><i class="brk c"></i><i class="brk d"></i>
+    <div class="osd"><span>CAM 3</span><span class="rec"><i></i>REC 17:42:08</span></div>
+    <span class="badge r">ATTENTION</span>
+    <div class="cap"><span class="n">CAM 3</span><span class="nm">Niveau -3</span><span class="pp r">1 352 pers. · 3,1 p/m²</span></div></section>
+
+  <!-- N-2 -->
+  <section class="tile" data-d="g" data-n="26"><svg class="scene" viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice"></svg>
+    <div class="osd"><span>CAM 4</span><span class="rec"><i></i>REC 17:42:08</span></div>
+    <div class="cap"><span class="n">CAM 4</span><span class="nm">Niveau -2</span><span class="pp g">874 pers. · 1,6 p/m²</span></div></section>
+
+  <!-- Porte du Louvre -->
+  <section class="tile red" data-d="r" data-n="40" data-q="1"><svg class="scene" viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice"></svg>
+    <i class="brk a"></i><i class="brk b"></i><i class="brk c"></i><i class="brk d"></i>
+    <div class="osd"><span>CAM 6</span><span class="rec"><i></i>REC 17:42:08</span></div>
+    <span class="badge r">EN TENSION · 139 EN FILE</span>
+    <div class="cap"><span class="n">CAM 6</span><span class="nm">Porte du Louvre</span><span class="pp r">139 pers. · 3,4 p/m²</span></div></section>
+
+  <!-- Issue ouest -2 -->
+  <section class="tile amb" data-d="a" data-n="30"><svg class="scene" viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice"></svg>
+    <i class="brk a"></i><i class="brk b"></i><i class="brk c"></i><i class="brk d"></i>
+    <div class="osd"><span>CAM 7</span><span class="rec"><i></i>REC 17:42:08</span></div>
+    <span class="badge a">À SURVEILLER</span>
+    <div class="cap"><span class="n">CAM 7</span><span class="nm">Issue ouest niveau -2</span><span class="pp a">58 pers. · 2,2 p/m²</span></div></section>
+
+  <!-- N0 -->
+  <section class="tile" data-d="g" data-n="20"><svg class="scene" viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice"></svg>
+    <div class="osd"><span>CAM 1</span><span class="rec"><i></i>REC 17:42:08</span></div>
+    <div class="cap"><span class="n">CAM 1</span><span class="nm">Niveau 0 · Place Carrée</span><span class="pp g">412 pers. · 0,9 p/m²</span></div></section>
+
+  <!-- N-1 -->
+  <section class="tile" data-d="g" data-n="28"><svg class="scene" viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice"></svg>
+    <div class="osd"><span>CAM 2</span><span class="rec"><i></i>REC 17:42:08</span></div>
+    <div class="cap"><span class="n">CAM 2</span><span class="nm">Niveau -1</span><span class="pp g">1 021 pers. · 1,9 p/m²</span></div></section>
+
+  <!-- N-4 -->
+  <section class="tile" data-d="g" data-n="14"><svg class="scene" viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice"></svg>
+    <div class="osd"><span>CAM 5</span><span class="rec"><i></i>REC 17:42:08</span></div>
+    <div class="cap"><span class="n">CAM 5</span><span class="nm">Niveau -4</span><span class="pp g">539 pers. · 1,1 p/m²</span></div></section>
+
+  <!-- Légende du mur -->
+  <section class="tile" style="padding:16px 16px;display:flex;flex-direction:column;justify-content:space-between;background:#0c0f13">
+    <div style="font-size:13px;font-weight:600;line-height:1.35">Le halo autour de chaque personne = son espace vital, teinté par la densité autour d'elle.</div>
+    <svg viewBox="0 0 270 62" style="width:100%;height:62px">
+      <g font-family="Schibsted Grotesk" font-size="10" fill="#8b94a1">
+        <circle cx="22" cy="22" r="17" fill="url(#hg)"/><circle cx="22" cy="22" r="3.4" fill="#cfe9dd"/><text x="2" y="58">&lt; 2 p/m²</text>
+        <circle cx="92" cy="22" r="14" fill="url(#ha)"/><circle cx="92" cy="22" r="3.4" fill="#f1e2c4"/><text x="70" y="58">2 à 3 p/m²</text>
+        <circle cx="160" cy="22" r="11" fill="url(#hr)"/><circle cx="160" cy="22" r="3.4" fill="#f5cdc8"/><text x="140" y="58">&gt; 3 p/m²</text>
+      </g>
+    </svg>
+    <div style="font-size:12px;color:var(--dim);line-height:1.4">Les tuiles passent d'elles-mêmes en rouge ou ambre à partir de 2 p/m² ou d'une file qui grossit. Rien à régler.</div>
+  </section>
+
+</main>
+
+<!-- FRISE -->
+<footer class="timeline">
+  <div class="lab"><span><b>Chronologie</b> · de T+00:00 à maintenant</span><span>Dernier événement : T+01:19 · ATTENTION File devant l'ascenseur Porte du Pont-Neuf, niveau -3</span></div>
+  <div class="track" id="track"><div class="scale"></div></div>
+</footer>
+</div>
+
+<!-- DÉCISIONS -->
+<aside class="side" aria-label="Décisions">
+  <h2>À trancher <span>2</span></h2>
+  <div class="dec">
+    <div class="q">Fermer l'entrée niveau -3 côté Pont-Neuf</div>
+    <div class="why">File de 52 devant l'ascenseur, 3,1 p/m² en bas. <b>Agent de sécurité</b> à poster sur place, 4 min.</div>
+    <div class="btns"><button class="btn ok">Valider</button><button class="btn">Refuser</button><span class="meta">expire 01:49</span></div>
+  </div>
+  <div class="dec">
+    <div class="q">Annonce sonore niveau -3 : « Sortie conseillée par l'ouest »</div>
+    <div class="why">Valable tant que l'issue ouest reste sous 2,5 p/m².</div>
+    <div class="btns"><button class="btn ok">Valider</button><button class="btn">Refuser</button></div>
+  </div>
+
+  <h2 style="padding-top:14px;border-top:1px solid var(--line)">Conseillé <span>3 plans</span></h2>
+  <div class="rec3">
+    <details class="it" open>
+      <summary><span class="k">A</span><span>Soulager la Porte du Louvre par Issue ouest niveau -2 (+68 m)</span><span class="d">-41 % file</span></summary>
+      <div class="more">Consigne actuelle : tous par la Porte du Louvre. Proposé : 90 personnes redirigées, balisage lumineux niveau -2, 2 agents. Temps d'évacuation 11 min 20 au lieu de 14 min 05.
+        <div class="btns"><button class="btn ok">Appliquer</button><button class="btn">Écarter</button></div></div>
+    </details>
+    <details class="it"><summary><span class="k">B</span><span>Ouvrir la porte Rambuteau niveau -1</span><span class="d">-18 %</span></summary></details>
+    <details class="it"><summary><span class="k">C</span><span>Maintenir la consigne et doubler les agents au Pont-Neuf</span><span class="d w">+3 min</span></summary></details>
+  </div>
+
+  <h2 style="border-top:1px solid var(--line);margin-top:6px">Fait</h2>
+  <ul class="done">
+    <li><time>01:12</time><s>Annonce niveau -2 diffusée</s></li>
+    <li><time>01:04</time><s>2 agents envoyés Porte du Louvre</s></li>
+    <li><time>00:51</time><s>Escalators niveau -3 passés en montée</s></li>
+    <li><time>00:33</time><s>Rideau Pont-Neuf fermé, colis suspect isolé</s></li>
+    <li><time>00:08</time><s>Préfecture : stations fermées</s></li>
+  </ul>
+  <div class="foot"><span>Journal complet</span><span>5 actions</span></div>
+</aside>
+</div>
+
+<script>
+/* Génère les figurants (maquette statique : valeurs fixes, graine déterministe) */
+(function(){
+  var seed=7;function rnd(){seed=(seed*16807)%2147483647;return (seed-1)/2147483646}
+  var NS='http://www.w3.org/2000/svg';
+  function el(n,a,p){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+  var C={r:['#ff4a3d','url(#hr)',13],a:['#ffb020','url(#ha)',11],g:['#46d39a','url(#hg)',9]};
+  document.querySelectorAll('.tile[data-d]').forEach(function(t,ti){
+    var s=t.querySelector('svg.scene'),d=t.dataset.d,n=+t.dataset.n,q=t.dataset.q;
+    var defs=el('defs',{},s);
+    ['r','a','g'].forEach(function(k){var id='h'+k+ti;var g=el('radialGradient',{id:id},defs);
+      el('stop',{offset:'0','stop-color':C[k][0],'stop-opacity':k=='g'?.4:.75},g);el('stop',{offset:'1','stop-color':C[k][0],'stop-opacity':0},g)});
+    var bg=el('linearGradient',{id:'f'+ti,x1:0,y1:0,x2:0,y2:1},defs);
+    el('stop',{offset:0,'stop-color':'#0d1014'},bg);el('stop',{offset:1,'stop-color':'#171c22'},bg);
+    el('rect',{width:300,height:200,fill:'url(#f'+ti+')'},s);
+    /* sol en perspective */
+    for(var i=0;i<9;i++){var y=70+i*i*2.1;el('line',{x1:0,x2:300,y1:y,y2:y,stroke:'#1f252c','stroke-width':1},s)}
+    for(var x=-300;x<=600;x+=60){el('line',{x1:150+(x-150)*.25,y1:70,x2:x,y2:200,stroke:'#1b2128','stroke-width':1},s)}
+    /* plafond, piliers */
+    el('rect',{width:300,height:70,fill:'#0a0c0f'},s);
+    [30,110,190,270].forEach(function(px,i){el('rect',{x:px-5,y:20,width:10,height:55,fill:'#1b2027'},s);el('rect',{x:px-5,y:20,width:3,height:55,fill:'#252c35'},s)});
+    el('rect',{x:0,y:62,width:300,height:10,fill:'#12161b'},s);
+    /* issue lumineuse */
+    if(q){el('rect',{x:224,y:22,width:62,height:60,fill:'#d9e6f2',opacity:.9},s);el('rect',{x:224,y:22,width:62,height:60,fill:'none',stroke:'#46d39a','stroke-width':2},s);
+      el('text',{x:255,y:16,'text-anchor':'middle','font-size':8,fill:'#46d39a','font-family':'Martian Mono'},s).textContent='SORTIE'}
+    var ppl=[];
+    for(var i=0;i<n;i++){
+      var y=78+rnd()*112, sc=.45+((y-70)/130)*.95, x;
+      if(q){ x=150+rnd()*110-(y-78)*.3; if(i>n*.35) x=60+rnd()*200 } else x=8+rnd()*284;
+      var k=d;
+      if(d=='r'&&!q&&i%5==0)k='a'; if(d=='a'&&i%3==0)k='g';
+      if(q&&x<130)k='a';
+      ppl.push([x,y,sc,k]);
+    }
+    ppl.sort(function(a,b){return a[1]-b[1]});
+    ppl.forEach(function(p){
+      var g=el('g',{},s),r=C[p[3]][2]*p[2]*(d=='r'?1.05:1);
+      el('ellipse',{cx:p[0],cy:p[1]+1,rx:r,ry:r*.42,fill:'url(#h'+p[3]+ti+')'},g);
+      var col=p[3]=='r'?'#e9b9b3':p[3]=='a'?'#ead8b4':'#b8cfc5';
+      el('rect',{x:p[0]-1.7*p[2],y:p[1]-7*p[2],width:3.4*p[2],height:6*p[2],rx:1.4*p[2],fill:col},g);
+      el('circle',{cx:p[0],cy:p[1]-9*p[2],r:1.9*p[2],fill:col},g);
+    });
+    /* barrière de file */
+    if(q){el('path',{d:'M150,198 L230,92',stroke:'#ff4a3d','stroke-width':1.2,'stroke-dasharray':'3 3',fill:'none',opacity:.8},s)}
+    /* grain */
+    el('rect',{width:300,height:200,fill:'none',stroke:'#000','stroke-opacity':.5,'stroke-width':6},s);
+  });
+
+  /* Carte 3D : 5 niveaux empilés en projection isométrique */
+  var L=document.getElementById('levels'), M=document.getElementById('map');
+  var lv=[['Niveau 0','g',0.9,-0],['Niveau -1','g',1.9,0],['Niveau -2','a',1.6,0],['Niveau -3','r',3.1,0],['Niveau -4','g',1.1,0]];
+  var seed2=3;function r2(){seed2=(seed2*16807)%2147483647;return (seed2-1)/2147483646}
+  lv.forEach(function(l,i){
+    var oy=60+i*92, g=el('g',{transform:'translate(0,'+oy+')'},L);
+    var hot=l[1]=='r';
+    var pts='315,0 590,52 315,104 40,52';
+    el('polygon',{points:'315,12 590,64 315,116 40,64',fill:'#000',opacity:.5},g);
+    el('polygon',{points:pts,fill:hot?'#1c1214':'#141a21',stroke:hot?'#ff4a3d':'#2b3440','stroke-width':hot?1.6:1},g);
+    /* plan : couloirs */
+    var P=['M120,52 L315,16 L510,52','M170,76 L315,50 L460,76','M240,30 L400,60','M205,60 L395,36'];
+    P.forEach(function(d){el('path',{d:d,stroke:hot?'#4a2a2a':'#27303b','stroke-width':6,fill:'none',opacity:.9},g)});
+    /* halos de densité */
+    var hs={g:[[240,50,'hg',26],[380,56,'hg',22]],a:[[300,40,'ha',34],[430,62,'hg',22]],r:[[318,52,'hr',58],[220,56,'ha',34],[420,38,'ha',28]]}[l[1]];
+    if(i==0)hs=[[320,52,'hg',24]]; if(i==4)hs=[[300,50,'hg',26],[420,60,'hg',18]];
+    hs.forEach(function(h){el('ellipse',{cx:h[0],cy:h[1],rx:h[3]*1.5,ry:h[3]*.62,fill:'url(#'+h[2]+')'},g)});
+    for(var j=0;j<(hot?70:30);j++){var px=200+r2()*230,py=30+r2()*44;
+      if(Math.abs((px-315)/275)+Math.abs((py-52)/52)>.85)continue;
+      el('circle',{cx:px,cy:py,r:1.4,fill:hot?'#f5cdc8':'#c3d5cc'},g)}
+    /* sortie */
+    el('text',{x:44,y:92,'font-size':12,fill:hot?'#ff8277':'#8b94a1','font-family':'Schibsted Grotesk','font-weight':600},g).textContent=l[0];
+    el('text',{x:44,y:106,'font-size':10.5,fill:'#8b94a1','font-family':'Martian Mono'},g).textContent=l[2].toString().replace('.',',')+' p/m²';
+  });
+  /* flèche de report de flux */
+  var g=el('g',{},L);
+  el('path',{d:'M450,250 C520,230 540,200 548,170',fill:'none',stroke:'#46d39a','stroke-width':2.4,'stroke-dasharray':'6 4','marker-end':'url(#arw)'},g);
+  el('text',{x:470,y:268,'font-size':11,fill:'#7ee0b6','font-family':'Schibsted Grotesk','font-weight':600},g).textContent='+68 m · Issue ouest -2';
+  [[570,120,'Porte du Louvre','#ff4a3d'],[60,236,'Pont-Neuf','#ffb020']].forEach(function(e){
+    el('circle',{cx:e[0],cy:e[1],r:6,fill:'none',stroke:e[3],'stroke-width':2},g);
+    el('circle',{cx:e[0],cy:e[1],r:2.5,fill:e[3]},g);
+    el('text',{x:e[0]-(e[0]>300?-10:-10),y:e[1]-10,'font-size':11,fill:'#e8ebef','font-family':'Schibsted Grotesk','font-weight':600,'text-anchor':e[0]>500?'end':'start'},g).textContent=e[2];
+  });
+
+  /* Frise */
+  var tr=document.getElementById('track'),W=tr.clientWidth||1200;
+  var ev=[[3,'k'],[8,'b'],[14,'a'],[20,'b'],[28,'r',1],[33,'g'],[38,'a'],[44,'g'],[51,'g'],[56,'a'],[63,'k'],[67,'b'],[71,'r',1],[74,'a'],[77,'r',1],[79,'a',1]];
+  ev.forEach(function(e){var d=document.createElement('div');d.className='ev '+e[1]+(e[2]?' big':'');d.style.left=(e[0]/80*100)+'%';tr.appendChild(d)});
+  var nw=document.createElement('div');nw.className='now';nw.style.left='99.2%';tr.appendChild(nw);
+  [[28,'r','00:35 Colis suspect signalé'],[51,'g','00:51 Escalators en montée'],[71,'r','01:12 Louvre : file en hausse'],[79,'a','01:19']].forEach(function(l){
+    var s=document.createElement('span');s.className='evl '+l[1];s.textContent=l[2];s.style.left=(l[0]/80*100)+'%';
+    if(l[0]==79){s.style.left='auto';s.style.right='0';}
+    tr.appendChild(s)});
+})();
+</script>
+</body>
+</html>
