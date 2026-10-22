@@ -50,8 +50,30 @@
   if(SIM.mode!=='evac')r+=' Je peux lancer l\'évacuation vers ces sorties si vous le demandez.';
   return r+' (Calcul simple sur l\'état de la simulation ; les décideurs compareront bientôt plusieurs plans.)';}
 
- function executer(texte){log('directeur',texte);const A=comprendre(texte),dit=[];
+ // Compréhension par Claude (serveur local, /api/directeur) : plusieurs ordres par phrase, noms exacts des listes.
+ // Les réponses lues au directeur viennent toujours de l'exécution réelle, jamais du texte du modèle.
+ function contexte(){const L=lieux();return{lieux:[...new Set(L.map(l=>l.nom))],
+  leviers:LEV.filter(l=>l.type!=='incendie').map(l=>l.nom),
+  etat:`mode ${SIM.mode} ; zones : ${ZONES.map(z=>z.code).join(', ')||'aucune'} ; fermés : ${LEV.filter(l=>l.etat==='fermé').map(l=>l.nom).join(', ')||'rien'}`};}
+ const egal=(a,b)=>norm(a||'')===norm(b||'');
+ function traduire(r){const L=lieux(),A=[];const lieu=n=>n?L.find(l=>egal(l.nom,n))||null:null;
+  (r.actions||[]).forEach(x=>{
+   if(x.type==='zone_poser')A.push({a:'zone',code:x.code||'D1',lieu:lieu(x.lieu)});
+   else if(x.type==='zone_lever')A.push({a:'finZone',code:x.code,lieu:lieu(x.lieu)});
+   else if(x.type==='levier'){const V=LEV.find(l=>egal(l.nom,x.cible));if(V&&['fermer','ouvrir','agent','annonce','filtrer'].includes(x.action))A.push({a:'levier',id:V.id,act:x.action});else A.push({a:'inconnu',txt:x.cible});}
+   else if(x.type==='bouches_toutes')A.push({a:'bouches',ferme:x.action!=='ouvrir'});
+   else if(x.type==='ascenseurs')A.push({a:'ascenseurs',ferme:x.action!=='ouvrir',lieu:lieu(x.lieu)});
+   else if(x.type==='escalators')A.push({a:'escalators',arret:x.action!=='remettre'});
+   else if(x.type==='evacuer')A.push({a:'evacuer'});else if(x.type==='conseil')A.push({a:'conseil'});});
+  (r.incompris||[]).forEach(t=>A.push({a:'inconnu',txt:t}));return A;}
+ async function viaClaude(texte){const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),12000);
+  try{const r=await fetch('/api/directeur',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({texte,contexte:contexte()}),signal:ctl.signal});if(!r.ok)throw new Error(r.status);return await r.json();}finally{clearTimeout(to);}}
+ async function executer(texte){log('directeur',texte);let A,src='règles';
+  try{const r=await viaClaude(texte);A=traduire(r);src=`Claude, ${r.ms} ms`;}catch(e){A=comprendre(texte);}
+  appliquer(A,src);return A;}
+ function appliquer(A,src){const dit=[];
   A.forEach(x=>{
+   if(x.a==='inconnu'){dit.push(`Je n'ai pas reconnu « ${x.txt} ».`);return;}
    if(x.a==='zone'){if(!x.lieu){dit.push(`Où se trouve ${x.code==='D1'?'la manifestation':'le trouble'} ? Dites par exemple « rue Berger ».`);return;}
     addZone(x.code,x.lieu.x,x.lieu.z);camFly([x.lieu.x+90,90,x.lieu.z+120],[x.lieu.x,0,x.lieu.z]);dit.push(`${x.code==='D1'?'Manifestation':'Zone de troubles'} posée ${x.lieu.nom}.`);}
    else if(x.a==='finZone'){const Z=ZONES.filter(z=>(!x.code||z.code===x.code)&&(!x.lieu||Math.hypot(z.x-x.lieu.x,z.z-x.lieu.z)<z.r+80));const cible=Z.length?Z:(x.lieu||x.code?[]:ZONES.slice());
@@ -61,12 +83,12 @@
    else if(x.a==='escalators'){SIM.g.links.forEach(k=>{if(k.k==='escalator')k.debit=x.arret?.9:1.25;});const cb=[...document.querySelectorAll('#perturb label')].find(l=>/Escalators/.test(l.textContent));if(cb)cb.querySelector('input').checked=x.arret;
     dit.push(x.arret?'Escalators arrêtés : ils servent d\'escaliers, le débit baisse.':'Escalators remis en marche.');}
    else if(x.a==='bouches'){LEV.forEach(l=>{if(l.type==='bouche')l.etat=x.ferme?'fermé':'ouvert';});levRefresh();dit.push(x.ferme?'Bouches de métro et RER fermées : les quais ne sont plus une sortie.':'Bouches rouvertes.');}
-   else if(x.a==='levier'){levAction(x.id,x.act);const L=LEV.find(l=>l.id===x.id);dit.push({fermer:`${L.nom} fermée.`,ouvrir:`${L.nom} rouverte.`,agent:`Agent posté à ${L.nom} : il guide le public vers cette sortie.`,annonce:`Annonce diffusée : sortir par ${L.nom}.`}[x.act]);}
+   else if(x.a==='levier'){levAction(x.id,x.act);const L=LEV.find(l=>l.id===x.id);dit.push({fermer:`${L.nom} fermée.`,ouvrir:`${L.nom} rouverte.`,agent:`Agent posté à ${L.nom} : il guide le public vers cette sortie.`,annonce:`Annonce diffusée : sortir par ${L.nom}.`,filtrer:`${L.nom} filtrée : débit réduit.`}[x.act]);}
    else if(x.a==='evacuer'){if(SIM.mode!=='evac')simAlert();showTab&&0;dit.push('Évacuation lancée.');}
    else if(x.a==='conseil'){dit.push(conseil());
     // s'appuyer sur le dispositif en place : propositions au PC sécurité, à valider par le chef de poste
     if(window.dispositif){dispositif.proposer('sonorisation');dispositif.proposer('guide-serre-files');dit.push('Deux propositions sont envoyées au PC sécurité : un message de sonorisation et des guide-files aux portes conseillées. Le chef de poste les valide.');}}});
-  const rep=dit.join(' ');log('outil',rep);dire(rep);}
+  const rep=dit.join(' ');log('outil',rep+(src?` <span class="k">(${src})</span>`:''));dire(rep);}
 
  const txt=document.getElementById('dirTxt');txt.addEventListener('keydown',e=>{if(e.key==='Enter'&&txt.value.trim()){executer(txt.value.trim());txt.value='';}});
  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;const mic=document.getElementById('dirMic');
@@ -76,5 +98,5 @@
   rec.onend=()=>{on=false;mic.textContent='● Parler à l\'outil';mic.classList.remove('on');};
   rec.onerror=e=>log('outil','Micro : '+e.error);
   mic.onclick=()=>{if(on){rec.stop();return;}try{rec.start();on=true;mic.textContent='■ J\'écoute… (cliquez pour arrêter)';mic.classList.add('on');}catch(e){}};}
- window.directeur={executer,comprendre};
+ window.directeur={executer,comprendre,traduire,contexte};
 })();
