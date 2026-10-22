@@ -190,7 +190,15 @@ DO $$ BEGIN
   REVOKE ALL ON ALL TABLES IN SCHEMA public FROM enseigne_ecriture;
   GRANT USAGE ON SCHEMA public TO enseigne_ecriture;
   GRANT INSERT ON rex_crises TO enseigne_ecriture;
+  -- Lecture limitée à 3 colonnes : plafond par enseigne et détection des doublons (ON CONFLICT). Aucun texte lisible.
+  GRANT SELECT (id, enseigne_id, empreinte) ON rex_crises TO enseigne_ecriture;
   GRANT USAGE ON SEQUENCE rex_crises_id_seq TO enseigne_ecriture;
 EXCEPTION WHEN insufficient_privilege THEN
   RAISE NOTICE 'rôle enseigne_ecriture non créé : droit CREATEROLE manquant (à faire par un administrateur)';
 END $$;
+
+-- F-bornes : une seule borne, la même que valider.mjs (LIMITES) et que le validateur TypeScript des décideurs.
+DO $$ BEGIN
+  ALTER TABLE rex_crises ADD CONSTRAINT rex_bornes_check
+    CHECK (personnes_touchees <= 50000 AND duree_minutes <= 1440);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;

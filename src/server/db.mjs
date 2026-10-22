@@ -3,6 +3,7 @@
 import pg from 'pg';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { masquer } from './valider.mjs';
 
 const SCHEMA = fileURLToPath(new URL('../../infra/schema.sql', import.meta.url));
 const SCHEMA_VECTEUR = fileURLToPath(new URL('../../infra/schema-vecteur.sql', import.meta.url));
@@ -12,10 +13,19 @@ export function ouvrir(url = process.env.DATABASE_URL) {
   if (!url) throw new Error("DATABASE_URL manquante (variable d'environnement)");
   // Aiven Runtime + node-postgres : la doc demande uselibpqcompat=true (TLS chiffré, certificat non vérifié).
   // Ajouté seulement quand l'URL demande TLS (sslmode présent) ; la base locale de test n'est pas touchée.
-  const u = new URL(url);
+  let u;
+  try { u = new URL(url); }
+  catch {
+    // Le TypeError natif de Node porte l'URL complète (mot de passe compris) dans sa propriété `input` : on ne le propage pas.
+    throw new Error('DATABASE_URL invalide : format non reconnu (caractères spéciaux du mot de passe à encoder en %XX ?)');
+  }
+  if (!/^postgres(ql)?:$/.test(u.protocol)) throw new Error('DATABASE_URL invalide : le schéma doit être postgres://');
   if (u.searchParams.has('sslmode') && !u.searchParams.has('uselibpqcompat')) u.searchParams.set('uselibpqcompat', 'true');
   // Base gratuite Aiven : 20 connexions au plus, sans pooling. Pool de 5 + 1 connexion dédiée au LISTEN.
-  return new pg.Pool({ connectionString: u.toString(), max: 5 });
+  const pool = new pg.Pool({ connectionString: u.toString(), max: 5 });
+  // Une connexion inactive coupée par le serveur émet 'error' sur le pool : sans écouteur, le processus s'arrêterait.
+  pool.on('error', (e) => console.error('pool PostgreSQL :', masquer(e.message)));
+  return pool;
 }
 
 /** Applique infra/schema.sql (idempotent), puis le volet pgvector si l'extension est disponible. */
@@ -141,8 +151,8 @@ export async function casSimilaires(pool, { sceneId, etiquettes, limite = 5 }) {
 export async function enregistrerEnseigne(pool, { id, sceneId, nom, zone = '' }) {
   const r = await pool.query(
     `INSERT INTO enseignes (id, scene_id, nom, zone) VALUES ($1,$2,$3,$4)
-     ON CONFLICT (id) DO UPDATE SET nom=$3, zone=$4 RETURNING *`, [id, sceneId, nom, zone]);
-  return r.rows[0];
+     ON CONFLICT (id) DO NOTHING RETURNING *`, [id, sceneId, nom, zone]);
+  return r.rows[0] ?? null;   // null = id déjà pris : une enseigne ne peut pas réécrire ni usurper une autre
 }
 
 export async function enregistrerRex(pool, { enseigneId, dateIncident, zone = '', typeIncident, description,
@@ -161,6 +171,49 @@ export async function enregistrerRex(pool, { enseigneId, dateIncident, zone = ''
   return r.rows[0] ?? null;   // null = doublon exact ignoré
 }
 
+let roleEnseigneDisponible = true;
+
+/**
+ * Écriture d'un REX par une enseigne, avec les droits du rôle enseigne_ecriture (SET LOCAL ROLE dans une transaction :
+ * INSERT dans rex_crises, rien d'autre). Doublon (même empreinte) ou plafond par enseigne : rien n'est écrit.
+ * Repli sur le propriétaire si le rôle n'existe pas (droit CREATEROLE absent sur la base).
+ * Renvoie { rex } | { doublon, rex } | { plafond }.
+ */
+export async function enregistrerRexEnseigne(pool, x, { plafond = null } = {}) {
+  const c = await pool.connect();
+  try {
+    await c.query('BEGIN');
+    if (roleEnseigneDisponible) {
+      try { await c.query('SET LOCAL ROLE enseigne_ecriture'); }
+      catch (e) {
+        if (e.code !== '42704' && e.code !== '42501') throw e;
+        roleEnseigneDisponible = false;
+        console.warn('rôle enseigne_ecriture indisponible : écriture avec le rôle propriétaire');
+        await c.query('ROLLBACK'); await c.query('BEGIN');
+      }
+    }
+    await c.query('SELECT pg_advisory_xact_lock(hashtext($1))', [x.enseigneId]);   // sérialise les écritures d'une même enseigne
+    if (plafond !== null) {
+      const n = Number((await c.query('SELECT count(*) AS n FROM rex_crises WHERE enseigne_id=$1', [x.enseigneId])).rows[0].n);
+      const deja = (await c.query('SELECT 1 FROM rex_crises WHERE empreinte=$1', [x.empreinte])).rowCount > 0;
+      if (n >= plafond && !deja) { await c.query('ROLLBACK'); return { plafond: true }; }
+    }
+    const r = await c.query(
+      `INSERT INTO rex_crises (enseigne_id, date_incident, zone, type_incident, description, decisions_prises,
+         resultat, duree_minutes, personnes_touchees, lecons_enseigne, etiquettes, suspect, motifs_suspects, empreinte)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+       ON CONFLICT (empreinte) WHERE empreinte IS NOT NULL DO NOTHING`,
+      [x.enseigneId, x.dateIncident, x.zone ?? '', x.typeIncident, x.description, x.decisionsPrises ?? '', x.resultat ?? '',
+       x.dureeMinutes ?? null, x.personnesTouchees ?? null, x.leconsEnseigne ?? '', x.etiquettes ?? [],
+       (x.motifsSuspects ?? []).length > 0, x.motifsSuspects ?? [], x.empreinte]);
+    await c.query('COMMIT');
+    // Relecture avec le rôle normal : le rôle d'écriture n'a pas (et ne doit pas avoir) le droit de lire le contenu.
+    const lu = (await c.query('SELECT * FROM rex_crises WHERE empreinte=$1', [x.empreinte])).rows[0];   // même connexion : un pool de 5 saturerait sinon
+    return r.rowCount === 0 ? { doublon: true, rex: lu } : { rex: lu };
+  } catch (e) { await c.query('ROLLBACK').catch(() => {}); throw e; }
+  finally { c.release(); }
+}
+
 export async function lireRex(pool, { enseigneId = null, sceneId = null, limite = 200 } = {}) {
   const r = await pool.query(
     `SELECT x.* FROM rex_crises x JOIN enseignes e ON e.id = x.enseigne_id
@@ -174,7 +227,7 @@ export async function enregistrerLecon(pool, { sceneId, texte, etiquettes = [], 
   const c = await pool.connect();
   try {
     await c.query('BEGIN');
-    const prov = { auteur, date: new Date().toISOString(), ...provenance };
+    const prov = { ...provenance, auteur, date: new Date().toISOString() };   // auteur et date: toujours ceux du serveur
     let r = await c.query(
       `INSERT INTO lecons (scene_id, texte, etiquettes, confiance, auteur, provenance) VALUES ($1,$2,$3,$4,$5,$6)
        ON CONFLICT (scene_id, (md5(texte))) DO NOTHING RETURNING *`,
@@ -191,6 +244,12 @@ export async function enregistrerLecon(pool, { sceneId, texte, etiquettes = [], 
 
 /** Change le statut d'une leçon. validee_par_simulation exige le run qui la valide (la base le vérifie aussi). */
 export async function changerStatutLecon(pool, { id, statut, runId = null }) {
+  if (statut === 'validee_par_simulation') {
+    const run = runId && (await pool.query('SELECT statut FROM runs WHERE id=$1', [runId])).rows[0];
+    if (!run || run.statut !== 'termine') {
+      throw Object.assign(new Error('validation refusée : il faut un run de simulation terminé'), { code: 409 });
+    }
+  }
   const r = await pool.query(
     'UPDATE lecons SET statut=$2, run_validation=$3 WHERE id=$1 RETURNING *',
     [id, statut, statut === 'validee_par_simulation' ? runId : null]);
@@ -241,9 +300,45 @@ export async function lireChiffres(pool, runId) {
 }
 
 /** Écoute NOTIFY sur le tableau commun ; renvoie une fonction d'arrêt. */
-export async function ecouterTableau(pool, surId) {
-  const client = await pool.connect();
-  client.on('notification', (m) => surId(Number(m.payload)));
-  await client.query('LISTEN tableau_commun');
-  return () => { client.release(); };
+export async function ecouterTableau(pool, surId, { surReconnexion = null, delaiInitialMs = 500, delaiMaxMs = 30000 } = {}) {
+  let client = null;
+  let arret = false;
+  let delai = delaiInitialMs;
+  let minuterie = null;
+
+  async function connecter() {
+    if (arret) return;
+    // Connexion dédiée, hors du pool (le pool ne garde que 5 connexions pour les requêtes).
+    const c = new pg.Client({ connectionString: pool.options.connectionString, application_name: 'ecoute-tableau' });
+    let relance = false;
+    const reprogrammer = (e) => {
+      if (relance || arret) return;
+      relance = true;
+      if (e) console.error('écoute du tableau interrompue :', masquer(e.message));
+      c.removeAllListeners();
+      c.on('error', () => {});
+      c.end().catch(() => {});
+      client = null;
+      minuterie = setTimeout(connecter, delai);
+      delai = Math.min(delai * 2, delaiMaxMs);        // délai croissant, plafonné
+    };
+    c.on('error', reprogrammer);
+    c.on('end', () => reprogrammer(null));
+    c.on('notification', (m) => surId(Number(m.payload)));
+    try {
+      await c.connect();
+      await c.query('LISTEN tableau_commun');
+    } catch (e) { reprogrammer(e); return; }
+    client = c;
+    const reconnecte = delai > delaiInitialMs;
+    delai = delaiInitialMs;
+    if (reconnecte && surReconnexion) Promise.resolve(surReconnexion()).catch((e) => console.error('rattrapage :', masquer(e.message)));
+  }
+
+  await connecter();
+  return () => {
+    arret = true;
+    clearTimeout(minuterie);
+    if (client) { client.removeAllListeners(); client.on('error', () => {}); client.end().catch(() => {}); }
+  };
 }

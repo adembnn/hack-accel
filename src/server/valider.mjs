@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 // Validation des entrées avant toute écriture (red team A1, A2, A10). Aucune correction silencieuse :
 // une valeur hors plage est REFUSÉE (HTTP 422) ; un texte louche est MARQUÉ (suspect), jamais réécrit.
 
@@ -7,7 +9,8 @@ export const LIMITES = {
   etiquette: 80,
   corps: 64 * 1024,      // octets d'un corps HTTP (A10)
   dureeMinutesMax: 24 * 60,
-  personnesMax: 100_000, // un REX ne peut pas toucher plus que la capacité d'un grand site
+  personnesMax: 50_000,  // même borne que le CHECK du schéma SQL et que le validateur TypeScript des décideurs
+  rexParEnseigne: 20,    // plafond de REX par enseigne (A10)
   debit: 9,              // personnes/seconde pour l'ensemble du lieu, borne dure
 };
 
@@ -70,6 +73,10 @@ export function validerRex(c, aujourdhui = new Date()) {
   if (d.getUTCFullYear() < 2000) throw erreur('dateIncident trop ancienne');
   if (d > aujourdhui) throw erreur('dateIncident dans le futur');
   // Cohérence physique : plus de personnes que le débit ne le permet en la durée annoncée = faux chiffre (A1).
+  // Un nombre de personnes sans durée exploitable (absente ou 0) ne peut pas être contrôlé : refusé.
+  if (rex.personnesTouchees > 0 && !(rex.dureeMinutes > 0)) {
+    throw erreur('dureeMinutes (au moins 1) est requise quand personnesTouchees est renseigné');
+  }
   if (rex.dureeMinutes !== null && rex.personnesTouchees !== null && rex.dureeMinutes > 0) {
     const parSeconde = rex.personnesTouchees / (rex.dureeMinutes * 60);
     if (parSeconde > LIMITES.debit) {
@@ -82,6 +89,9 @@ export function validerRex(c, aujourdhui = new Date()) {
     throw erreur(`etiquettes : au plus ${LIMITES.etiquettes} textes de ${LIMITES.etiquette} caractères`);
   }
   rex.etiquettes = etiquettes;
+  // Empreinte : le même REX envoyé deux fois donne une seule ligne (A15).
+  rex.empreinte = createHash('sha256')
+    .update([rex.enseigneId, rex.dateIncident, rex.typeIncident, rex.description].join('\u0000')).digest('hex');
   rex.motifsSuspects = motifsSuspects(rex.description, rex.decisionsPrises, rex.resultat, rex.leconsEnseigne, rex.zone, ...etiquettes);
   return rex;
 }
@@ -89,6 +99,6 @@ export function validerRex(c, aujourdhui = new Date()) {
 /** Masque identifiants et mots de passe d'une URL de connexion avant d'écrire un journal (A17). */
 export function masquer(texte) {
   return String(texte)
-    .replace(/([a-z][a-z0-9+.-]*:\/\/)[^\s/@]*@/gi, '$1***@')
+    .replace(/([a-z][a-z0-9+.-]*:\/\/)\S*@/gi, '$1***@')   // jusqu'au dernier @ : un mot de passe contenant / ou @ est masqué entièrement
     .replace(/(password|passwd|pwd|token|api[_-]?key|secret)(["'=:\s]+)[^\s"',&]+/gi, '$1$2***');
 }
