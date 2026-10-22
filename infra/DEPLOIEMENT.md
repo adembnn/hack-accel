@@ -49,3 +49,20 @@ Le code n'attend que des URI (pas de `PGHOST` séparé). En local : `DATABASE_UR
 - Faits Aiven repris de recherche/08 : [établi] 20 connexions max sans pooling (pool de 5 + 1 LISTEN), HTTP seulement derrière HTTPS 443 (donc SSE, pas de WebSocket),
   pgvector disponible, service gratuit éteint sans activité ; [supposé] droit CREATEROLE pour le rôle enseigne_ecriture, durée du premier déploiement (3 à 8 min).
 - Corpus de départ : `DATABASE_URL=... node src/server/charger-rex.mjs` (idempotent).
+
+## Pour une seule URL avec l'API : le Dockerfile du socle doit changer (action du socle, pas de ce lot)
+Le `Dockerfile` du socle (fusionné dans main) lance `node src/app/serveur.mjs`, qui sert `dist/` et `/sante` sans base ni API.
+Pour qu'une seule URL Runtime serve l'interface ET l'API de données, son `CMD` doit devenir `node src/server/serveur.mjs`
+(ce serveur sert aussi `dist/` et répond sur `/sante` en vérifiant la base), et l'image doit contenir `infra/` (schema.sql, schema-vecteur.sql),
+`src/server/`, `node_modules` de production (dépendance `pg`) : `RUN npm ci --omit=dev` dans l'étage final ou copie de `node_modules`.
+Variables : `DATABASE_URL` (injectée par Aiven), `WRITE_TOKEN` (secret saisi dans la Console, sans lui toutes les écritures HTTP sont refusées en 401), `PORT`.
+Ce lot n'a pas modifié ce Dockerfile : à demander à l'orchestrateur du socle (commentaire sur #6).
+
+## Ce qu'il reste à faire dans la console Aiven (quand Adem aura donné l'accès)
+1. Créer le service PostgreSQL (plan gratuit : 1 Go, 20 connexions) dans le projet, région au choix d'Adem.
+2. Créer l'application Runtime depuis le dépôt GitHub (branche à choisir : main), manifeste `Dockerfile`, port 8080.
+3. Connecter le service PostgreSQL à l'application : `DATABASE_URL` apparaît dans ses variables. Ajouter `WRITE_TOKEN` (case Secret).
+4. Deploy, puis `curl -i https://<domaine>.aiven.app/sante` doit répondre 200 `{"ok":true,"base":"ok"}` (le schéma s'applique au démarrage).
+5. Charger le corpus : `DATABASE_URL=<url> node src/server/charger-rex.mjs` depuis un poste (URL à ne jamais coller dans le chat ni un commit).
+6. Vérifier le rôle `enseigne_ecriture` (`SELECT rolname FROM pg_roles`) ; sinon le serveur écrit avec le propriétaire (journal : « rôle enseigne_ecriture indisponible »).
+7. Après chaque fusion dans main : Actions, « Deploy latest commit » (un push ne redéploie pas). Pinger `/sante` régulièrement : la base gratuite peut s'éteindre.
