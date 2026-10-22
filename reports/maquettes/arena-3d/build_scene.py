@@ -117,6 +117,13 @@ for e in load('lieu.json'):
         scene['interieur'].append({'k': t.get('indoor'), 'l': lv, 'n': t.get('name', '') or t.get('shop', '') or t.get('amenity', ''),
                                    'p': ring(g)})
 
+# Intérieur estimé de l'Arena (OSM n'a que l'aire de jeu et les gymnases) : chaque objet porte e=1
+sys.path.insert(0, HERE)
+from interieur_estime import build as interieur_estime
+scene['gradins'] = []
+for k, v in interieur_estime().items():
+    scene[k] += v
+
 for e in load('abords.json'):
     t = e.get('tags', {})
     if e['type'] == 'node':

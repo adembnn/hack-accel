@@ -19,5 +19,12 @@ cd reports/maquettes/arena-3d && sh recuperer-osm.sh && python -m http.server 87
 ```
 puis http://127.0.0.1:8768/index.html (bouton caméra « Arena » pour le gros plan).
 
+Intérieur estimé (`interieur_estime.py`, appelé par `build_scene.py`, tout objet porte `e:1` et s'affiche « estimé ») :
+tribune basse 11 rangs + tribune haute 9 rangs autour de l'aire de jeu OSM, ≈ 8 260 places calculées pour 8 000 annoncées ;
+coursives au niveau 1 ; hall côté parvis Alice Milliat ; Central Chapelle (2 600 m² annoncés) ; terrasse ; 6 portes publiques
+avec largeur en mètres (pour le débit de sortie), 8 vomitoires, 6 escaliers. Nouvelle clé `gradins` dans scene.json ; les spectateurs
+assis (85 % de remplissage) sont immobiles, la foule des places publiques garde sa marche aléatoire. Hypothèses à remplacer
+par un vrai plan de salle (billetterie) dès qu'on l'a.
+
 Pièges ajoutés : sous Windows, `build_scene.py` doit ouvrir les fichiers en UTF-8 (corrigé ici) ; Overpass sature souvent, réessayer
 (le serveur principal a répondu, kumi.systems était plein). Données OSM générées (`data/`, `scene.json`) jamais commitées.
