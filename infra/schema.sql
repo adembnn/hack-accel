@@ -187,6 +187,13 @@ DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'enseigne_ecriture') THEN
     CREATE ROLE enseigne_ecriture NOLOGIN;
   END IF;
+  -- PostgreSQL 16+ : le créateur d'un rôle n'a pas le droit SET ROLE par défaut (ADMIN seulement). Sans ce GRANT, le serveur
+  -- (utilisateur non superuser d'Aiven) ne pourrait pas endosser le rôle. Syntaxe inconnue avant la 16 : on ignore alors l'erreur.
+  BEGIN
+    EXECUTE 'GRANT enseigne_ecriture TO ' || quote_ident(current_user) || ' WITH SET TRUE';
+  EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'GRANT enseigne_ecriture WITH SET TRUE non appliqué : %', SQLERRM;
+  END;
   REVOKE ALL ON ALL TABLES IN SCHEMA public FROM enseigne_ecriture;
   GRANT USAGE ON SCHEMA public TO enseigne_ecriture;
   GRANT INSERT ON rex_crises TO enseigne_ecriture;

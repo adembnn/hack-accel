@@ -67,7 +67,12 @@ async function servirStatique(res, chemin) {
 }
 
 /** Crée le serveur (sans l'écouter) : utile aux tests. */
-export async function creerServeur(pool) {
+/**
+ * Point d'extension : `routesExtra` = fonctions `async (req, res, url, ctx) => boolean` essayées avant le 404 (true = traité).
+ * Prévu pour routeDirecteur (proto/directeur) et routeAgents (proto/personnages) : ce lot ne les importe pas encore.
+ * Les POST passent déjà par le jeton d'écriture (WRITE_TOKEN) avant d'atteindre ces routes ; ctx = { pool, json, lireCorps }.
+ */
+export async function creerServeur(pool, { routesExtra = [] } = {}) {
   const flux = creerFlux({ tampon: 200, maxClients: 100, maxBacklogOctets: 64 * 1024 });
   const numerote = (l) => ({ ...l, id: Number(l.id) });
   /** Lit en base TOUT ce qui suit `apres`, par pages de 200 (plafond 5000 lignes par reprise). */
@@ -232,6 +237,8 @@ export async function creerServeur(pool) {
         req.on('close', () => { clearInterval(battement); clearTimeout(duree); desabonner(); });
         return;
       }
+
+      for (const route of routesExtra) if (await route(req, res, url, { pool, json, lireCorps })) return;
 
       // Hors API : l'interface Vite construite (dist/), pour qu'un seul processus serve tout sur le port Runtime.
       if (req.method === 'GET' && !chemin.startsWith('/api/') && await servirStatique(res, chemin)) return;
