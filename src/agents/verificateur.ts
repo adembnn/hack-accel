@@ -83,6 +83,7 @@ export function vueDeZone(journal: Journal, zone: string): Journal {
     e.plan.guidage = e.plan.guidage.filter((g) => g.point.includes(zone));
     e.plan.phasage_salles = e.plan.phasage_salles.filter((p) => p.salle === zone);
     e.plan.messages_par_zone = Object.fromEntries(Object.entries(e.plan.messages_par_zone).filter(([z]) => z === zone));
+    if (e.plan.consignes_par_zone) e.plan.consignes_par_zone = Object.fromEntries(Object.entries(e.plan.consignes_par_zone).filter(([z]) => z === zone));
     e.plan.confinement.zones = e.plan.confinement.zones.filter((z) => z === zone);
     e.decisions = []; // les décisions mentionnent d'autres zones ; les faits utiles sont dans le plan et la synthèse
     return e;

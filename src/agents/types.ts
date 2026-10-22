@@ -33,6 +33,9 @@ export interface Plan {
   guidage: { point: string; agents: number }[];
   // Texte de l'annonce par zone. Jamais « alarme générale » (contraintes §1).
   messages_par_zone: Record<string, string>;
+  // Consigne structurée par zone (couture avec foule-decision) : la porte indiquée et la clarté du message, de 0 à 1.
+  // Absence d'entrée = pas de consigne pour la zone. Zone de la forme niveau_<n> ou salle_<kk> ; le texte reste dans messages_par_zone.
+  consignes_par_zone?: Record<string, { porte: string; clarte: number }>;
   // Confinement : garder les gens à l'intérieur dans ces zones.
   confinement: { actif: boolean; zones: string[] };
 }
@@ -72,7 +75,7 @@ export interface EtatResume {
   densite_max: number;
   par_zone: Record<string, EtatZone>;
   debit_portes: Record<string, number>;
-  // Pression de foule de Helbing (densité × variance de vitesse), fournie par le simulateur quand il la calcule.
+  // Proxy de pression de foule inspiré de Helbing (densité × variance de vitesse) fourni par le simulateur de test : ce n'est PAS une mesure.
   pression_max?: number;
 }
 

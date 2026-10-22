@@ -11,6 +11,7 @@ import { PORTES_VERS_PERIMETRE } from './types.ts';
 import type { ClientDecision, QuestionDecision, ReponseDecision } from './questions.ts';
 import { ouvrirScelle, sceller, type EntreeScellee } from './integrite.ts';
 import { CATALOGUE, type LevierCatalogue } from './catalogue-leviers.ts';
+import { ZONE_CONSIGNE } from './leviers.ts';
 
 export const MODELE_DECIDEURS = 'claude-haiku-5-5'; // défaut ; surchargé par l'environnement MODELE_DECIDEURS (voir claude-decideurs.ts)
 
@@ -112,6 +113,8 @@ export const SPECS_NOYAU: Record<Decideur, SpecQuestion[]> = {
         const i = Number(v);
         const acts: Action[] = [];
         if (i >= 1) acts.push({ decideur: 'securite_centre', levier: 'message_zone', valeur: { zone: n.zone_critique, texte: 'Le centre ferme. Rejoignez calmement la sortie indiquée.' } });
+        // Consigne structurée (couture foule-decision) : seulement pour une zone niveau_<n> ou salle_<kk> ; clarté = niveau de guidage / 3.
+        if (i >= 1 && ZONE_CONSIGNE.test(n.zone_critique)) acts.push({ decideur: 'securite_centre', levier: 'consigne_zone', valeur: { zone: n.zone_critique, porte: 'lescot', clarte: Math.min(i, 3) / 3 } });
         if (i >= 2) acts.push({ decideur: 'securite_centre', levier: 'guidage', valeur: { point: n.zone_critique, agents: Math.max(1, Math.floor(effectif * (i === 2 ? 0.25 : 0.5))) } });
         return acts;
       },

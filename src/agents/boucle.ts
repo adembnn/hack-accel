@@ -121,7 +121,7 @@ export function clientsHeuristiques(): Record<DecideurJeu, ClientDecision> {
   return {
     prefecture: { decider: async (q) => (q.minute === q.entree.etat.minute && q.entree.derniere_note === null ? { actions: [{ levier: 'demande_fermeture_stations', valeur: true }] } : { actions: [] }) },
     ratp: { decider: async (q) => (q.entree.derniere_note === null ? { actions: [{ levier: 'heure_fermeture_stations', valeur: 1320 }, { levier: 'correspondances', valeur: true }] } : { actions: [] }) },
-    securite_centre: { decider: async (q) => (q.entree.derniere_note === null ? { actions: [{ levier: 'guidage', valeur: { point: 'porte_lescot', agents: 5 } }, { levier: 'message_zone', valeur: { zone: 'niveau_-1', texte: 'Le centre ferme. Rejoignez la sortie Lescot.' } }] } : { actions: [] }) },
+    securite_centre: { decider: async (q) => (q.entree.derniere_note === null ? { actions: [{ levier: 'guidage', valeur: { point: 'porte_lescot', agents: 5 } }, { levier: 'message_zone', valeur: { zone: 'niveau_-1', porte: 'lescot', clarte: 0.8, texte: 'Le centre ferme. Rejoignez la sortie Lescot.' } }] } : { actions: [] }) },
     directeur: {
       decider: async (q) => {
         if (q.entree.derniere_note === null) return { actions: [{ levier: 'mode', valeur: 'fermer_par_etapes' }, { levier: 'porte', valeur: { porte: 'berger', etat: 'fermee' } }, { levier: 'porte', valeur: { porte: 'rambuteau', etat: 'fermee' } }] };

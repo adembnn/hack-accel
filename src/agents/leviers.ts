@@ -14,7 +14,23 @@ export const PERIMETRE_COUVRE_FEU = [
   'place_maurice_quentin', 'rue_berger', 'passage_des_lingeres', 'bd_sebastopol', 'rue_rambuteau', 'allee_andre_breton',
 ] as const; // Le Parisien / franceinfo, contraintes §3
 
-export const CHAMPS_PLAN = ['mode', 'portes', 'phasage_salles', 'guidage', 'messages_par_zone', 'confinement'] as const;
+export const CHAMPS_PLAN = ['mode', 'portes', 'phasage_salles', 'guidage', 'messages_par_zone', 'consignes_par_zone', 'confinement'] as const;
+
+// Zones qui portent une consigne structurée : niveau_<n> (n entier relatif, ex. niveau_-2) ou salle_<kk> (ex. salle_07).
+export const ZONE_CONSIGNE = /^(niveau_-?\d{1,2}|salle_\d{1,3})$/;
+export const clamp01 = (x: number): number => Math.min(1, Math.max(0, x));
+
+// Valide une consigne {zone, porte, clarte} : zone de la bonne forme, porte connue et non fermée, clarté nombre fini (bornée ensuite à 0..1).
+export function validerConsigne(v: unknown, plan: Plan): string[] {
+  if (typeof v !== 'object' || v === null || Array.isArray(v)) return ['valeur attendue : {zone, porte, clarte}'];
+  const x = v as Record<string, unknown>;
+  const r: string[] = [];
+  if (typeof x.zone !== 'string' || !ZONE_CONSIGNE.test(x.zone)) r.push('zone : forme niveau_<n> ou salle_<kk> attendue');
+  if (typeof x.porte !== 'string' || !PORTES.includes(x.porte)) r.push(`porte inconnue : ${String(x.porte)}`);
+  else if (plan.portes[x.porte] === 'fermee') r.push(`la porte ${x.porte} est fermée : on ne peut pas y diriger la foule`);
+  if (typeof x.clarte !== 'number' || !Number.isFinite(x.clarte)) r.push('clarte : nombre attendu (borné à 0..1)');
+  return r;
+}
 export type ChampPlan = (typeof CHAMPS_PLAN)[number];
 
 // État manipulé par les leviers : le plan partagé + ce qui n'est pas (encore) un champ du plan (couture à demander, voir rapport).
@@ -180,10 +196,12 @@ export const LEVIERS_NOYAU: readonly Levier[] = [
     limite: 'Pas de traduction = touristes perdus ; une alarme incendie créerait une panique inutile',
     valeur_schema: { type: 'object', required: ['zone', 'texte'], properties: { zone: { type: 'string', minLength: 1 }, texte: { type: 'string', minLength: 1, maxLength: 280 } } },
     exemple: { zone: 'niveau_-2', texte: 'Le centre ferme. Rejoignez la sortie Lescot.' },
-    valider: (v) => {
+    valider: (v, ctx) => {
       if (!estObjet(v)) return ['valeur attendue : {zone, texte}'];
       const r: string[] = [];
       if (typeof v.zone !== 'string' || !v.zone) r.push('zone vide');
+      // Consigne structurée facultative : si une porte ou une clarté est donnée, les deux le sont et la consigne est valide.
+      if (v.porte !== undefined || v.clarte !== undefined) r.push(...validerConsigne(v, ctx.etat.plan));
       if (typeof v.texte !== 'string' || !v.texte.trim()) r.push('texte vide');
       else {
         if (v.texte.length > 280) r.push('texte > 280 caractères');
@@ -191,7 +209,11 @@ export const LEVIERS_NOYAU: readonly Levier[] = [
       }
       return r;
     },
-    appliquer: (e, v) => planSet(e, (p) => { const x = v as { zone: string; texte: string }; p.messages_par_zone[x.zone] = x.texte.trim(); }),
+    appliquer: (e, v) => planSet(e, (p) => {
+      const x = v as { zone: string; texte: string; porte?: string; clarte?: number };
+      p.messages_par_zone[x.zone] = x.texte.trim();
+      if (x.porte !== undefined && typeof x.clarte === 'number') (p.consignes_par_zone ??= {})[x.zone] = { porte: x.porte, clarte: clamp01(x.clarte) };
+    }),
   },
   // ---------------- RATP ----------------
   {
@@ -271,8 +293,23 @@ export const LEVIERS_NOYAU: readonly Levier[] = [
   },
 ];
 
+// Consigne structurée par zone : chaque décideur du jeu peut l'émettre (couture foule-decision). Porte connue et ouverte, clarté bornée à 0..1.
+function levierConsigne(decideur: Decideur): Levier {
+  return {
+    id: 'consigne_zone', decideur, champ: 'consignes_par_zone', statut: 'bon_sens',
+    libelle: 'Consigne structurée pour une zone : vers quelle porte, avec quelle clarté (0 à 1)',
+    source: 'ticket #10, couture avec foule-decision (Alexandre) ; ' + C + ' §5 (annonces, guidage)',
+    limite: 'Zone niveau_<n> ou salle_<kk> ; la porte ne doit pas être fermée ; clarté bornée à 0..1 ; le texte reste dans message_zone',
+    valeur_schema: { type: 'object', required: ['zone', 'porte', 'clarte'], properties: { zone: { type: 'string', pattern: ZONE_CONSIGNE.source }, porte: { type: 'string', enum: [...PORTES] }, clarte: { type: 'number', minimum: 0, maximum: 1 } } },
+    exemple: { zone: 'niveau_-1', porte: 'lescot', clarte: 0.8 },
+    valider: (v, ctx) => validerConsigne(v, ctx.etat.plan),
+    appliquer: (e, v) => planSet(e, (p) => { const x = v as { zone: string; porte: string; clarte: number }; (p.consignes_par_zone ??= {})[x.zone] = { porte: x.porte, clarte: clamp01(x.clarte) }; }),
+  };
+}
+const LEVIERS_CONSIGNE: Levier[] = (['prefecture', 'ratp', 'securite_centre', 'directeur'] as Decideur[]).map(levierConsigne);
+
 // Menu complet : 16 leviers exécutables du noyau (Plan) + les 46 du catalogue (6 décideurs).
-export const LEVIERS: readonly Levier[] = [...LEVIERS_NOYAU, ...LEVIERS_CATALOGUE];
+export const LEVIERS: readonly Levier[] = [...LEVIERS_NOYAU, ...LEVIERS_CONSIGNE, ...LEVIERS_CATALOGUE];
 
 // Contraintes imposées de l'extérieur : pas des leviers (rien ne les change dans le jeu).
 export const CONTRAINTES_FIXES = [
@@ -298,6 +335,12 @@ export function verifierPlan(plan: Plan, scenario: Scenario, bloquees = 0): stri
   const agents = plan.guidage.reduce((s, g) => s + g.agents, 0);
   if (agents > scenario.effectif_securite) r.push(`${agents} agents placés pour un effectif de ${scenario.effectif_securite}`);
   for (const [z, t] of Object.entries(plan.messages_par_zone)) if (INTERDIT_ALARME.test(t)) r.push(`message de la zone ${z} évoque une alarme générale ou un incendie`);
+  for (const [z, c] of Object.entries(plan.consignes_par_zone ?? {})) {
+    if (!ZONE_CONSIGNE.test(z)) r.push(`consigne : zone ${z} de forme invalide`);
+    if (!PORTES.includes(c.porte)) r.push(`consigne de ${z} : porte inconnue ${c.porte}`);
+    else if (plan.portes[c.porte] === 'fermee') r.push(`consigne de ${z} : la porte ${c.porte} est fermée`);
+    if (!(c.clarte >= 0 && c.clarte <= 1)) r.push(`consigne de ${z} : clarté hors de 0..1`);
+  }
   if (plan.confinement.actif && plan.confinement.zones.length === 0) r.push('confinement actif sans zone');
   for (const s of plan.phasage_salles)
     if (s.minute_depart < scenario.minute_annonce || s.minute_depart > scenario.stations_fermees_minute) r.push(`phasage de ${s.salle} hors fenêtre annonce → 22 h`);
