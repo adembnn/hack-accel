@@ -105,7 +105,7 @@ test('validation du format de la contrainte (proposition de Titouan, ticket #7)'
   assert.throws(() => new BusContraintes().emettre({ ...ok, niveau: 1.5 } as Contrainte));
 });
 
-test('appels de dessin ≤ 800 : non mesurable sans WebGL', { skip: 'mesure faite dans le navigateur (renderer.info.render.calls), voir le rapport du lot' }, () => {});
+test('appels de dessin ≤ 800 : non mesurable sans WebGL', { skip: 'mesuré à la main dans le navigateur intégré : renderer.info.render.calls = 727 (vue3d.html, style D, sans textures), 881 avant instanciation des bouches de métro' }, () => {});
 
 const donnees = process.env.REFUGE_DATA ?? resolve(dossier, '../../../../refuge-data/data');
 test('reproductibilité : regénérer depuis les données donne exactement navgrid.json', { skip: existsSync(resolve(donnees, 'osm/voies.json')) ? false : 'données téléchargées absentes' }, () => {

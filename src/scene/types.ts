@@ -44,6 +44,8 @@ export interface LienVertical {
   l: number[]; // niveaux reliés (min..max)
   n: string;
   d?: string; // sens de l'escalator (conveying) si connu
+  x?: number; // ascenseur : position (lue par la vue 3D de la maquette)
+  z?: number;
   p: number[]; // tracé aplati [x,z,x,z,...] (un polygone pour un ascenseur)
   de: { niveau: number; x: number; z: number };
   vers: { niveau: number; x: number; z: number };

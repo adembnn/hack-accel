@@ -121,7 +121,7 @@ export function genererScene(dir: string): Scene {
     if (!w) estime = true;
     liens[kind].push({
       id: `${kind === 'escalator' ? 'ESC' : kind === 'escalier' ? 'ESL' : 'ASC'}-${e.id}`, type: kind, l: [bas, haut], n: t.name ?? '', ...(t.conveying ? { d: t.conveying } : {}),
-      p, de, vers, largeur_m: w && w > 0.3 ? w : defaut, etat: 'ouverte', estime,
+      p, ...(kind === 'ascenseur' ? { x: de.x, z: de.z } : {}), de, vers, largeur_m: w && w > 0.3 ? w : defaut, etat: 'ouverte', estime,
     });
   }
 
