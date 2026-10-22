@@ -13,7 +13,7 @@ def xy(lat, lon):
 
 
 def load(name):
-    return json.load(open(os.path.join(HERE, 'data', name)))['elements']
+    return json.load(open(os.path.join(HERE, 'data', name), encoding='utf-8'))['elements']
 
 
 def levels(tag):
@@ -152,7 +152,7 @@ for e in load('abords.json'):
     elif t.get('water') or t.get('natural') == 'water':
         scene['eau'].append({'n': t.get('name', ''), 'p': ring(g)})
 
-json.dump(scene, open(os.path.join(HERE, 'scene.json'), 'w'), separators=(',', ':'), ensure_ascii=False)
+json.dump(scene, open(os.path.join(HERE, 'scene.json'), 'w', encoding='utf-8'), separators=(',', ':'), ensure_ascii=False)
 print({k: len(v) for k, v in scene.items() if isinstance(v, list)})
 lv = {}
 for o in scene['interieur'] + scene['escalators'] + scene['escaliers']:
