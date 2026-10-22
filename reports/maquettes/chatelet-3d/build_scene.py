@@ -152,6 +152,24 @@ for e in load('abords.json'):
     elif t.get('water') or t.get('natural') == 'water':
         scene['eau'].append({'n': t.get('name', ''), 'p': ring(g)})
 
+scene['voies'] = []
+rail_path = os.path.join(HERE, 'data', 'rail.json')
+if os.path.exists(rail_path):
+    for e in json.load(open(rail_path, encoding='utf-8'))['elements']:
+        t, g = e.get('tags', {}), e.get('geometry')
+        if not g:
+            continue
+        lv = levels(t.get('level', ''))
+        if not lv:
+            lay = levels(t.get('layer', ''))
+            lv = lay if lay else [0]
+        if t.get('railway') in ('rail', 'subway'):
+            if t.get('tunnel') != 'yes' and min(lv) >= 0:
+                continue
+            scene['voies'].append({'k': t['railway'], 'n': t.get('name', ''), 'ref': t.get('ref', ''), 'l': lv, 'p': ring(g)})
+        else:
+            scene['quais'].append({'l': lv, 'n': t.get('name', '') or t.get('ref', ''), 'p': ring(g)})
+
 json.dump(scene, open(os.path.join(HERE, 'scene.json'), 'w', encoding='utf-8'), separators=(',', ':'), ensure_ascii=False)
 print({k: len(v) for k, v in scene.items() if isinstance(v, list)})
 lv = {}
