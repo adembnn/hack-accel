@@ -6,7 +6,7 @@ import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { IMPOSEES, variantes } from './scenario.mjs';
-import { CONSIGNE_REELLE, plansParRegles, muter } from './plans.mjs';
+import { CONSIGNE_REELLE, plansParRegles, muter, cle } from './plans.mjs';
 import { preparerMonde, sortiesDuMonde, pireNote, comparer } from './run.mjs';
 import { versVue, SORTIE_VUE } from './vers-vue.mjs';
 
@@ -57,7 +57,10 @@ export async function explorer(imposees = IMPOSEES, o = {}) {
     const temps1 = await evaluer(plansParRegles(sorties, o.plans ?? 40), 'règles');
     const tri = (a) => [...a].sort((x, y) => comparer(x.pire, y.pire));
     const meilleurs = tri(temps1.filter((r) => !r.elague)).slice(0, garde);
-    const temps2 = await evaluer(meilleurs.flatMap((r, i) => muter(r.plan, sorties, o.mutants ?? 6, 77 + i)), 'mutation');
+    // un plan déjà joué (ou produit par deux parents) ne se rejoue pas
+    const vus = new Set([CONSIGNE_REELLE, ...temps1.map((r) => r.plan)].map(cle));
+    const mutants = meilleurs.flatMap((r, i) => muter(r.plan, sorties, o.mutants ?? 6, 77 + i)).filter((p) => { const k = cle(p); if (vus.has(k)) return false; vus.add(k); return true; });
+    const temps2 = await evaluer(mutants, 'mutation');
     // Les plans complets d'abord, classés ; les plans élagués ensuite (leur note est une borne : « au moins aussi mauvais »).
     const tous = [...base, ...temps1, ...temps2], classement = [...tri(tous.filter((r) => !r.elague)), ...tri(tous.filter((r) => r.elague))];
     const rang = (id) => classement.findIndex((r) => r.plan.id === id) + 1;

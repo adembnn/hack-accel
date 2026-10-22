@@ -33,7 +33,7 @@ function normaliser(p, sorties) {
   const f = new Set(fermees);
   return { ...p, fermees, agents: uniq(p.agents.filter((n) => ok(n) && !f.has(n))), annonces: uniq(p.annonces.filter((n) => ok(n) && !f.has(n))) };
 }
-const cle = (p) => JSON.stringify([[...p.fermees].sort(), [...p.agents].sort(), [...p.annonces].sort(), p.vagues, p.escalators, p.ratp]);
+export const cle = (p) => JSON.stringify([[...p.fermees].sort(), [...p.agents].sort(), [...p.annonces].sort(), p.vagues, p.escalators, p.ratp]);
 
 // Premier temps : environ 40 plans tirés de règles simples (côté fermé × cibles × moyen de guidage × vagues × RATP × escalators).
 export function plansParRegles(sorties, n = 40, graine = 7) {
