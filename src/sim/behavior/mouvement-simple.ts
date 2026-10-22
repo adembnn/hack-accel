@@ -1,6 +1,6 @@
 // Mouvement SIMPLISTE de test (pas le vrai : foule-mouvement fournira le vrai derrière l'interface `Mouvement`).
 // Chaque personne marche en ligne droite vers son issue, puis fait la queue ; la file est servie au débit de l'issue.
-// Densité d'une zone d'approche = personnes en file / surface. Pression de Helbing : approximation (proxy), pas mesurée.
+// Densité d'une zone d'approche = personnes en file / surface. Pression : PROXY inventé (voir plus bas), pas la pression de Helbing.
 import type { Intention, Issue, Mouvement, Personne, RetourMouvement, Scene } from './types.ts';
 
 export const DEBIT_PAR_METRE = 1.3; // pers/s par mètre de largeur utile (SFPE, rapport criteres-jugement-crise §1)
@@ -106,7 +106,10 @@ export function creerMouvementSimple(): Mouvement {
         credit.set(iid, f.length ? c : 0);
         const rho2 = f.length / is.surface_approche_m2;
         densite[iid] = rho2;
-        const sigma = 0.15 * Math.max(0, rho2 - 3); // écart-type de vitesse supposé (proxy)
+        // PROXY, non publié ni calibré : pas de vitesses individuelles ici, donc on SUPPOSE un écart-type de vitesse qui croît avec la
+        // densité (0,15·(ρ−3), hypothèse de réglage). Dépasse 0,02 dès ρ = 3,5 : NON comparable au seuil 0,02 s^-2 de Helbing et al.
+        // 2007 (PRE 75, 046109). La vraie pression (ρ·Var(V)) est dans metrics/pression.ts, pour quand le mouvement donnera les vitesses.
+        const sigma = 0.15 * Math.max(0, rho2 - 3);
         pression[iid] = rho2 * sigma * sigma;
         filePar[iid] = f.length;
       }

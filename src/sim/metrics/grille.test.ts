@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { calculerGrille, percentile, type Mesures } from './grille.ts';
+import { calculerGrille, ligneRouge, LIBELLE_PRESSION, percentile, PRESSION_EST_PROXY, SEUIL_PRESSION_HELBING, type Mesures } from './grille.ts';
 
 const base = (o: Partial<Mesures> = {}): Mesures => ({
   n: 10,
@@ -40,6 +40,26 @@ test('écrasement : personnes-minutes au-dessus de 5 pers./m2 ; zéro = 100', ()
   const g = calculerGrille(base({ ecrasement_personnes_minutes: 100 }));
   assert.equal(g.ecrasement.valeur, 100);
   assert.equal(g.ecrasement.note, 50);
+});
+
+test('exemple du rapport : 180 personnes-minutes d’écrasement = note 35,7', () => {
+  const g = calculerGrille(base({ ecrasement_personnes_minutes: 180 }));
+  assert.ok(Math.abs(g.ecrasement.note - 100 / 2.8) < 1e-9);
+});
+
+test('la pression proxy ne fait pas basculer la ligne rouge ni ne pèse dans le total', () => {
+  const sans = base();
+  const proxy = base({ pression_max: 1.2 }); // 60 fois le seuil de Helbing
+  assert.equal(ligneRouge(proxy), false);
+  assert.equal(calculerGrille(proxy).total, calculerGrille(sans).total);
+  assert.equal(calculerGrille(proxy).pression_helbing_max, 1.2); // valeur gardée pour l'affichage
+  assert.equal(SEUIL_PRESSION_HELBING, 0.02);
+  assert.match(LIBELLE_PRESSION, /proxy/);
+  assert.equal(PRESSION_EST_PROXY, true);
+});
+
+test('la ligne rouge bascule sur l’écrasement', () => {
+  assert.equal(ligneRouge(base({ ecrasement_personnes_minutes: 0.5 })), true);
 });
 
 test('le non-sorti pèse plus que l’écrasement dans le total (ordre de la grille)', () => {
