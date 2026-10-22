@@ -26,7 +26,11 @@
   norm(texte).split(/[,.;?!]| et | puis | mais | alors /).map(c=>c.trim()).filter(Boolean).forEach(t=>{
    const zl=trouverLieu(t,false),pl=trouverLieu(t,true),porte=pl&&pl.porte;
    if(has(t,'que faire|comment|quoi faire|recommand|conseil|meilleur|on fait quoi|propos'))question=true;
-   if(has(t,'manif|cortege|rassemblement'))A.push({a:'zone',code:'D1',lieu:zl});
+   const fin=has(t,'arret|stop|retir|leve[rz]?|lever|termin|disperse|dispersee|enleve|supprim|fini|partie?s?|annule');
+   if(fin&&has(t,'manif|cortege|rassemblement|trouble|casseur|zone'))A.push({a:'finZone',lieu:zl,code:has(t,'trouble|casseur')?'D2':has(t,'manif|cortege|rassemblement')?'D1':null});
+   else if(has(t,'ascenseurs?'))A.push({a:'ascenseurs',ferme:!has(t,'rouvr|reouvr|remet|remarch|repar|fonctionne a nouveau|en service'),lieu:zl});
+   else if(has(t,'escalators?|escaliers? mecaniques?'))A.push({a:'escalators',arret:!has(t,'rouvr|remet|redemar|remarch|repar|en marche')});
+   else if(has(t,'manif|cortege|rassemblement'))A.push({a:'zone',code:'D1',lieu:zl});
    else if(has(t,'trouble|casseur|affrontement|bagarre|degradation|violence'))A.push({a:'zone',code:'D2',lieu:zl});
    else if(has(t,'stations?|metro|rer|bouches?')&&has(t,'ferm|coup'))A.push({a:'bouches',ferme:true});
    else if(has(t,'stations?|metro|rer|bouches?')&&has(t,'rouvr|reouvr|ouvr'))A.push({a:'bouches',ferme:false});
@@ -50,10 +54,18 @@
   A.forEach(x=>{
    if(x.a==='zone'){if(!x.lieu){dit.push(`Où se trouve ${x.code==='D1'?'la manifestation':'le trouble'} ? Dites par exemple « rue Berger ».`);return;}
     addZone(x.code,x.lieu.x,x.lieu.z);camFly([x.lieu.x+90,90,x.lieu.z+120],[x.lieu.x,0,x.lieu.z]);dit.push(`${x.code==='D1'?'Manifestation':'Zone de troubles'} posée ${x.lieu.nom}.`);}
+   else if(x.a==='finZone'){const Z=ZONES.filter(z=>(!x.code||z.code===x.code)&&(!x.lieu||Math.hypot(z.x-x.lieu.x,z.z-x.lieu.z)<z.r+80));const cible=Z.length?Z:(x.lieu||x.code?[]:ZONES.slice());
+    cible.slice().forEach(removeZone);dit.push(cible.length?`${cible.length>1?cible.length+' zones levées':'Zone levée'}${x.lieu?' '+x.lieu.nom:''} : les portes voisines redeviennent normales.`:'Aucune zone à lever ici.');}
+   else if(x.a==='ascenseurs'){const As=LEV.filter(l=>l.type==='ascenseur'&&(!x.lieu||Math.hypot(l.x-x.lieu.x,l.z-x.lieu.z)<80));const vis=As.length?As:LEV.filter(l=>l.type==='ascenseur');
+    vis.forEach(l=>{if((l.etat==='fermé')!==x.ferme)toggleLever(l.id);});dit.push(`${vis.length} ascenseur${vis.length>1?'s':''}${x.lieu&&As.length?' près de '+x.lieu.nom:''} ${x.ferme?'hors service : ils ne servent plus dans la simulation ; les personnes à mobilité réduite attendent les secours':'remis en service'}.`);}
+   else if(x.a==='escalators'){SIM.g.links.forEach(k=>{if(k.k==='escalator')k.debit=x.arret?.9:1.25;});const cb=[...document.querySelectorAll('#perturb label')].find(l=>/Escalators/.test(l.textContent));if(cb)cb.querySelector('input').checked=x.arret;
+    dit.push(x.arret?'Escalators arrêtés : ils servent d\'escaliers, le débit baisse.':'Escalators remis en marche.');}
    else if(x.a==='bouches'){LEV.forEach(l=>{if(l.type==='bouche')l.etat=x.ferme?'fermé':'ouvert';});levRefresh();dit.push(x.ferme?'Bouches de métro et RER fermées : les quais ne sont plus une sortie.':'Bouches rouvertes.');}
    else if(x.a==='levier'){levAction(x.id,x.act);const L=LEV.find(l=>l.id===x.id);dit.push({fermer:`${L.nom} fermée.`,ouvrir:`${L.nom} rouverte.`,agent:`Agent posté à ${L.nom} : il guide le public vers cette sortie.`,annonce:`Annonce diffusée : sortir par ${L.nom}.`}[x.act]);}
    else if(x.a==='evacuer'){if(SIM.mode!=='evac')simAlert();showTab&&0;dit.push('Évacuation lancée.');}
-   else if(x.a==='conseil')dit.push(conseil());});
+   else if(x.a==='conseil'){dit.push(conseil());
+    // s'appuyer sur le dispositif en place : propositions au PC sécurité, à valider par le chef de poste
+    if(window.dispositif){dispositif.proposer('sonorisation');dispositif.proposer('guide-serre-files');dit.push('Deux propositions sont envoyées au PC sécurité : un message de sonorisation et des guide-files aux portes conseillées. Le chef de poste les valide.');}}});
   const rep=dit.join(' ');log('outil',rep);dire(rep);}
 
  const txt=document.getElementById('dirTxt');txt.addEventListener('keydown',e=>{if(e.key==='Enter'&&txt.value.trim()){executer(txt.value.trim());txt.value='';}});
