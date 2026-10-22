@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Halles, cellule de crise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
+<style>
+:root{--ground:#E4E5E1;--panel:#F4F4F1;--ink:#1D1F1E;--ink2:#5B5F5C;--line:#C9CBC5;--exit:#00995A;--danger:#E0461F;--warn:#C98A12;--zone:#E0461F;--scene:#E4E5E1;--clay:#FBFBF9;--edge:#2A2C2B}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ground:#1B1D1C;--panel:#232625;--ink:#ECEDEA;--ink2:#A3A7A3;--line:#3A3E3C;--scene:#1B1D1C;--clay:#D9DAD5;--edge:#121413}}
+:root[data-theme="dark"]{--ground:#1B1D1C;--panel:#232625;--ink:#ECEDEA;--ink2:#A3A7A3;--line:#3A3E3C;--scene:#1B1D1C;--clay:#D9DAD5;--edge:#121413}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:Archivo,system-ui,sans-serif;font-size:14px;line-height:1.45}
+.app{display:grid;grid-template-columns:280px minmax(0,1fr) 320px;grid-template-rows:52px minmax(0,1fr) auto;height:100vh;min-height:640px}
+header{grid-column:1/-1;display:flex;align-items:center;gap:18px;padding:0 18px;border-bottom:1px solid var(--line)}
+.brand{font-stretch:75%;font-weight:700;font-size:17px;letter-spacing:.01em}
+.clock{font-variant-numeric:tabular-nums;font-weight:600;font-size:22px;font-stretch:75%}
+.pill{border:1px solid var(--line);border-radius:4px;padding:2px 8px;font-size:12px;color:var(--ink2)}
+aside{overflow:auto;padding:14px 16px;border-right:1px solid var(--line)}
+aside.r{border-right:0;border-left:1px solid var(--line)}
+h2{font-stretch:75%;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin:14px 0 8px;font-weight:600}
+h2:first-child{margin-top:0}
+.ev{padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.ev b{font-variant-numeric:tabular-nums;font-weight:600}
+.ev .src{display:block;color:var(--ink2);font-size:11.5px}
+.ctl{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;font-size:13px}
+.sw{appearance:none;width:34px;height:20px;border-radius:10px;background:var(--line);position:relative;cursor:pointer;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--panel);transition:left .15s}
+.sw:checked{background:var(--exit)}.sw:checked::after{left:17px}
+.sw.z:checked{background:var(--danger)}
+main{position:relative;min-height:0}
+#scene{position:absolute;inset:0}
+.hud{position:absolute;left:14px;top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.hud button,.btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:4px;padding:6px 10px;cursor:pointer}
+.btn.primary{background:var(--ink);color:var(--ground);border-color:var(--ink);font-weight:600}
+.hud button[aria-pressed="true"]{background:var(--ink);color:var(--ground)}
+.legend{position:absolute;left:14px;bottom:12px;display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink2);background:color-mix(in srgb,var(--ground) 85%,transparent);padding:6px 10px;border-radius:4px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--ground);font-size:12px;padding:4px 8px;border-radius:4px;display:none}
+.msg{border-left:3px solid var(--line);padding:6px 0 6px 10px;margin:0 0 10px;font-size:13px;opacity:0;transform:translateY(4px);transition:all .3s}
+.msg.on{opacity:1;transform:none}
+.msg .who{font-weight:600;font-stretch:75%;font-size:13px;letter-spacing:.02em}
+.msg.pref{border-color:#6B6F6C}.msg.ratp{border-color:#2E6DB4}.msg.secu{border-color:var(--warn)}.msg.dir{border-color:var(--exit)}
+footer{grid-column:1/-1;border-top:1px solid var(--line);padding:12px 16px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 220px;gap:12px}
+.plan{border:1px solid var(--line);border-radius:6px;padding:10px 12px;cursor:pointer;background:var(--panel);position:relative}
+.plan.sel{outline:2px solid var(--ink)}
+.plan.best::before{content:"Recommandé";position:absolute;top:-9px;right:10px;background:var(--exit);color:#fff;font-size:11px;font-weight:600;padding:1px 7px;border-radius:3px}
+.plan h3{margin:0 0 2px;font-size:14px;font-stretch:80%}
+.plan p{margin:0 0 8px;color:var(--ink2);font-size:12.5px}
+.met{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.met div{font-size:11px;color:var(--ink2)}.met b{display:block;font-size:18px;color:var(--ink);font-variant-numeric:tabular-nums;font-stretch:80%}
+.met b.bad{color:var(--danger)}
+.act{display:flex;flex-direction:column;gap:8px;justify-content:center}
+.bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--ink)}
+.note{font-size:11.5px;color:var(--ink2)}
+dialog{border:1px solid var(--line);border-radius:6px;max-width:620px;width:92vw;background:var(--panel);color:var(--ink);padding:22px 24px}
+dialog::backdrop{background:rgba(0,0,0,.35)}
+.os h3{font-stretch:75%;font-size:20px;margin:0 0 4px}.os table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0}
+.os td,.os th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left;vertical-align:top}
+@media (max-width:900px){.app{grid-template-columns:1fr;grid-template-rows:52px 420px auto auto auto;height:auto}aside,aside.r{border:0;border-top:1px solid var(--line)}main{grid-row:2}footer{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<!--
+THESIS: le Forum se lit comme une maquette d'architecte en tiroirs ; la décision du directeur se voit dans la foule, pas dans un tableau de bord.
+OWN-WORLD: volumes en plâtre clair à arêtes encrées sur table béton ; vert ISO 7010 réservé aux issues ; un seul accent rouge-orange pour la densité et la zone interdite ; Archivo condensé.
+STORY: le directeur voit la situation réelle du 19 oct., ferme ou rouvre des issues, lance l'analyse, compare trois plans chiffrés, imprime l'ordre de service.
+FIRST VIEWPORT: maquette 3D éclatée au centre (niveaux 0, -1, -2), situation à gauche, cellule de décision à droite, trois plans en bas avec l'action « Analyser ».
+FORM: maquette en tiroirs, direction choisie hors catalogue (seed vide). FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+-->
+<div class="app">
+<header>
+  <span class="brand">Les Halles · cellule de crise</span>
+  <span class="pill">Maquette cliquable · géométrie stylisée</span>
+  <span style="flex:1"></span>
+  <span class="pill" id="state">Avant analyse</span>
+  <span class="clock" id="clock">19:50:00</span>
+</header>
+
+<aside>
+  <h2>Situation au 19 oct. 2026</h2>
+  <div class="ev"><b>19:20</b> Couvre-feu préfectoral sur Châtelet et République, 23h à 6h.<span class="src">Le Parisien, BFM, 19-20 oct.</span></div>
+  <div class="ev"><b>20:00</b> Manifestation interdite : périmètre au nord-est du Forum.<span class="src">Le Parisien, 19 oct.</span></div>
+  <div class="ev"><b>22:00</b> Fermeture des stations métro et RER Châtelet-Les Halles.<span class="src">Le Parisien, 19 oct.</span></div>
+  <div class="ev"><b>19:30</b> UGC Ciné Cité : environ 3 000 spectateurs en salle.<span class="src">BFM, 20 oct. · maquette : 600 personnes simulées</span></div>
+  <h2>Issues (cliquables aussi dans la maquette)</h2>
+  <div id="exitCtl"></div>
+  <h2>Contraintes</h2>
+  <div class="ctl"><span>Éviter le périmètre interdit</span><input type="checkbox" class="sw z" id="zoneSw" checked></div>
+  <div class="ctl"><span>Éclater les niveaux</span><input type="checkbox" class="sw" id="explodeSw" checked></div>
+</aside>
+
+<main>
+  <div id="scene"></div>
+  <div class="hud">
+    <button id="play">Lecture</button>
+    <button data-sp="1" aria-pressed="false">×1</button><button data-sp="4" aria-pressed="true">×4</button><button data-sp="10" aria-pressed="false">×10</button>
+    <button id="restart">Rejouer</button>
+  </div>
+  <div class="legend">
+    <span><i class="dot" style="background:#8E928F"></i>pas encore parti</span>
+    <span><i class="dot" style="background:var(--edge)"></i>en marche</span>
+    <span><i class="dot" style="background:var(--warn)"></i>hésite</span>
+    <span><i class="dot" style="background:var(--danger)"></i>densité &gt; 4 pers./m²</span>
+    <span><i class="dot" style="background:var(--exit)"></i>issue ouverte</span>
+  </div>
+  <div class="tip" id="tip"></div>
+</main>
+
+<aside class="r">
+  <h2>Cellule de décision</h2>
+  <div id="msgs"><p class="note">Fermez une issue ou lancez l'analyse : la préfecture, la RATP, la sécurité du centre et le directeur se coordonnent ici.</p></div>
+  <p class="note" style="margin-top:14px">Dans la maquette, les messages sont produits par des règles à partir des chiffres calculés. Dans le produit, ce seront des agents LLM avec vérification de chaque chiffre.</p>
+</aside>
+
+<footer>
+  <div class="plan sel" data-p="0"><h3>A · Consigne réelle du 19 oct.</h3><p>« Sortez par où vous êtes rentrés », toutes les salles d'un coup.</p><div class="met" id="m0"><div>Vidage 95 %<b>–</b></div><div>Pers.·s &gt; 4/m²<b>–</b></div><div>Vers la zone<b>–</b></div></div></div>
+  <div class="plan" data-p="1"><h3>B · Phasage et guidage</h3><p>Salles 1-3 puis 4-6 à +2 min, agents vers Lescot, Berger et RER, Rambuteau tenue fermée.</p><div class="met" id="m1"><div>Vidage 95 %<b>–</b></div><div>Pers.·s &gt; 4/m²<b>–</b></div><div>Vers la zone<b>–</b></div></div></div>
+  <div class="plan" data-p="2"><h3>C · RER avant 22h</h3><p>Guidage prioritaire vers l'accès RER et Rivoli, Rambuteau tenue fermée.</p><div class="met" id="m2"><div>Vidage 95 %<b>–</b></div><div>Pers.·s &gt; 4/m²<b>–</b></div><div>Vers la zone<b>–</b></div></div></div>
+  <div class="act">
+    <button class="btn primary" id="analyse">Analyser les 3 plans</button>
+    <div class="bar"><i id="prog"></i></div>
+    <button class="btn" id="osBtn">Ordre de service</button>
+  </div>
+</footer>
+</div>
+
+<dialog id="os"><div class="os" id="osBody"></div><p style="text-align:right;margin:12px 0 0"><button class="btn" onclick="document.getElementById('os').close()">Fermer</button></p></dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+// ---------- Géométrie stylisée (mètres) : 3 niveaux de 100 × 60 m ----------
+const CS=0.5,LW=100,LH=60,GW=LW/CS,GH=LH/CS,NC=GW*GH,NL=3;
+const LNAME=['Niveau 0 · surface','Niveau -1 · galerie','Niveau -2 · cinéma et RER'];
+const grid=new Uint8Array(NL*NC);const solids=[[],[],[]];
+const idx=(l,cx,cy)=>l*NC+cy*GW+cx;
+function rect(l,x0,y0,x1,y1){solids[l].push([x0,y0,x1,y1]);for(let y=Math.floor(y0/CS);y<Math.ceil(y1/CS);y++)for(let x=Math.floor(x0/CS);x<Math.ceil(x1/CS);x++)if(x>=0&&y>=0&&x<GW&&y<GH)grid[idx(l,x,y)]=1;}
+function border(l,gaps){const segs={t:[[0,LW]],b:[[0,LW]],l:[[0,LH]],r:[[0,LH]]};gaps.forEach(([s,a,b])=>{segs[s]=segs[s].flatMap(([u,v])=>a>u&&b<v?[[u,a],[b,v]]:[[u,v]]);});
+segs.t.forEach(([u,v])=>rect(l,u,0,v,.5));segs.b.forEach(([u,v])=>rect(l,u,LH-.5,v,LH));segs.l.forEach(([u,v])=>rect(l,0,u,.5,v));segs.r.forEach(([u,v])=>rect(l,LW-.5,u,LW,v));}
+const EXITS=[
+ {n:'Rue Berger',l:0,s:'t',a:44,b:52,zone:false},
+ {n:'Rue Rambuteau',l:0,s:'r',a:4,b:10,zone:true},
+ {n:'Rue Pierre-Lescot',l:0,s:'r',a:40,b:48,zone:false},
+ {n:'Rue de Rivoli',l:0,s:'b',a:60,b:68,zone:false},
+ {n:'Rue du Louvre',l:0,s:'l',a:44,b:50,zone:false},
+ {n:'Bouche métro Châtelet',l:0,s:'b',a:20,b:23,zone:false},
+ {n:'Accès RER / métro',l:2,s:'l',a:44,b:52,zone:false}];
+EXITS.forEach(e=>{e.open=true;e.r=e.s==='t'?[e.a,0,e.b,.5]:e.s==='b'?[e.a,LH-.5,e.b,LH]:e.s==='l'?[0,e.a,.5,e.b]:[LW-.5,e.a,LW,e.b];});
+[0,1,2].forEach(l=>border(l,EXITS.filter(e=>e.l===l).map(e=>[e.s,e.a,e.b])));
+// Niveau 0 : jardin, Canopée (patio central ouvert), Bourse de commerce
+rect(0,40,22,46,38);rect(0,54,22,60,38);rect(0,8,22,20,36);rect(0,70,20,84,30);
+[[28,12],[30,46],[66,46],[76,40],[14,48],[86,12]].forEach(([x,y])=>rect(0,x,y,x+1,y+1));
+// Niveau -1 : galerie en anneau
+rect(1,6,6,40,18);rect(1,60,6,94,18);rect(1,6,42,40,54);rect(1,60,42,94,54);rect(1,44,26,46,34);rect(1,54,26,56,34);
+// Niveau -2 : six salles de cinéma (portes de 2 m), caisses
+for(let i=0;i<6;i++){const x0=6+i*14;rect(2,x0,2,x0+.5,18);rect(2,x0,17.5,x0+6,18);rect(2,x0+8,17.5,x0+14,18);}rect(2,90,2,90.5,18);rect(2,40,30,60,34);
+// Escalators : [niveau bas, x, y, niveau haut, x, y]
+const LINKS=[[1,50,30,0,50,30],[1,92,30,0,88,44],[1,50,3,0,48,16],[2,30,46,1,30,30],[2,70,46,1,70,30]];
+const ESC_T=12,ESC_GAP=0.9,ESC_COST=14;
+const linkNode=LINKS.map(k=>[idx(k[0],k[1]/CS|0,k[2]/CS|0),idx(k[3],k[4]/CS|0,k[5]/CS|0)]);
+const exitOf=new Int8Array(NL*NC).fill(-1);
+EXITS.forEach((e,k)=>{for(let y=Math.floor(e.r[1]/CS);y<Math.ceil(e.r[3]/CS);y++)for(let x=Math.floor(e.r[0]/CS);x<Math.ceil(e.r[2]/CS);x++)exitOf[idx(e.l,x,y)]=k;});
+
+// ---------- Champs : distance aux murs puis carte de pentes multi-niveaux par issue ----------
+const NB=[[1,0,1],[-1,0,1],[0,1,1],[0,-1,1],[1,1,1.4142],[1,-1,1.4142],[-1,1,1.4142],[-1,-1,1.4142]];
+function heap(){const h=[];return{h,push(i,v){h.push([v,i]);let k=h.length-1;while(k>0){const p=(k-1)>>1;if(h[p][0]<=h[k][0])break;[h[p],h[k]]=[h[k],h[p]];k=p;}},pop(){const t=h[0],l=h.pop();if(h.length){h[0]=l;let k=0;for(;;){let a=2*k+1,b=a+1,m=k;if(a<h.length&&h[a][0]<h[m][0])m=a;if(b<h.length&&h[b][0]<h[m][0])m=b;if(m===k)break;[h[m],h[k]]=[h[k],h[m]];k=m;}}return t;}};}
+const wd=new Float64Array(NL*NC).fill(1e9);
+(function(){const H=heap();for(let i=0;i<NL*NC;i++)if(grid[i]){wd[i]=0;H.push(i,0);}while(H.h.length){const[v,c]=H.pop();if(v>wd[c])continue;const l=(c/NC)|0,r=c%NC,cx=r%GW,cy=(r/GW)|0;for(const[dx,dy,w]of NB){const nx=cx+dx,ny=cy+dy;if(nx<0||ny<0||nx>=GW||ny>=GH)continue;const n=idx(l,nx,ny),nv=v+w*CS;if(nv<wd[n]){wd[n]=nv;H.push(n,nv);}}}})();
+const wgx=new Float32Array(NL*NC),wgy=new Float32Array(NL*NC),cost=new Float32Array(NL*NC);
+for(let l=0;l<NL;l++)for(let y=1;y<GH-1;y++)for(let x=1;x<GW-1;x++){const i=idx(l,x,y);const gx=wd[idx(l,x+1,y)]-wd[idx(l,x-1,y)],gy=wd[idx(l,x,y+1)]-wd[idx(l,x,y-1)],m=Math.hypot(gx,gy)||1;wgx[i]=gx/m;wgy[i]=gy/m;cost[i]=1+3*Math.max(0,1-wd[i]/1.2);}
+const linksAt=new Map();LINKS.forEach((k,j)=>{linksAt.set(linkNode[j][0],[j,linkNode[j][1]]);linksAt.set(linkNode[j][1],[j,linkNode[j][0]]);});
+const F=[],FX=[],FY=[];
+EXITS.forEach((e,k)=>{const f=new Float64Array(NL*NC).fill(1e9),H=heap();for(let i=0;i<NL*NC;i++)if(exitOf[i]===k){f[i]=0;H.push(i,0);}
+ while(H.h.length){const[v,c]=H.pop();if(v>f[c])continue;const l=(c/NC)|0,r=c%NC,cx=r%GW,cy=(r/GW)|0;
+  for(const[dx,dy,w]of NB){const nx=cx+dx,ny=cy+dy;if(nx<0||ny<0||nx>=GW||ny>=GH)continue;const n=idx(l,nx,ny);if(grid[n])continue;if(dx&&dy&&(grid[idx(l,cx+dx,cy)]||grid[idx(l,cx,cy+dy)]))continue;const nv=v+w*CS*cost[n];if(nv<f[n]){f[n]=nv;H.push(n,nv);}}
+  const lk=linksAt.get(c);if(lk){const n=lk[1],nv=v+ESC_COST;if(nv<f[n]){f[n]=nv;H.push(n,nv);}}}
+ const ax=new Float32Array(NL*NC),ay=new Float32Array(NL*NC);
+ for(let l=0;l<NL;l++)for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const c=idx(l,x,y);if(grid[c]||f[c]>=1e9)continue;let sx=0,sy=0;for(const[dx,dy,w]of NB){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=GW||ny>=GH)continue;const n=idx(l,nx,ny);if(grid[n]||f[n]>=1e9)continue;if(dx&&dy&&(grid[idx(l,x+dx,y)]||grid[idx(l,x,y+dy)]))continue;const g=(f[c]-f[n])/w;if(g>0){sx+=g*dx/w;sy+=g*dy/w;}}const m=Math.hypot(sx,sy)||1;ax[c]=sx/m;ay[c]=sy/m;}
+ F.push(f);FX.push(ax);FY.push(ay);});
+
+// ---------- Plans du directeur (leviers) ----------
+const SALLES=6;
+const PLANS=[
+ {nom:'A',guide:[],closed:[],famMul:2,phase:()=>0},
+ {nom:'B',guide:[0,2,6],closed:[1],famMul:1,phase:s=>s<3?0:120},
+ {nom:'C',guide:[6,3],closed:[1],famMul:1,phase:()=>0}];
+
+// ---------- Modèles publiés (sources dans reports/instantane-4-decision-humaine.md) ----------
+// Départ : log-logistique, médiane 40,5 s (1 954 spectateurs de cinéma) ; forme 3,5 = hypothèse.
+// Choix de sortie : logit mixte ; familiarité +0,795 et guidage +2,739 (Lovreglio, réalité virtuelle) ;
+// distance -0,08 par mètre (renormalisée pour un grand site, hypothèse) ; suivisme tiré par personne ; périmètre interdit -1,5 (hypothèse).
+// Mouvement : forces sociales (Helbing et Molnár), A=25 m/s², B=0,08 m, tau=0,5 s, anisotropie 0,3 ; murs par champ de distance.
+const B_DIST=0.08,B_FAM=0.795,B_GUIDE=2.739,B_ZONE=1.5,R=0.24,DT=0.1;
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const cellAt=(l,x,y)=>idx(l,Math.min(GW-1,Math.max(0,x/CS|0)),Math.min(GH-1,Math.max(0,y/CS|0)));
+const blocked=(l,x,y)=>grid[cellAt(l,x-R,y-R)]||grid[cellAt(l,x+R,y-R)]||grid[cellAt(l,x-R,y+R)]||grid[cellAt(l,x+R,y+R)];
+let zoneOn=true;
+class Sim{
+ constructor(plan,seed){this.p=PLANS[plan];this.r=rng(seed);this.T=0;this.A=[];this.out=0;this.zone=0;this.expo=0;this.t95=null;this.dmax=0;this.esc=LINKS.map(()=>[0,0]);this.den=new Uint16Array(NL*LW*LH);this.spawn();}
+ g(){return Math.sqrt(-2*Math.log(this.r()+1e-9))*Math.cos(6.2832*this.r());}
+ ll(med,b){const u=Math.min(.999,Math.max(.001,this.r()));return med*Math.pow(u/(1-u),1/b);}
+ add(l,x0,y0,x1,y1,n,salle){const r=this.r;let k=0,tries=0;while(k<n&&tries<n*40){tries++;const sz=r()<.4?(r()<.6?2:3):1;const gx=x0+r()*(x1-x0),gy=y0+r()*(y1-y0),gid=this.A.length;
+  const fam=salle>=0?(r()<.45?6:r()<.6?2:0):[0,2,3,4][r()*4|0];
+  const pre=(salle>=0?this.p.phase(salle)+this.ll(40.5,3.5):this.ll(25,3.5));
+  for(let j=0;j<sz&&k<n;j++){const x=gx+(r()-.5)*1.4,y=gy+(r()-.5)*1.4;if(x<x0||x>x1||y<y0||y>y1||blocked(l,x,y))continue;
+   this.A.push({l,x,y,vx:0,vy:0,ex:0,ey:0,v0:Math.max(.75,1.34+.26*this.g()),pre:pre+r()*4,fam,bh:Math.max(0,1+.6*this.g()),gid,t:-1,hes:0,next:0,out:false,ride:null,salle,dens:0});k++;}}}
+ spawn(){for(let s=0;s<SALLES;s++)this.add(2,7+s*14,3,19+s*14,16.5,60,s);this.add(2,10,20,90,28,40,-1);this.add(1,8,20,92,40,150,-1);this.add(0,22,8,92,18,30,-1);this.add(0,62,32,96,56,20,-1);this.total=this.A.length;}
+ avail(k){return EXITS[k].open&&!this.p.closed.includes(k);}
+ choose(a,herd){let s=0;const u=[];const c=cellAt(a.l,a.x,a.y);for(let k=0;k<EXITS.length;k++){if(!this.avail(k)||F[k][c]>=1e9){u.push(0);continue;}
+  let V=-B_DIST*F[k][c]+(a.fam===k?B_FAM*this.p.famMul:0)+(this.p.guide.includes(k)&&this.T>a.pre?B_GUIDE:0)-(zoneOn&&EXITS[k].zone?B_ZONE:0)+a.bh*(herd[k]||0);
+  const e=Math.exp(Math.max(-30,Math.min(30,V)));u.push(e);s+=e;}
+  if(!s)return -1;let x=this.r()*s;for(let k=0;k<u.length;k++){x-=u[k];if(x<=0)return k;}return u.length-1;}
+ step(){const dt=DT;this.T+=dt;const H=new Map(),key=(l,x,y)=>l*100000+(x|0)*256+(y|0);
+  for(const a of this.A){if(a.out||a.ride)continue;const kk=key(a.l,a.x,a.y);let L=H.get(kk);if(!L)H.set(kk,L=[]);L.push(a);}
+  for(const a of this.A){if(a.out)continue;
+   if(a.ride){if(this.T>=a.ride.t1){const k=LINKS[a.ride.j],up=a.ride.up;a.l=up?k[3]:k[0];a.x=(up?k[4]:k[1])+(this.r()-.5);a.y=(up?k[5]:k[2])+(this.r()-.5);a.ride=null;a.next=0;}continue;}
+   if(this.T<a.pre)continue;
+   if(a.t<0||!this.avail(a.t)){if(a.t>=0&&a.hes<=0)a.hes=2+this.r()*3;if(a.hes>0){a.hes-=dt;a.vx*=.7;a.vy*=.7;if(a.hes>0)continue;}a.next=0;}
+   if(this.T>=a.next){const herd={};let nn=0;for(let ix=-4;ix<=4;ix++)for(let iy=-4;iy<=4;iy++){const L=H.get(key(a.l,a.x+ix,a.y+iy));if(!L)continue;for(const b of L){if(b===a||b.t<0||this.T<b.pre)continue;herd[b.t]=(herd[b.t]||0)+1;nn++;}}if(nn)for(const k in herd)herd[k]/=nn;
+    const prev=a.t;const k=a.t<0||!this.avail(a.t)||this.r()<.1?this.choose(a,herd):a.t;a.t=k;a.next=this.T+10;if(k<0)continue;}
+   const c=cellAt(a.l,a.x,a.y);
+   if(exitOf[c]>=0&&this.avail(exitOf[c])){a.out=true;this.out++;if(EXITS[exitOf[c]].zone)this.zone++;continue;}
+   const lk=linksAt.get(c);if(lk){const j=lk[0],up=LINKS[j][0]===a.l;const other=lk[1];if(F[a.t][other]+ESC_COST<=F[a.t][c]+.5){const d=up?0:1;if(this.T>=this.esc[j][d]){this.esc[j][d]=this.T+ESC_GAP;a.ride={j,up,t0:this.T,t1:this.T+ESC_T,fx:a.x,fy:a.y};continue;}a.vx*=.5;a.vy*=.5;continue;}}
+   let ex=FX[a.t][c],ey=FY[a.t][c];ex=.65*ex+.35*a.ex;ey=.65*ey+.35*a.ey;const m=Math.hypot(ex,ey)||1;ex/=m;ey/=m;a.ex=ex;a.ey=ey;
+   let ax=(a.v0*ex-a.vx)/.5,ay=(a.v0*ey-a.vy)/.5,crowd=0;
+   for(let ix=-2;ix<=2;ix++)for(let iy=-2;iy<=2;iy++){const L=H.get(key(a.l,a.x+ix,a.y+iy));if(!L)continue;for(const b of L){if(b===a)continue;const dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy)||1e-3;if(d>2)continue;if(d<1.13)crowd++;const nx=dx/d,ny=dy/d,cos=-(nx*ex+ny*ey),w=.3+.7*(1+cos)/2,f=25*Math.exp((2*R-d)/.08)*w;ax+=f*nx;ay+=f*ny;if(b.gid===a.gid&&d>1.6){ax-=.8*nx;ay-=.8*ny;}}}
+   a.dens=crowd;
+   const wdd=wd[c];if(wdd<1){const f=30*Math.exp((R-wdd)/.12);ax+=f*wgx[c];ay+=f*wgy[c];}
+   a.vx+=ax*dt;a.vy+=ay*dt;const sp=Math.hypot(a.vx,a.vy),vm=1.25*a.v0;if(sp>vm){a.vx*=vm/sp;a.vy*=vm/sp;}
+   const nx=a.x+a.vx*dt,ny=a.y+a.vy*dt;if(!blocked(a.l,nx,a.y))a.x=nx;else a.vx*=-.1;if(!blocked(a.l,a.x,ny))a.y=ny;else a.vy*=-.1;}
+  for(const L of H.values())for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const a=L[i],b=L[j];if(a.out||b.out)continue;const dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy);if(d<2*R*.92&&d>1e-4){const p=(2*R*.92-d)/2,px=dx/d*p,py=dy/d*p;if(!blocked(a.l,a.x+px,a.y+py)){a.x+=px;a.y+=py;}if(!blocked(b.l,b.x-px,b.y-py)){b.x-=px;b.y-=py;}}}
+  if(Math.round(this.T/DT)%5===0){this.den.fill(0);for(const a of this.A)if(!a.out&&!a.ride){const i=a.l*LW*LH+(a.y|0)*LW+(a.x|0);this.den[i]++;}let e=0;for(let i=0;i<this.den.length;i++){const d=this.den[i];if(d>this.dmax)this.dmax=d;if(d>4)e+=d;}this.expo+=e*DT*5;}
+  if(this.t95===null&&this.out>=.95*this.total)this.t95=this.T;}
+ done(){return this.out>=this.total||this.T>1200;}
+}
+
+// ---------- Rendu 3D : maquette en tiroirs ----------
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const host=document.getElementById('scene');const rnd=new THREE.WebGLRenderer({antialias:true,alpha:true});rnd.setPixelRatio(Math.min(2,devicePixelRatio));host.appendChild(rnd.domElement);
+const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(38,1,1,2000);cam.position.set(95,120,160);const ctl=new THREE.OrbitControls(cam,rnd.domElement);ctl.target.set(0,-12,40);ctl.enableDamping=true;ctl.update();
+scene.add(new THREE.HemisphereLight(0xffffff,0x9a9c97,.9));const sun=new THREE.DirectionalLight(0xffffff,.55);sun.position.set(-60,140,40);scene.add(sun);
+let gapY=10,gapZ=72,gapZT=72;const levelGroups=[0,1,2].map(()=>new THREE.Group());levelGroups.forEach(g=>scene.add(g));
+const place=()=>levelGroups.forEach((g,l)=>g.position.set(0,-l*gapY,l*gapZ));
+const clay=new THREE.MeshLambertMaterial({color:new THREE.Color(css('--clay'))}),edge=new THREE.LineBasicMaterial({color:new THREE.Color(css('--edge'))});
+const floorTex=[];
+levelGroups.forEach((g,l)=>{const slab=new THREE.Mesh(new THREE.BoxGeometry(LW,.6,LH),clay);slab.position.set(0,-.3,0);g.add(slab);const se=new THREE.LineSegments(new THREE.EdgesGeometry(slab.geometry),edge);se.position.copy(slab.position);g.add(se);
+ const c=document.createElement('canvas');c.width=LW;c.height=LH;const t=new THREE.CanvasTexture(c);t.magFilter=THREE.NearestFilter;floorTex.push({c,x:c.getContext('2d'),t});const fl=new THREE.Mesh(new THREE.PlaneGeometry(LW,LH),new THREE.MeshBasicMaterial({map:t,transparent:true}));fl.rotation.x=-Math.PI/2;fl.position.y=.02;g.add(fl);
+ solids[l].forEach(r=>{const w=r[2]-r[0],d=r[3]-r[1],h=l===0&&w>3&&d>3?6:2.6;const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),clay);m.position.set((r[0]+r[2])/2-LW/2,h/2,(r[1]+r[3])/2-LH/2);g.add(m);const e=new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry),edge);e.position.copy(m.position);g.add(e);});
+ const lab=document.createElement('canvas');lab.width=512;lab.height=64;const lx=lab.getContext('2d');lx.fillStyle=css('--ink')||'#1D1F1E';lx.font='600 34px Archivo, sans-serif';lx.fillText(LNAME[l],4,44);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(lab),depthTest:false}));sp.scale.set(40,5,1);sp.position.set(-LW/2+20,2,-LH/2-4);g.add(sp);});
+// zone interdite (au-delà de Rambuteau)
+{const z=new THREE.Mesh(new THREE.PlaneGeometry(18,22),new THREE.MeshBasicMaterial({color:new THREE.Color(css('--zone')),transparent:true,opacity:.22}));z.rotation.x=-Math.PI/2;z.position.set(LW/2+9,.05,-LH/2+7);levelGroups[0].add(z);var zoneMesh=z;
+ const lab=document.createElement('canvas');lab.width=512;lab.height=96;const lx=lab.getContext('2d');lx.fillStyle='#E0461F';lx.font='600 30px Archivo, sans-serif';lx.fillText('Périmètre interdit',4,36);lx.fillText('à partir de 20h',4,76);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(lab),depthTest:false}));sp.scale.set(22,4.2,1);sp.position.set(LW/2+12,4,-LH/2+3);levelGroups[0].add(sp);}
+const exitMeshes=EXITS.map((e,k)=>{const r=e.r,w=Math.max(1.2,r[2]-r[0]),d=Math.max(1.2,r[3]-r[1]);const m=new THREE.Mesh(new THREE.BoxGeometry(w,1.2,d),new THREE.MeshLambertMaterial({color:new THREE.Color(css('--exit'))}));m.position.set((r[0]+r[2])/2-LW/2,.6,(r[1]+r[3])/2-LH/2);m.userData.k=k;levelGroups[e.l].add(m);return m;});
+const escLines=LINKS.map(()=>{const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]);const ln=new THREE.Line(g,new THREE.LineDashedMaterial({color:new THREE.Color(css('--ink2')),dashSize:1.2,gapSize:.8}));scene.add(ln);return ln;});
+const W=(l,x,y,h=0)=>new THREE.Vector3(x-LW/2,-l*gapY+h,y-LH/2+l*gapZ);
+function placeEsc(){LINKS.forEach((k,j)=>{const a=W(k[0],k[1],k[2],.3),b=W(k[3],k[4],k[5],.3);escLines[j].geometry.setFromPoints([a,b]);escLines[j].computeLineDistances();});}
+const MAXA=700,body=new THREE.InstancedMesh(new THREE.CylinderGeometry(.22,.26,1.25,7),new THREE.MeshLambertMaterial(),MAXA),head=new THREE.InstancedMesh(new THREE.SphereGeometry(.2,8,6),new THREE.MeshLambertMaterial(),MAXA);scene.add(body);scene.add(head);
+const M4=new THREE.Matrix4(),col=new THREE.Color();const C_WAIT=new THREE.Color('#8E928F'),C_MOVE=new THREE.Color(css('--edge')),C_HES=new THREE.Color('#C98A12'),C_DEN=new THREE.Color('#E0461F');
+function draw(S){let n=0;for(const a of S.A){if(a.out)continue;let p;if(a.ride){const k=LINKS[a.ride.j],f=Math.min(1,(S.T-a.ride.t0)/ESC_T),A0=a.ride.up?W(k[0],k[1],k[2]):W(k[3],k[4],k[5]),B0=a.ride.up?W(k[3],k[4],k[5]):W(k[0],k[1],k[2]);p=A0.lerp(B0,f);}else p=W(a.l,a.x,a.y);
+  M4.makeTranslation(p.x,p.y+.62,p.z);body.setMatrixAt(n,M4);M4.makeTranslation(p.x,p.y+1.45,p.z);head.setMatrixAt(n,M4);
+  col.copy(S.T<a.pre?C_WAIT:a.hes>0?C_HES:a.dens>=5?C_DEN:C_MOVE);body.setColorAt(n,col);head.setColorAt(n,col);n++;}
+ body.count=head.count=n;body.instanceMatrix.needsUpdate=head.instanceMatrix.needsUpdate=true;if(body.instanceColor){body.instanceColor.needsUpdate=true;head.instanceColor.needsUpdate=true;}
+ floorTex.forEach((f,l)=>{f.x.clearRect(0,0,LW,LH);for(let y=0;y<LH;y++)for(let x=0;x<LW;x++){const d=S.den[l*LW*LH+y*LW+x];if(d>2){f.x.fillStyle=d>4?'rgba(224,70,31,.75)':'rgba(224,70,31,.28)';f.x.fillRect(x,y,1,1);}}f.t.needsUpdate=true;});}
+function resize(){const w=host.clientWidth,h=host.clientHeight;rnd.setSize(w,h,false);rnd.domElement.style.width='100%';rnd.domElement.style.height='100%';cam.aspect=w/Math.max(1,h);cam.updateProjectionMatrix();}
+new ResizeObserver(resize).observe(host);
+
+// ---------- Interface ----------
+const SEED=19102026;let cur=0,live=new Sim(0,SEED),playing=false,speed=4,results=[null,null,null];
+const fmtClock=t=>{const s=Math.round(19*3600+50*60+t),h=s/3600|0,m=(s%3600)/60|0,ss=s%60;return[h,m,ss].map(v=>String(v).padStart(2,'0')).join(':');};
+const exitCtl=document.getElementById('exitCtl');
+function renderExitCtl(){exitCtl.innerHTML='';EXITS.forEach((e,k)=>{const d=document.createElement('div');d.className='ctl';d.innerHTML=`<span>${e.n}${e.zone?' <span style="color:var(--danger)">· vers le périmètre</span>':''}</span>`;const i=document.createElement('input');i.type='checkbox';i.className='sw';i.checked=e.open;i.setAttribute('aria-label',(e.open?'Fermer ':'Ouvrir ')+e.n);i.onchange=()=>toggleExit(k);d.appendChild(i);exitCtl.appendChild(d);});}
+function toggleExit(k){const e=EXITS[k];e.open=!e.open;exitMeshes[k].material.color.set(e.open?css('--exit'):'#E0461F');exitMeshes[k].scale.y=e.open?1:3;renderExitCtl();results=[null,null,null];[0,1,2].forEach(paintMet);
+ say('dir','Directeur',`${e.n} ${e.open?'rouverte':'fermée'}. Les personnes qui y allaient hésitent puis choisissent une autre sortie. Relancez l'analyse pour recalculer les trois plans.`,true);}
+renderExitCtl();
+const msgs=document.getElementById('msgs');
+function say(cls,who,txt,keep){if(!keep&&msgs.querySelector('.note'))msgs.innerHTML='';else if(msgs.querySelector('.note'))msgs.innerHTML='';const d=document.createElement('div');d.className='msg '+cls;d.innerHTML=`<div class="who">${who}</div>${txt}`;msgs.prepend(d);requestAnimationFrame(()=>d.classList.add('on'));}
+function paintMet(p){const r=results[p],el=document.getElementById('m'+p).querySelectorAll('b');if(!r){el.forEach(b=>{b.textContent='–';b.className='';});return;}
+ el[0].textContent=r.t95?Math.floor(r.t95/60)+' min '+String(Math.round(r.t95%60)).padStart(2,'0'):'> 20 min';el[1].textContent=Math.round(r.expo);el[2].textContent=r.zone;el[1].className=r.expo>0?'bad':'';el[2].className=r.zone>0?'bad':'';}
+document.querySelectorAll('.plan').forEach(el=>el.onclick=()=>{cur=+el.dataset.p;document.querySelectorAll('.plan').forEach(x=>x.classList.toggle('sel',x===el));live=new Sim(cur,SEED);playing=true;document.getElementById('play').textContent='Pause';});
+document.getElementById('play').onclick=e=>{playing=!playing;e.target.textContent=playing?'Pause':'Lecture';};
+document.getElementById('restart').onclick=()=>{live=new Sim(cur,SEED);playing=true;document.getElementById('play').textContent='Pause';};
+document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{speed=+b.dataset.sp;document.querySelectorAll('[data-sp]').forEach(x=>x.setAttribute('aria-pressed',x===b));});
+document.getElementById('zoneSw').onchange=e=>{zoneOn=e.target.checked;zoneMesh.visible=zoneOn;results=[null,null,null];[0,1,2].forEach(paintMet);};
+document.getElementById('explodeSw').onchange=e=>{gapZT=e.target.checked?72:0;};
+function analyse(){const btn=document.getElementById('analyse');btn.disabled=true;document.getElementById('state').textContent='Analyse en cours';msgs.innerHTML='';
+ const closedNames=EXITS.filter(e=>!e.open).map(e=>e.n);
+ say('pref','Préfecture de police','Couvre-feu 23h-6h maintenu. Manifestation interdite à partir de 20h au nord-est du Forum : ne dirigez pas le public vers la rue Rambuteau.');
+ setTimeout(()=>say('ratp','RATP',EXITS[6].open?'Métro et RER Châtelet-Les Halles en service jusqu\'à 22h. L\'accès RER du niveau -2 peut absorber une partie du public.':'Accès RER fermé : aucune évacuation par le niveau -2 vers le réseau.'),500);
+ setTimeout(()=>say('secu','Sécurité du centre',closedNames.length?`Issues indisponibles : ${closedNames.join(', ')}. Escalators en service, débit d'environ 1 personne par seconde chacun.`:'Toutes les issues sont disponibles. Escalators en service, débit d\'environ 1 personne par seconde chacun.'),1000);
+ let p=0,S=new Sim(0,SEED);const total=3;
+ function chunk(){const t0=performance.now();while(performance.now()-t0<30&&!S.done())S.step();document.getElementById('prog').style.width=((p+Math.min(1,S.out/S.total))/total*100)+'%';
+  if(S.done()){results[p]={t95:S.t95,expo:S.expo,zone:S.zone,total:S.total};paintMet(p);p++;if(p<total){S=new Sim(p,SEED);}else return finish();}setTimeout(chunk,0);}
+ setTimeout(chunk,1200);
+ function finish(){const score=r=>r.zone*100+r.expo+(r.t95||1200)*.5;let best=0;results.forEach((r,i)=>{if(score(r)<score(results[best]))best=i;});
+  document.querySelectorAll('.plan').forEach((el,i)=>el.classList.toggle('best',i===best));const r=results[best],a=results[0];
+  const fm=t=>t?Math.floor(t/60)+' min '+String(Math.round(t%60)).padStart(2,'0'):'plus de 20 min';
+  say('dir','Directeur (agent)',`Trois plans simulés avec la même foule de ${r.total} personnes. Je retiens le plan ${PLANS[best].nom} : 95 % dehors en ${fm(r.t95)}, ${Math.round(r.expo)} personnes·secondes au-dessus de 4 pers./m², ${r.zone} personne(s) envoyée(s) vers le périmètre. La consigne du 19 oct. (plan A) donne ${fm(a.t95)}, ${Math.round(a.expo)} pers.·s et ${a.zone} vers le périmètre.`);
+  document.getElementById('state').textContent='Plan '+PLANS[best].nom+' recommandé';btn.disabled=false;cur=best;document.querySelectorAll('.plan').forEach((x,i)=>x.classList.toggle('sel',i===best));live=new Sim(best,SEED);playing=true;document.getElementById('play').textContent='Pause';}}
+document.getElementById('analyse').onclick=analyse;
+document.getElementById('osBtn').onclick=()=>{const p=PLANS[cur],r=results[cur];const g=p.guide.map(k=>EXITS[k].n).join(', ')||'aucun guidage : chacun ressort par son entrée';const cl=[...p.closed.map(k=>EXITS[k].n),...EXITS.filter(e=>!e.open).map(e=>e.n)];
+ document.getElementById('osBody').innerHTML=`<h3>Ordre de service · plan ${p.nom}</h3><p class="note">Forum des Halles · ${fmtClock(0)} · généré à partir de la simulation${r?'':' (lancez l\'analyse pour les chiffres)'}</p>
+ <table><tr><th>Qui</th><th>Consigne</th></tr>
+ <tr><td>Ouvreurs UGC, salles 1 à 3</td><td>Annonce immédiate en salle. Sortie vers le hall niveau -2, puis ${p.guide.includes(6)?'accès RER ou ':''}escalators vers la galerie.</td></tr>
+ <tr><td>Ouvreurs UGC, salles 4 à 6</td><td>${p.phase(4)>0?'Annonce à +2 min, pour ne pas saturer les escalators.':'Annonce immédiate en salle.'}</td></tr>
+ <tr><td>Agents de sécurité</td><td>Orienter vers : ${g}.</td></tr>
+ <tr><td>Portes tenues fermées</td><td>${cl.length?cl.join(', '):'aucune'}.</td></tr>
+ <tr><td>Message sonore</td><td>« Le centre ferme. Dirigez-vous vers ${g.split(',')[0]}. Le métro et le RER fonctionnent jusqu'à 22 heures. »</td></tr></table>
+ ${r?`<p class="note">Résultat simulé : 95 % dehors en ${Math.floor((r.t95||1200)/60)} min, ${Math.round(r.expo)} pers.·s au-dessus de 4 pers./m², ${r.zone} vers le périmètre. Simulation, pas une prévision certifiée.</p>`:''}`;document.getElementById('os').showModal();};
+
+// ---------- Clic sur une issue dans la maquette ----------
+const ray=new THREE.Raycaster(),mouse=new THREE.Vector2(),tip=document.getElementById('tip');let down=null;
+rnd.domElement.addEventListener('pointerdown',e=>down=[e.clientX,e.clientY]);
+rnd.domElement.addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>4)return;const r=rnd.domElement.getBoundingClientRect();mouse.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(mouse,cam);const h=ray.intersectObjects(exitMeshes)[0];if(h)toggleExit(h.object.userData.k);});
+rnd.domElement.addEventListener('pointermove',e=>{const r=rnd.domElement.getBoundingClientRect();mouse.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(mouse,cam);const h=ray.intersectObjects(exitMeshes)[0];if(h){const ex=EXITS[h.object.userData.k];tip.style.display='block';tip.style.left=(e.clientX-r.left+12)+'px';tip.style.top=(e.clientY-r.top+12)+'px';tip.textContent=ex.n+' · '+(ex.open?'cliquer pour fermer':'cliquer pour rouvrir');rnd.domElement.style.cursor='pointer';}else{tip.style.display='none';rnd.domElement.style.cursor='';}});
+
+// ---------- Boucle ----------
+let acc=0,last=performance.now();
+function loop(now){const dt=Math.min(.1,(now-last)/1000);last=now;gapZ+=(gapZT-gapZ)*.12;place();placeEsc();
+ if(playing&&!live.done()){acc+=dt*speed;let s=0;while(acc>=DT&&s<20){live.step();acc-=DT;s++;}}
+ document.getElementById('clock').textContent=fmtClock(live.T);draw(live);ctl.update();rnd.render(scene,cam);requestAnimationFrame(loop);}
+resize();requestAnimationFrame(loop);
+</script>
+</body>
+</html>
