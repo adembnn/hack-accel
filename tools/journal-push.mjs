@@ -122,9 +122,9 @@ async function passage() {
   if (blocs.length) await poster(`📡 **${prenom}** · ${new Date().toTimeString().slice(0, 5)} · ce que font mes agents\n${blocs.join('\n')}`);
 }
 
-// « État du build » toutes les 10 min, même si rien n'a bougé (c'est le but : voir si ça stagne).
+// « État du build » toutes les 5 min, même si rien n'a bougé (c'est le but : voir si ça stagne).
 // Une seule machine le publie : celle dont le .env contient ETAT_BUILD=1.
-const PERIODE_ETAT = 10 * 60_000;
+const PERIODE_ETAT = 5 * 60_000;
 const publieEtat = env().ETAT_BUILD === '1';
 // Le fil détaillé (chaque sous-agent, chaque point) est coupé par défaut : Adem ne veut que l'état du build (21 oct.). JOURNAL_DISCORD=1 dans .env pour le rallumer.
 const detail = env().JOURNAL_DISCORD === '1';
@@ -134,6 +134,6 @@ async function etat() {
 }
 
 if (uneFois) { if (detail) await passage(); if (publieEtat) await etat(); console.log('Passage unique terminé.'); process.exit(0); }
-console.log(`${detail ? `Journal → Discord toutes les ${PERIODE / 1000} s` : 'Journal détaillé : fichiers seulement'}${publieEtat ? ', état du build toutes les 10 min' : ''} (machine ${hostname()}, ${prenom}). Ctrl+C pour arrêter.`);
+console.log(`${detail ? `Journal → Discord toutes les ${PERIODE / 1000} s` : 'Journal détaillé : fichiers seulement'}${publieEtat ? ', état du build toutes les 5 min' : ''} (machine ${hostname()}, ${prenom}). Ctrl+C pour arrêter.`);
 if (detail) { await passage(); setInterval(passage, PERIODE); }
 if (publieEtat) { await etat(); setInterval(etat, PERIODE_ETAT); }
