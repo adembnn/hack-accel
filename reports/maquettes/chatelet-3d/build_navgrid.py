@@ -5,7 +5,7 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 S = json.load(open(os.path.join(HERE, 'scene.json'), encoding='utf-8'))
-X0, X1, Z0, Z1, RES = -200, 300, -150, 330, 1.0
+X0, X1, Z0, Z1, RES = -330, 300, -170, 330, 1.0
 W, H = int((X1 - X0) / RES), int((Z1 - Z0) / RES)
 LEVELS = [0, -1, -2, -3, -4, -5]
 LI = {l: i for i, l in enumerate(LEVELS)}
@@ -110,6 +110,16 @@ for kind, arr in (('escalator', S['escalators']), ('escalier', S['escaliers'])):
                               'debit': 1.0 if kind == 'escalator' else 1.3})
                 break
 
+# Ascenseurs : un lien par paire de niveaux desservis. Cabine de 13 personnes (1 000 kg), cycle portes + trajet ~20 s
+# -> débit ~0,6 pers./s ; coût de trajet augmenté de l'attente moyenne (~15 s, soit ~20 m de marche).
+for i, o in enumerate(S['ascenseurs']):
+    ls = lvl_list(o['l'])
+    for a, b in zip(ls[1:][::-1], ls[:-1][::-1]):
+        ca, cb = snap(b, o['x'], o['z']), snap(a, o['x'], o['z'])
+        if ca and cb:
+            links.append({'k': 'ascenseur', 'n': o['n'] or 'Ascenseur', 'asc': i, 'a': [LI[b], *ca], 'b': [LI[a], *cb],
+                          'len': round(20 + 6 * (b - a), 1), 'debit': 0.6})
+
 exits = []
 seen = set()
 for d in S['portes']:
@@ -124,6 +134,41 @@ for d in S['portes']:
     if c:
         seen.add(key)
         exits.append({'id': len(exits), 'n': n, 'type': 'rue', 'cell': [LI[l], *c]})
+# Portes et issues de secours trouvées par la recherche (reports/issues-forum-halles.md, coordonnées OSM uniquement)
+import re
+LAT0, LON0 = 48.8620, 2.3470
+KX, KZ = math.cos(math.radians(LAT0)) * 111320, 110540
+ISS = os.path.join(HERE, 'issues.json')
+for e in (json.load(open(ISS, encoding='utf-8')) if os.path.exists(ISS) else []):
+    if e['type'] not in ('porte', 'issue') or e['lat'] is None or e['nom'].startswith('Sortie de métro'):
+        continue
+    m = re.match(r'\s*(-?\d)', str(e['niveau'] or '0'))
+    l = int(m.group(1)) if m else 0
+    if l not in LI:
+        continue
+    x, z = (e['lon'] - LON0) * KX, (LAT0 - e['lat']) * KZ
+    n = re.sub(r'\s*\(.*\)\s*$', '', e['nom']) if e['type'] == 'porte' else 'Issues de secours'
+    if e['type'] == 'porte' and any(x2['n'] == n for x2 in exits):
+        same = [x2 for x2 in exits if x2['n'] == n and x2['cell'][0] == LI[l]]
+        if same:
+            continue
+    c, est = snap(l, x, z, 10), False
+    if not c:
+        # hors des couloirs OSM : passage estimé de 2 m vers le couloir le plus proche (40 m au plus)
+        t = snap(l, x, z, 40)
+        r0, c0 = cell(x, z)
+        if t and 0 <= r0 < H and 0 <= c0 < W:
+            steps = max(abs(t[0] - r0), abs(t[1] - c0), 1)
+            for k in range(steps + 1):
+                rr, cc = round(r0 + (t[0] - r0) * k / steps), round(c0 + (t[1] - c0) * k / steps)
+                walk[LI[l], max(0, rr - 1):rr + 1, max(0, cc - 1):cc + 1] = True
+            c, est = (r0, c0), True
+    if c:
+        exits.append({'id': len(exits), 'n': n, 'type': 'rue' if e['type'] == 'porte' else 'secours', 'cell': [LI[l], *c],
+                      'estime': est, 'source': e['source'][:80]})
+    else:
+        print('hors grille :', e['nom'], l)
+
 for q in S['quais']:
     ls = lvl_list(q['l'])
     pts = pairs(q['p'])

@@ -1,0 +1,540 @@
+[
+ {
+  "station": "Étienne Marcel",
+  "sortie": 1,
+  "nom": "Rue de Turbigo",
+  "adresse": "Rue de Turbigo (adresse postale absente du jeu IDFM)",
+  "lat": 48.863694,
+  "lon": 2.348881,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 681294134,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   681294134
+  ],
+  "ferme_19oct": false
+ },
+ {
+  "station": "Pont Neuf",
+  "sortie": 2,
+  "nom": "quai du Louvre",
+  "adresse": "quai du Louvre (adresse postale absente du jeu IDFM)",
+  "lat": 48.858457,
+  "lon": 2.341954,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": null,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [],
+  "ferme_19oct": false
+ },
+ {
+  "station": "Châtelet + Châtelet - Les Halles (RER)",
+  "sortie": 1,
+  "nom": "Porte Marguerite de Navarre",
+  "adresse": "Porte Marguerite de Navarre (adresse postale absente du jeu IDFM)",
+  "lat": 48.860433,
+  "lon": 2.346346,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 5321652781,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   5321652781,
+   9554596034,
+   9554596035
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Châtelet",
+  "sortie": 19,
+  "nom": "r. Saint-Martin",
+  "adresse": "r. Saint-Martin (adresse postale absente du jeu IDFM)",
+  "lat": 48.857122,
+  "lon": 2.349358,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 299668084,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   299668084
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Châtelet",
+  "sortie": 17,
+  "nom": "Théâtre de la Ville",
+  "adresse": "Théâtre de la Ville (adresse postale absente du jeu IDFM)",
+  "lat": 48.857536,
+  "lon": 2.347867,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 699897450,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   699897450
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Les Halles",
+  "sortie": 8,
+  "nom": "Forum - Pte du Louvre",
+  "adresse": "Forum - Pte du Louvre (adresse postale absente du jeu IDFM)",
+  "lat": 48.862278,
+  "lon": 2.343215,
+  "escalator": true,
+  "ascenseur": true,
+  "osm_id_proche": 5914444314,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité; équipements: bonjour-ratp.fr (lieux/forum-des-halles)",
+  "osm_ids": [
+   5914444314,
+   9545578222
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Les Halles",
+  "sortie": 4,
+  "nom": "Forum - Pte Rambuteau",
+  "adresse": "Forum - Pte Rambuteau (adresse postale absente du jeu IDFM)",
+  "lat": 48.862559,
+  "lon": 2.346932,
+  "escalator": true,
+  "ascenseur": false,
+  "osm_id_proche": 1272604556,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité; équipements: bonjour-ratp.fr (lieux/forum-des-halles)",
+  "osm_ids": [
+   1272604556,
+   9547125104,
+   11549274675
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Hôtel de Ville",
+  "sortie": 2,
+  "nom": "r. du Renard",
+  "adresse": "r. du Renard (adresse postale absente du jeu IDFM)",
+  "lat": 48.857672,
+  "lon": 2.351369,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 696674567,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   696674567
+  ],
+  "ferme_19oct": false
+ },
+ {
+  "station": "Réaumur - Sébastopol",
+  "sortie": 3,
+  "nom": "r. Saint-Denis",
+  "adresse": "r. Saint-Denis (adresse postale absente du jeu IDFM)",
+  "lat": 48.866518,
+  "lon": 2.350645,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 691614222,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   691614222
+  ],
+  "ferme_19oct": false
+ },
+ {
+  "station": "Rambuteau",
+  "sortie": 2,
+  "nom": "r. Rambuteau",
+  "adresse": "r. Rambuteau (adresse postale absente du jeu IDFM)",
+  "lat": 48.861299,
+  "lon": 2.353532,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 697571365,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   697571365
+  ],
+  "ferme_19oct": false
+ },
+ {
+  "station": "Châtelet + Châtelet - Les Halles (RER)",
+  "sortie": 3,
+  "nom": "Forum - Pte Lescot",
+  "adresse": "Forum - Pte Lescot (adresse postale absente du jeu IDFM)",
+  "lat": 48.861682,
+  "lon": 2.347816,
+  "escalator": true,
+  "ascenseur": true,
+  "osm_id_proche": 1713195678,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité; équipements: bonjour-ratp.fr (lieux/forum-des-halles)",
+  "osm_ids": [
+   1713195678,
+   9554596027,
+   9554596028
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Châtelet",
+  "sortie": 16,
+  "nom": "pl. du Châtelet",
+  "adresse": "pl. du Châtelet (adresse postale absente du jeu IDFM)",
+  "lat": 48.85765,
+  "lon": 2.347294,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 676795021,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   676795021
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Châtelet",
+  "sortie": 11,
+  "nom": "r. de Rivoli",
+  "adresse": "r. de Rivoli (adresse postale absente du jeu IDFM)",
+  "lat": 48.859191,
+  "lon": 2.346225,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 677731262,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   677731262,
+   677731265
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Châtelet",
+  "sortie": 14,
+  "nom": "r. Saint-Denis",
+  "adresse": "r. Saint-Denis (adresse postale absente du jeu IDFM)",
+  "lat": 48.85863,
+  "lon": 2.347131,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 677034819,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   677034819
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Châtelet",
+  "sortie": 12,
+  "nom": "r. Bertin Poirée",
+  "adresse": "r. Bertin Poirée (adresse postale absente du jeu IDFM)",
+  "lat": 48.85932,
+  "lon": 2.345065,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 676821344,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   676821344
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Hôtel de Ville",
+  "sortie": 3,
+  "nom": "r. de la Coutellerie",
+  "adresse": "r. de la Coutellerie (adresse postale absente du jeu IDFM)",
+  "lat": 48.857561,
+  "lon": 2.350784,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 2211556504,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   2211556504,
+   10099270353
+  ],
+  "ferme_19oct": false
+ },
+ {
+  "station": "Pont Neuf",
+  "sortie": 1,
+  "nom": "r. de la Monnaie",
+  "adresse": "r. de la Monnaie (adresse postale absente du jeu IDFM)",
+  "lat": 48.858639,
+  "lon": 2.342197,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 676821310,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   676821310
+  ],
+  "ferme_19oct": false
+ },
+ {
+  "station": "Pont Neuf",
+  "sortie": 3,
+  "nom": "Pont Neuf",
+  "adresse": "Pont Neuf (adresse postale absente du jeu IDFM)",
+  "lat": 48.858368,
+  "lon": 2.342078,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 831854832,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   831854832,
+   9701911585
+  ],
+  "ferme_19oct": false
+ },
+ {
+  "station": "Châtelet",
+  "sortie": 13,
+  "nom": "r. des Lavandières",
+  "adresse": "r. des Lavandières (adresse postale absente du jeu IDFM)",
+  "lat": 48.858957,
+  "lon": 2.346119,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 676872599,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   676872599
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Châtelet + Châtelet - Les Halles (RER)",
+  "sortie": 2,
+  "nom": "Forum Porte Berger",
+  "adresse": "Forum Porte Berger (adresse postale absente du jeu IDFM)",
+  "lat": 48.861386,
+  "lon": 2.346334,
+  "escalator": true,
+  "ascenseur": false,
+  "osm_id_proche": 3753296381,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité; équipements: bonjour-ratp.fr (lieux/forum-des-halles)",
+  "osm_ids": [
+   3753296381,
+   9554596030
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Les Halles",
+  "sortie": 5,
+  "nom": "Forum - Pte Saint-Eustache",
+  "adresse": "Forum - Pte Saint-Eustache (adresse postale absente du jeu IDFM)",
+  "lat": 48.86283,
+  "lon": 2.345538,
+  "escalator": true,
+  "ascenseur": true,
+  "osm_id_proche": 663713699,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité; équipements: bonjour-ratp.fr (lieux/forum-des-halles)",
+  "osm_ids": [
+   663713699,
+   9554596026
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Les Halles",
+  "sortie": 9,
+  "nom": "r. Montorgueil",
+  "adresse": "r. Montorgueil (adresse postale absente du jeu IDFM)",
+  "lat": 48.862808,
+  "lon": 2.346493,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 5321652780,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   5321652780
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Les Halles",
+  "sortie": 6,
+  "nom": "Forum - Pte du Pont Neuf",
+  "adresse": "Forum - Pte du Pont Neuf (adresse postale absente du jeu IDFM)",
+  "lat": 48.861712,
+  "lon": 2.345103,
+  "escalator": true,
+  "ascenseur": false,
+  "osm_id_proche": 5954227359,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité; équipements: bonjour-ratp.fr (lieux/forum-des-halles)",
+  "osm_ids": [
+   5954227359
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Louvre - Rivoli",
+  "sortie": 1,
+  "nom": "r. de l'Amiral-de-Coligny",
+  "adresse": "r. de l'Amiral-de-Coligny (adresse postale absente du jeu IDFM)",
+  "lat": 48.860681,
+  "lon": 2.340795,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 831854851,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   831854851
+  ],
+  "ferme_19oct": false
+ },
+ {
+  "station": "Hôtel de Ville",
+  "sortie": 1,
+  "nom": "r. de Rivoli",
+  "adresse": "r. de Rivoli (adresse postale absente du jeu IDFM)",
+  "lat": 48.857476,
+  "lon": 2.351685,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 320800100,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   320800100
+  ],
+  "ferme_19oct": false
+ },
+ {
+  "station": "Rambuteau",
+  "sortie": 3,
+  "nom": "r. Geoffroy l'Angevin",
+  "adresse": "r. Geoffroy l'Angevin (adresse postale absente du jeu IDFM)",
+  "lat": 48.861002,
+  "lon": 2.353372,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 2003145897,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   2003145897
+  ],
+  "ferme_19oct": false
+ },
+ {
+  "station": "Rambuteau",
+  "sortie": 1,
+  "nom": "r. Beaubourg",
+  "adresse": "r. Beaubourg (adresse postale absente du jeu IDFM)",
+  "lat": 48.861389,
+  "lon": 2.353381,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 697571534,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   697571534
+  ],
+  "ferme_19oct": false
+ },
+ {
+  "station": "Rambuteau",
+  "sortie": 4,
+  "nom": "r. du Grenier Saint-Lazare",
+  "adresse": "r. du Grenier Saint-Lazare (adresse postale absente du jeu IDFM)",
+  "lat": 48.862588,
+  "lon": 2.353897,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 667338297,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   667338297
+  ],
+  "ferme_19oct": false
+ },
+ {
+  "station": "Châtelet",
+  "sortie": 15,
+  "nom": "Théâtre du Châtelet",
+  "adresse": "Théâtre du Châtelet (adresse postale absente du jeu IDFM)",
+  "lat": 48.857836,
+  "lon": 2.346746,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 676795020,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   676795020
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Châtelet",
+  "sortie": 18,
+  "nom": "av. Victoria",
+  "adresse": "av. Victoria (adresse postale absente du jeu IDFM)",
+  "lat": 48.857298,
+  "lon": 2.348715,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 698084308,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   698084308
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Châtelet",
+  "sortie": 10,
+  "nom": "pl. Ste-Opportune",
+  "adresse": "pl. Ste-Opportune (adresse postale absente du jeu IDFM)",
+  "lat": 48.859564,
+  "lon": 2.346943,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 602612813,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   602612813
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Les Halles",
+  "sortie": 7,
+  "nom": "Forum - Pte du Jour",
+  "adresse": "Forum - Pte du Jour (adresse postale absente du jeu IDFM)",
+  "lat": 48.863171,
+  "lon": 2.343817,
+  "escalator": true,
+  "ascenseur": false,
+  "osm_id_proche": 5913737144,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité; équipements: bonjour-ratp.fr (lieux/forum-des-halles)",
+  "osm_ids": [
+   5913737144
+  ],
+  "ferme_19oct": true
+ },
+ {
+  "station": "Hôtel de Ville",
+  "sortie": 4,
+  "nom": "av. Victoria",
+  "adresse": "av. Victoria (adresse postale absente du jeu IDFM)",
+  "lat": 48.857239,
+  "lon": 2.351115,
+  "escalator": null,
+  "ascenseur": null,
+  "osm_id_proche": 697182972,
+  "source": "IDFM acces + relations-acces (accès/station); OSM pour proximité",
+  "osm_ids": [
+   697182972
+  ],
+  "ferme_19oct": false
+ }
+]
