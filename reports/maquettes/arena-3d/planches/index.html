@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Salle de contrôle Arena</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;700&family=Barlow+Condensed:wght@500;700&family=Saira+Condensed:wght@500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--page:#E9E6DF;--ink:#191A19}
+body{margin:0;background:var(--page);color:var(--ink);font:14px/1.4 'IBM Plex Mono',monospace}
+.intro{padding:24px 16px 8px;max-width:1280px;margin:auto}
+.intro h1{font:700 26px 'Archivo Narrow',sans-serif;margin:0 0 6px}
+.intro p{margin:0;max-width:760px}
+.board{max-width:1280px;margin:28px auto;padding:0 16px}
+.tag{font:700 15px 'Archivo Narrow',sans-serif;letter-spacing:.06em;text-transform:uppercase;margin:0 0 8px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.tag small{font:400 12px 'IBM Plex Mono',monospace;text-transform:none;letter-spacing:0;opacity:.75}
+.screen{height:640px;border:1px solid #0003;position:relative;overflow:hidden}
+.fake{font-size:10px;opacity:.6}
+
+/* ---------- A : régie en tiroirs ---------- */
+.A{background:#F4F2EC;color:#1D1F1E;display:grid;grid-template-columns:260px 1fr 280px;grid-template-rows:44px 1fr 120px;font-family:'Archivo Narrow',sans-serif}
+.A header{grid-column:1/-1;display:flex;align-items:center;gap:14px;padding:0 14px;border-bottom:1.5px solid #1D1F1E;font-weight:700;letter-spacing:.04em}
+.A header .clk{margin-left:auto;font:600 20px 'IBM Plex Mono'}
+.A .who{border-right:1.5px solid #1D1F1E;padding:10px 12px;overflow:hidden}
+.A .who h3{font-size:13px;margin:12px 0 6px;letter-spacing:.08em;text-transform:uppercase}
+.A .sw{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed #1D1F1E55;font-size:14px}
+.A .sw i{width:34px;height:16px;border:1.5px solid #1D1F1E;border-radius:9px;position:relative;font-style:normal}
+.A .sw i::after{content:'';position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:#0A8A3E}
+.A .sw i.off{border-color:#E0461F}.A .sw i.off::after{left:auto;right:2px;background:#E0461F}
+.A .view{background:url(vue-argile.jpg) 62% 55%/150% no-repeat;position:relative}
+.A .pin{position:absolute;font:600 11px 'IBM Plex Mono';background:#F4F2EC;border:1.5px solid #1D1F1E;padding:2px 6px}
+.A .pin.r{border-color:#E0461F;color:#E0461F}
+.A .ord{border-left:1.5px solid #1D1F1E;padding:10px 12px}
+.A .ord h3{font-size:13px;margin:0 0 8px;letter-spacing:.08em;text-transform:uppercase}
+.A .card{border:1.5px solid #1D1F1E;padding:8px;margin-bottom:8px;font-size:14px}
+.A .card b{display:block;font-size:12px;letter-spacing:.06em}
+.A .card .bt{display:flex;gap:6px;margin-top:6px}.A .card .bt span{border:1.5px solid #1D1F1E;padding:1px 8px;font-size:12px}
+.A .card .bt span.go{background:#1D1F1E;color:#F4F2EC}
+.A .mode{display:flex;border:1.5px solid #1D1F1E;font-size:12px}.A .mode span{flex:1;text-align:center;padding:3px}.A .mode .on{background:#1D1F1E;color:#F4F2EC}
+.A footer{grid-column:1/-1;border-top:1.5px solid #1D1F1E;display:grid;grid-template-columns:260px 1fr}
+.A .kpi{padding:10px 12px;border-right:1.5px solid #1D1F1E;font-size:13px}.A .kpi b{font:600 26px 'IBM Plex Mono';display:block}
+.A .tape{position:relative;padding:10px 14px}
+.A .tape .ln{position:absolute;left:14px;right:14px;top:58px;border-top:1.5px solid #1D1F1E}
+.A .tape .ev{position:absolute;top:30px;font:600 11px 'IBM Plex Mono';white-space:nowrap}
+.A .tape .ev::after{content:'';position:absolute;left:0;top:22px;width:1.5px;height:14px;background:#1D1F1E}
+.A .tape .ev.r{color:#E0461F}
+
+/* ---------- B : plan d'intervention ---------- */
+.B{background:#10120F;color:#E8E4D8;font-family:'Barlow Condensed',sans-serif;display:grid;grid-template-columns:1fr 330px}
+.B .map{position:relative;background:url(vue-fil.jpg) 58% 48%/165% no-repeat;filter:saturate(.2) brightness(1.1)}
+.B .map svg{position:absolute;inset:0;width:100%;height:100%}
+.B .side{border-left:2px solid #E8E4D8;display:flex;flex-direction:column}
+.B .blk{padding:12px 14px;border-bottom:1px solid #E8E4D833}
+.B h3{margin:0 0 8px;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:#F2C230}
+.B .unit{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;font-size:16px;padding:4px 0}
+.B .unit .sym{width:26px;height:20px;border:2px solid #E8E4D8;display:grid;place-items:center;font:600 10px 'IBM Plex Mono'}
+.B .unit .st{font:400 11px 'IBM Plex Mono';color:#F2C230}
+.B .big{font:700 44px 'Barlow Condensed';line-height:1}
+.B .row{display:flex;gap:18px}
+.B .lv{display:flex;flex-wrap:wrap;gap:6px}.B .lv span{border:1.5px solid #E8E4D8;padding:2px 8px;font-size:14px}.B .lv span.x{border-color:#F2C230;color:#10120F;background:#F2C230}
+.B .hdr{position:absolute;left:14px;top:12px;font:700 22px 'Barlow Condensed';letter-spacing:.06em}
+.B .hdr small{display:block;font:400 12px 'IBM Plex Mono';color:#F2C230;letter-spacing:0}
+
+/* ---------- C : car régie de diffusion ---------- */
+.C{background:#060606;color:#D9D9D4;font-family:'Saira Condensed',sans-serif;display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:1fr 1fr 150px;gap:4px;padding:4px}
+.C .tile{position:relative;border:2px solid #222;overflow:hidden}
+.C .tile.pgm{grid-row:1/3;border-color:#E3242B}
+.C .tile .lab{position:absolute;left:0;bottom:0;right:0;background:#000c;padding:3px 8px;font:600 14px 'Saira Condensed';letter-spacing:.08em;display:flex;justify-content:space-between}
+.C .tile .tally{position:absolute;top:6px;right:8px;font:700 12px 'IBM Plex Mono';padding:1px 6px;background:#E3242B;color:#000}
+.C .tile .tally.pv{background:#3DDC84}
+.C .cues{grid-column:1/-1;display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.C .cue{border:1px solid #333;padding:8px;font-size:15px;display:flex;flex-direction:column;justify-content:space-between}
+.C .cue b{font:600 11px 'IBM Plex Mono';color:#888}
+.C .cue .go{align-self:flex-start;font:700 13px 'IBM Plex Mono';background:#3DDC84;color:#000;padding:2px 10px}
+.C .cue.live{border-color:#E3242B}.C .cue.live .go{background:#E3242B}
+.C .num{font:700 30px 'Saira Condensed';color:#fff}
+@media(max-width:900px){.screen{height:auto;min-height:640px}.A,.B,.C{display:block}.A .view,.B .map,.C .tile{min-height:320px}}
+</style>
+</head>
+<body>
+<div class="intro">
+  <h1>Salle de contrôle Adidas Arena : trois directions pour le premier écran</h1>
+  <p>Scénario figé : fin de match, 7 400 spectateurs, la police ferme le métro 12 à +2 min. Fond 3D : vraies captures de notre vue. Chiffres = <b>valeurs factices de maquette</b>. Probabilité qu'un autre LLM propose la direction entre parenthèses.</p>
+</div>
+
+<!-- ================= A ================= -->
+<section class="board">
+  <p class="tag">A · Régie en tiroirs <small>maquette d'architecte au centre, un tiroir par décideur, frise papier (35 %) · Archivo Narrow, encre + vert issue ISO 7010, audace : chaque levier est un interrupteur physique, rouge quand fermé</small></p>
+  <div class="screen A">
+    <header>ADIDAS ARENA · RÉGIE DE SORTIE <span class="fake">PSG–Paris Basket, fin de match</span><span class="clk">22:14:07</span></header>
+    <div class="who">
+      <div class="mode"><span>Humain</span><span class="on">Les deux</span><span>IA</span></div>
+      <h3>Directeur</h3>
+      <div class="sw">Porte Parvis Ouest <i></i></div><div class="sw">Porte Parvis Centre <i></i></div><div class="sw">Porte Chapelle <i></i></div><div class="sw">Tribune haute : retenir <i class="off"></i></div>
+      <h3>RATP</h3>
+      <div class="sw">Métro 12 · Porte de la Chapelle <i class="off"></i></div><div class="sw">Tram T3b · rames +2 <i></i></div>
+      <h3>Préfecture</h3>
+      <div class="sw">Bd Ney est : barrage <i></i></div>
+    </div>
+    <div class="view">
+      <span class="pin r" style="left:6%;top:70%">MÉTRO 12 FERMÉ</span>
+      <span class="pin" style="left:44%;top:22%">VOMITOIRE 3 · 4,6 p/m²</span>
+      <span class="pin" style="left:58%;top:78%">ÉQUIPE PARVIS · 12 agents</span>
+    </div>
+    <div class="ord">
+      <h3>Propositions de l'IA</h3>
+      <div class="card"><b>SÉCURITÉ · ÉQUIPE PARVIS</b>Rediriger le public vers le tram T3b Colette Besson, côté est.<div class="bt"><span class="go">Valider</span><span>Modifier</span><span>Refuser</span></div></div>
+      <div class="card"><b>DIRECTEUR · SONO TRIBUNE HAUTE</b>Annonce : « restez à vos places 3 minutes ».<div class="bt"><span class="go">Valider</span><span>Refuser</span></div></div>
+      <div class="card"><b>RATP</b>Demander 2 rames T3b supplémentaires.<div class="bt"><span class="go">Envoyer</span></div></div>
+    </div>
+    <footer>
+      <div class="kpi">Encore dans l'Arena<b>5 312</b>Densité max 4,6 p/m² · vomitoire 3</div>
+      <div class="tape"><div class="ln"></div>
+        <span class="ev" style="left:2%">22:12 coup de sifflet</span><span class="ev r" style="left:20%">22:14 métro 12 fermé</span><span class="ev" style="left:44%">22:14 éq. Parvis → tram</span><span class="ev" style="left:66%">22:15 tribune haute retenue</span></div>
+    </footer>
+  </div>
+</section>
+
+<!-- ================= B ================= -->
+<section class="board">
+  <p class="tag">B · Plan d'intervention <small>vue de dessus façon tableau tactique des pompiers, unités et flèches d'ordres dessinées sur la carte (12 %) · Barlow Condensed, nuit + jaune signalisation, audace : on donne un ordre en traçant une flèche de l'équipe vers sa cible</small></p>
+  <div class="screen B">
+    <div class="map">
+      <div class="hdr">PORTE DE LA CHAPELLE · 22:14<small>vue tactique · 1 case = 10 m</small></div>
+      <svg viewBox="0 0 900 640" preserveAspectRatio="none">
+        <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="#F2C230"/></marker></defs>
+        <path d="M430 470 C 560 520, 660 500, 760 430" stroke="#F2C230" stroke-width="4" fill="none" marker-end="url(#ah)" stroke-dasharray="10 6"/>
+        <path d="M380 300 L 300 300" stroke="#F2C230" stroke-width="4" fill="none" marker-end="url(#ah)"/>
+        <g fill="none" stroke="#E8E4D8" stroke-width="2"><rect x="410" y="455" width="40" height="28"/><rect x="380" y="286" width="40" height="28"/><rect x="560" y="200" width="40" height="28"/></g>
+        <g font-family="IBM Plex Mono" font-size="12" fill="#E8E4D8"><text x="414" y="474">PAR</text><text x="384" y="305">C-O</text><text x="564" y="219">C-N</text></g>
+        <g stroke="#F2C230" stroke-width="4"><line x1="80" y1="560" x2="130" y2="610"/><line x1="130" y1="560" x2="80" y2="610"/></g>
+        <text x="140" y="600" font-family="Barlow Condensed" font-size="20" font-weight="700" fill="#F2C230">MÉTRO 12 FERMÉ</text>
+        <text x="700" y="415" font-family="Barlow Condensed" font-size="18" fill="#F2C230">→ T3b Colette Besson</text>
+      </svg>
+    </div>
+    <div class="side">
+      <div class="blk"><h3>Mode</h3><div class="lv"><span>Humain</span><span class="x">Les deux</span><span>IA</span></div></div>
+      <div class="blk"><h3>Unités · 80 agents</h3>
+        <div class="unit"><span class="sym">PAR</span>Équipe Parvis · 12<span class="st">en route 40 s</span></div>
+        <div class="unit"><span class="sym">C-O</span>Coursive ouest · 8<span class="st">tient V5</span></div>
+        <div class="unit"><span class="sym">C-N</span>Coursive nord · 8<span class="st">libre</span></div>
+        <div class="unit"><span class="sym">TH</span>Tribune haute · 10<span class="st">retient</span></div>
+        <div class="unit"><span class="sym">MET</span>Bouches métro · 6<span class="st">ferme</span></div></div>
+      <div class="blk"><h3>Leviers</h3><div class="lv"><span>Portes</span><span>Vomitoires</span><span class="x">Métro 12</span><span>Tram +2</span><span>Barrage</span><span>Zone danger</span><span>Sono</span><span>Fumée</span></div></div>
+      <div class="blk row"><div><div class="big">5 312</div>dans l'Arena</div><div><div class="big" style="color:#F2C230">4,6</div>p/m² max</div></div>
+      <div class="blk" style="flex:1"><h3>Journal</h3><div style="font:12px 'IBM Plex Mono'">22:14:02 RATP · métro 12 fermé<br>22:14:20 IA · propose PAR → T3b<br>22:14:31 vous · validé</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= C ================= -->
+<section class="board">
+  <p class="tag">C · Car régie <small>la salle de contrôle comme une régie de diffusion de match : mur de caméras virtuelles, ordres = « tops » envoyés (10 %) · Saira Condensed, noir + rouge antenne / vert preview, audace : chaque ordre est un top avec compte à rebours avant effet sur le terrain</small></p>
+  <div class="screen C">
+    <div class="tile pgm" style="background:url(vue-argile.jpg) 60% 55%/170%"><span class="tally">PROGRAMME</span><div class="lab"><span>CAM 1 · VUE GÉNÉRALE</span><span>22:14:07</span></div></div>
+    <div class="tile" style="background:url(vue-argile.jpg) 48% 48%/320%"><span class="tally pv">PREVIEW</span><div class="lab"><span>CAM 2 · VOMITOIRE 3</span><span>4,6 p/m²</span></div></div>
+    <div class="tile" style="background:url(vue-fil.jpg) 20% 80%/300%"><div class="lab"><span>CAM 3 · MÉTRO 12</span><span style="color:#E3242B">FERMÉ</span></div></div>
+    <div class="tile" style="background:url(vue-argile.jpg) 70% 85%/300%"><div class="lab"><span>CAM 4 · PARVIS</span><span>1 840 pers.</span></div></div>
+    <div class="tile" style="padding:10px"><div style="font:600 13px 'IBM Plex Mono';color:#888">MODE · LES DEUX</div><div class="num">5 312</div>encore dedans<div class="num" style="color:#E3242B">4,6</div>p/m² max · vomitoire 3</div>
+    <div class="cues">
+      <div class="cue live"><b>TOP 07 · RATP</b>Métro 12 fermé<span class="go">À L'ANTENNE</span></div>
+      <div class="cue"><b>TOP 08 · IA → PARVIS</b>12 agents : orienter vers T3b est<span class="go">GO · 40 s</span></div>
+      <div class="cue"><b>TOP 09 · SONO</b>Tribune haute : rester 3 min<span class="go">GO</span></div>
+      <div class="cue"><b>TOP 10 · DIRECTEUR</b>Ouvrir issue de secours nord<span class="go">GO</span></div>
+      <div class="cue"><b>TOP 11 · RATP</b>T3b : 2 rames en plus<span class="go">GO</span></div>
+      <div class="cue"><b>TOP 12 · PRÉFECTURE</b>Barrage bd Ney est<span class="go">GO</span></div>
+    </div>
+  </div>
+</section>
+</body>
+</html>
