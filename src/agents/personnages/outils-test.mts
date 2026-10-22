@@ -1,5 +1,4 @@
 // Aides communes aux tests du lot personnages (pas un test lui-même).
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { ROLES } from './roles.ts';
 import type { AgentEntree, Lot } from './types.ts';
 

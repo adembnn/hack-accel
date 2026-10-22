@@ -4,13 +4,9 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { creerCerveau, MODELE, sceller, URL_API } from './cerveau.ts';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { ENV_PAYANT, lot, reponseApi } from './outils-test.mts';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { decideParRegles } from './regles.ts';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { ACTIONS, type AgentEntree, type Decision } from './types.ts';
 
 type Appel = { url: string; init: RequestInit };

@@ -1,12 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { agents, lot, PERCEPTION_CHARGEE } from './outils-test.mts';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { decideLotParRegles, decideParRegles } from './regles.ts';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { resoudreRole } from './roles.ts';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { validerDecision } from './valider.ts';
 
 test('30 personnages décidés par règles en moins de 50 ms', () => {

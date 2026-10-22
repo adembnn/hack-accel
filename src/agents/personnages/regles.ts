@@ -1,9 +1,7 @@
 // Décideur par règles déterministes : le secours quand il n'y a pas de clé, pas d'autorisation, un timeout ou une réponse refusée.
 // Mêmes entrées, mêmes sorties, sans appel réseau. Seuils d'alerte de CLAUDE.md : orange 3 pers./m², rouge 4 pers./m².
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { resoudreRole } from './roles.ts';
 import type { Action, AgentEntree, Decision, Lot, RoleDef } from './types.ts';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { ciblesConnues } from './valider.ts';
 
 export const SEUIL_ORANGE = 3;

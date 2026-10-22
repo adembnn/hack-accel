@@ -1,10 +1,9 @@
 // Handler HTTP sans framework pour POST /api/agents. Le serveur (src/server) le monte : routeAgents(req, res).
 // Entrée  : {T, agents:[{id, role, perception}]}
-// Sortie  : {decisions:[{id, action, cible, message, raison}]}
+// Sortie  : {decisions:[{id, action, cible, message, raison}], jetons, modele, ms} (jetons/modele/ms comme le serveur de la maquette)
 // L'origine de la décision (haiku, cache ou regles) et le coût passent par les en-têtes x-cerveau-*, pour ne pas changer le format fixé.
 import type { IncomingMessage, ServerResponse } from 'node:http';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
-import { creerCerveau, type Cerveau } from './cerveau.ts';
+import { creerCerveau, MODELE, type Cerveau } from './cerveau.ts';
 import type { AgentEntree, Lot } from './types.ts';
 
 export const TAILLE_MAX_CORPS = 256 * 1024;
@@ -73,8 +72,10 @@ export function creerRoute(cerveau: Cerveau): (req: IncomingMessage, res: Server
     }
     try {
       const lot = lireLot(await lireCorps(req));
+      const debut = Date.now();
       const r = await cerveau.decider(lot);
-      repondre(res, 200, { decisions: r.decisions }, {
+      // Mêmes champs annexes que le serveur de la maquette (jetons, modele, ms) : le client de la maquette les lit.
+      repondre(res, 200, { decisions: r.decisions, jetons: { input_tokens: r.jetons.entree, output_tokens: r.jetons.sortie }, modele: r.source === 'regles' ? 'regles' : MODELE, ms: Date.now() - debut }, {
         'x-cerveau-source': r.source,
         'x-cerveau-appels': String(r.appels),
         'x-cerveau-jetons': `${r.jetons.entree}/${r.jetons.sortie}`,

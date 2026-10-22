@@ -148,5 +148,16 @@ export const ROLE_INCONNU: RoleDef = def('individu-inconnu', 'individu', 'Person
 
 /** Retrouve un rôle par identifiant exact, sinon par famille (premier de la famille), sinon rôle minimal. */
 export function resoudreRole(role: string): RoleDef {
-  return PAR_ID.get(role) ?? ROLES.find((r) => r.famille === role) ?? ROLE_INCONNU;
+  return PAR_ID.get(role) ?? PAR_ID.get(ALIAS_MAQUETTE[role] ?? '') ?? ROLES.find((r) => r.famille === role) ?? ROLE_INCONNU;
 }
+
+/** Noms de rôles de la maquette d'Adem (reports/maquettes/chatelet-3d/serveur.mjs) vers nos personnages. */
+const ALIAS_MAQUETTE: Record<string, string> = {
+  pompier: 'pompiers-chef-detachement',
+  chef_de_poste: 'pc-chef-poste',
+  meneur: 'individu-meneur',
+  panique: 'individu-touriste',
+  parent: 'individu-parent',
+  filme: 'individu-touriste',
+  pmr: 'individu-aine',
+};

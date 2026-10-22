@@ -3,11 +3,8 @@ import assert from 'node:assert/strict';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { after, before, test } from 'node:test';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { creerCerveau } from './cerveau.ts';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { lot } from './outils-test.mts';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { creerRoute } from './route.ts';
 
 let serveur: Server;
@@ -32,7 +29,7 @@ test('POST /api/agents : {decisions:[{id, action, cible, message, raison}]}', as
   assert.match(res.headers.get('content-type') ?? '', /application\/json/);
   assert.equal(res.headers.get('x-cerveau-source'), 'regles');
   const corps = (await res.json()) as { decisions: Record<string, unknown>[] };
-  assert.deepEqual(Object.keys(corps), ['decisions']);
+  assert.deepEqual(Object.keys(corps), ['decisions', 'jetons', 'modele', 'ms']);
   assert.equal(corps.decisions.length, 30);
   for (const d of corps.decisions) assert.deepEqual(Object.keys(d).sort(), ['action', 'cible', 'id', 'message', 'raison']);
   assert.equal(appelsReseau, 0);

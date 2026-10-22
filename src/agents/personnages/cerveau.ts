@@ -5,13 +5,9 @@
 // Un cache de rejeu scellé par empreinte sha256 permet de rejouer une démo sans aucun appel.
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { decideParRegles } from './regles.ts';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { resoudreRole } from './roles.ts';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { ACTIONS, type AgentEntree, type Decision, type Lot, type ReponseCerveau, type SourceDecision } from './types.ts';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { validerDecision } from './valider.ts';
 
 export const MODELE = 'claude-haiku-5-5';

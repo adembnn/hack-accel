@@ -1,7 +1,6 @@
 // Validation d'une décision : la sortie du modèle (ou d'une règle) est une donnée, jamais une instruction.
 // Rien de ce qui est écrit dans message ou raison n'est exécuté ni interprété : seuls action et cible, tirées
 // de listes fermées, agissent sur la simulation.
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { ACTIONS, type Action, type AgentEntree, type Decision, type RoleDef } from './types.ts';
 
 export const MESSAGE_MAX = 140;

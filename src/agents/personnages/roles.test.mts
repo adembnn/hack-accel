@@ -1,8 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { ROLES, ROLE_INCONNU, resoudreRole } from './roles.ts';
-// @ts-expect-error TS5097 : Node charge le .ts tel quel (à retirer si tsconfig active allowImportingTsExtensions)
 import { ACTIONS, FAMILLES } from './types.ts';
 
 test('une trentaine de personnages à rôle, identifiants uniques', () => {
@@ -35,4 +33,10 @@ test('résolution : identifiant exact, puis famille, puis rôle minimal', () => 
   assert.equal(resoudreRole('police').famille, 'police');
   assert.equal(resoudreRole('inconnu-total'), ROLE_INCONNU);
   assert.deepEqual(ROLE_INCONNU.actions, ['deplacer', 'appeler_pc', 'attendre']);
+});
+
+test('les rôles de la maquette d’Adem sont reconnus', () => {
+  for (const r of ['securite', 'pompier', 'directeur', 'chef_de_poste', 'ratp', 'police', 'meneur', 'panique', 'parent', 'filme', 'pmr']) {
+    assert.notEqual(resoudreRole(r), ROLE_INCONNU, r);
+  }
 });
